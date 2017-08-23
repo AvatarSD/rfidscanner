@@ -4,50 +4,52 @@
 #include <inttypes.h>
 #include <QJsonObject>
 #include <QString>
+#include <QDateTime>
 
-
+#define TID_LENGHT 12
 
 class TagID
 {
 public:
-    QString toString();
+    TagID(const TagID & id);
+    QString toString() const;
 
 private:
-    uint8_t id[12]
+    uint8_t id[TID_LENGHT];
 };
 
 class Tag
 {
 public:
-    void writeToJson(QJsonObject &json);
+    void writeToJson(QJsonObject &json) const;
 
 private:
     TagID tid;
 };
 
-enum EventType
-{
-    LEFT_ZONE = 1,
-    ENTERED_ZONE = 2
-};
 
 class LogEvent
 {
 public:
-    LogEvent(const TagID &id, EventType evtype, uint64_t unixtime);
+    enum EventType{
+        LEFT_ZONE = 1,
+        ENTERED_ZONE = 2
+    };
+
+    LogEvent(const Tag &id, EventType evtype);
     ~LogEvent();
 
 //    QString readToString();
 //    void readFromJson(QJsonObject &json) const;
-    void writeToJson(QJsonObject &json);
+    void writeToJson(QJsonObject &json) const;
     Tag getTag() const;
     EventType getEvent() const;
-    uint64_t getTimestamp() const;
+    qint64 getMSecsSinceEpoch() const;
 
 private:
-    Tag tag;
-    EventType event;
-    uint64_t timestamp;
+    const Tag tag;
+    const EventType event;
+    const QDateTime time;
 };
 
 /*class LogEventMessage

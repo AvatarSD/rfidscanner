@@ -1,9 +1,15 @@
 #include "types.h"
+#include <cstring>
 
 
 /*********** TagID ***********/
 
-QString TagID::toString()
+TagID::TagID(const TagID &id)
+{
+    memcpy(this->id, id.id, TID_LENGHT);
+}
+
+QString TagID::toString() const
 {
     QString str;
     for(uint i = 0; i < TID_LENGHT; i++){
@@ -16,20 +22,26 @@ QString TagID::toString()
 
 /************ Tag ************/
 
-void Tag::writeToJson(QJsonObject &json)
+void Tag::writeToJson(QJsonObject &json) const
 {
     json["tagid"] = tid.toString();
 }
 
 /********** LogEvent *********/
 
-void LogEvent::writeToJson(QJsonObject &json)
+LogEvent::LogEvent(const Tag &id, LogEvent::EventType evtype) :
+    tag(id), event(evtype), time(QDateTime::currentDateTimeUtc())
+{
+    //time(QDateTime::currentDateTimeUtc());
+}
+
+void LogEvent::writeToJson(QJsonObject &json) const
 {
     QJsonObject tagjson;
     tag.writeToJson(tagjson);
     json["tag"] = tagjson;
-    json["event"] = event;
-    json["timestamp"] = timestamp;
+    json["event"] = getEvent();
+    json["timestamp"] = getMSecsSinceEpoch();
 }
 
 Tag LogEvent::getTag() const
@@ -37,14 +49,14 @@ Tag LogEvent::getTag() const
     return tag;
 }
 
-EventType LogEvent::getEvent() const
+LogEvent::EventType LogEvent::getEvent() const
 {
     return event;
 }
 
-uint64_t LogEvent::getTimestamp() const
+qint64 LogEvent::getMSecsSinceEpoch() const
 {
-    return timestamp;
+    return time.toMSecsSinceEpoch();
 }
 
 //QString LogEvent::readToString()
