@@ -13,3 +13,10 @@ const RFIDMamanger::LogList &RFIDMamanger::getRuntimeList()
 {
     return logs;
 }
+
+/******** SimpleRFIDMamanger ********/
+
+void SimpleRFIDMamanger::run()
+{
+
+}

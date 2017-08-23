@@ -26,5 +26,13 @@ private:
 };
 
 
+class SimpleRFIDMamanger : public RFIDMamanger
+{
+    // RFIDMamanger interface
+public:
+    void run() final;
+};
+
+
 
 #endif // RFIDMAMANGER_H
