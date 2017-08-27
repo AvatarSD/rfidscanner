@@ -29,13 +29,13 @@ typedef uint QValue;
 class ReaderError
 {
 public:
-    ReaderError(const QString & dump, ErrorType error;);
-    virtual ~ReaderError();
-
     enum ErrorType{
         OK = 0,
         ConnectionBreak = 1
     };
+
+    ReaderError(const QString & dump, ErrorType error);
+    virtual ~ReaderError();
 
     void writeToJson(QJsonObject &json) const;
     virtual QString toString() const;
