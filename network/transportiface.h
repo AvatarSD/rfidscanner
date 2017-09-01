@@ -2,58 +2,108 @@
 #define TRANSPORTIFACE_H
 
 #include <QIODevice>
+#include <QString>
+#include <QJsonObject>
+#include <QTcpSocket>
+#include <QHostAddress>
 
-class TransportIface : public QObject
+
+class AuthData
+{
+public:
+    AuthData(QString user, QString pass);
+
+    QString getUser() const;
+    QString getPass() const;
+
+    void write(QJsonObject &json) const;
+
+private:
+    const QString user;
+    const QString pass;
+};
+
+
+class Transport : public QObject
 {
     Q_OBJECT
 public:
-    explicit TransportIface(QIODevice & device, QObject *parent = nullptr);
-    virtual ~TransportIface(){}
+    explicit Transport(const AuthData & auth, QObject *parent = nullptr);
+    virtual ~Transport(){}
 
 public slots:
-    virtual bool connect();
-    virtual bool disconnect();
+    virtual bool connect(){return false;}
+    virtual bool disconnect(){return false;}
 
-    virtual int send(const QJsonDocument & doc);
-    virtual int read(QJsonDocument & doc);
+    virtual int send(const QJsonDocument &){return 0;}
+    virtual int read(QJsonDocument &){return 0;}
 
-    virtual int isMessageAvailable();
+    virtual int isMessageAvailable(){return 0;}
 
 signals:
-    void disconnected();
+    void connectedToHost();
+    void disconnectedFromHost();
 
-//private:
-//    QDataStream stream;
+protected:
+    const AuthData auth;
+    //    QDataStream stream;
 
 };
 
-/*********************/
-// transportIfase  coding and bundle data in to the stream,
-// determine protocol of top level.
-/*********************/
-// stack:
-//  -pack data stream-
-//         |
-//  -work with device-
-/*********************/
-// todo: write and draw stack at paper!!!
-/*********************/
-// SslTransport, Binary, rs485, can, etc
-/*********************/
+/********************
+ transportIfase  coding and bundle data in to the stream,
+ determine protocol of top level.
+*********************
+ stack:
+  -pack data stream-
+         |
+  -work with device-
+*********************
+todo: write and draw stack at paper!!!
+*********************
+SslTransport, Binary, rs485, can, etc
+*********************/
 
-class SimpleTcpClient : public TransportIface
+class NetPoint
+{
+public:
+    NetPoint(const QHostAddress &addr, quint16 port);
+
+    const QHostAddress &getAddr() const;
+    quint16 getPort() const;
+    void setPort(quint16 value);
+
+private:
+    QHostAddress addr;
+    quint16 port;
+};
+
+class SimpleTcpClient : public Transport
 {
     Q_OBJECT
 public:
-    SimpleTcpJsonClient(QObject *parent = nullptr);
+    SimpleTcpClient(const NetPoint & netpoint, const AuthData &auth, QObject *parent = nullptr);
+    ~SimpleTcpClient();
 
-protected slots:
-//    void error(QAbstractSocket::SocketError socketError);
-//    void stateChanged(QAbstractSocket::SocketState socketState);
-//    void disconnected();
+    QTcpSocket *getTcpSocket() const;
+
+public slots:
+    bool connectToServer();
+    void disconnectFromServer();
+    int send(const QJsonObject &object);
+    int read(QJsonObject &);
+    int isMessageAvailable();
+
+private slots:
+    void soketDisconneted();
+    //    void error(QAbstractSocket::SocketError socketError);
+    //    void stateChanged(QAbstractSocket::SocketState socketState);
 
 private:
-    QTcpSocket *tcpSocket;
+    const NetPoint netpoint;
+    bool connRequired;
+    QTcpSocket *socket;
+
 
 };
 

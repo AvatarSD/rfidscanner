@@ -6,9 +6,7 @@ CONFIG += c++11
 SOURCES += main.cpp \
     scanner/rfidmamanger.cpp \
     scanner/rfidreader.cpp \
-    scanner/readertransport.cpp \
     scanner/types.cpp \
-    network/nodeclient.cpp \
     network/networkclient.cpp \
     network/transportiface.cpp
 
@@ -38,8 +36,6 @@ target.path = /home/pi/scanner
 HEADERS += \
     scanner/rfidmamanger.h \
     scanner/rfidreader.h \
-    scanner/readertransport.h \
     scanner/types.h \
-    network/nodeclient.h \
     network/networkclient.h \
     network/transportiface.h

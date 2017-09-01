@@ -1,7 +1,7 @@
 #ifndef RFIDREADER_H
 #define RFIDREADER_H
 
-#include "readertransport.h"
+
 #include "types.h"
 #include <list>
 
@@ -35,11 +35,11 @@ public:
     };
 
     ReaderError(const QString & dump, ErrorType error);
-    virtual ~ReaderError();
+    virtual ~ReaderError(){}
 
     void writeToJson(QJsonObject &json) const;
     virtual QString toString() const;
-    virtual ErrorType getErrorType() const{return (ErrorType)-1;}
+    virtual ErrorType getErrorType() const;
 
 protected:
     const QString dump;
