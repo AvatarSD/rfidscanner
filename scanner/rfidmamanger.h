@@ -11,7 +11,7 @@
 class RFIDMamanger
 {
 public:
-    typedef QList<QSharedPointer<LogEvent>> LogList;
+    typedef QList<QSharedPointer<TagEvent>> LogList;
 
     RFIDMamanger(RFIDReader * reader);
     ~RFIDMamanger();

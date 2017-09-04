@@ -4,23 +4,31 @@
 
 /*********** Tag Memory Banks ***********/
 
-TagID::TagID(const TagID &id)
-{
-    memcpy(this->id, id.id, TID_LENGHT);
+TagID::TagID() : TagMemory(TID) {}
+EPCMem::EPCMem() : TagMemory(EPC) {}
+User::User() : TagMemory(USER) {}
+Reserve::Reserve() : TagMemory(RESERVE) {}
+
+
+TagID::TagID(const TagID &val) : TagID() {*this = val;}
+EPCMem::EPCMem(const EPCMem &val) : EPCMem() {*this = val;}
+User::User(const User &val) : User() {*this = val;}
+Reserve::Reserve(const Reserve &val) : Reserve() {*this = val;}
+
+
+const TagID &TagID::operator =(const TagID &val){
+    memcpy(this->id, val.id, TID_LENGHT);
+    return *this;
 }
 
+const EPCMem &EPCMem::operator =(const EPCMem &val){
+    return *this;}
 
-TagMemory::TagMemoryBank TagID::getMemoryBankNumber() const
-{return TagMemory::TagMemoryBank::TID;}
+const User &User::operator =(const User &val){
+    return *this;}
 
-TagMemory::TagMemoryBank EPCMem::getMemoryBankNumber() const
-{return TagMemory::TagMemoryBank::EPC;}
-
-TagMemory::TagMemoryBank User::getMemoryBankNumber() const
-{return TagMemory::TagMemoryBank::USEER;}
-
-TagMemory::TagMemoryBank Reserve::getMemoryBankNumber() const
-{return TagMemory::TagMemoryBank::RESERVE;}
+const Reserve &Reserve::operator =(const Reserve &val){
+    return *this;}
 
 
 QString TagID::toString() const
@@ -48,6 +56,7 @@ QString Reserve::toString() const
 {
     return "";
 }
+
 
 /************ Tag ************/
 
@@ -99,15 +108,20 @@ void Tag::setReserve(const Reserve &value)
     reserve = value;
 }
 
-/********** LogEvent *********/
+/********** Event *********/
 
-LogEvent::LogEvent(const Tag &id, LogEvent::EventType evtype) :
+qint64 Event::getMSecsSinceEpoch() const
+{
+    return time.toMSecsSinceEpoch();
+}
+
+TagEvent::TagEvent(const Tag &id, TagEventType evtype) :
     tag(id), event(evtype), time(QDateTime::currentDateTimeUtc())
 {
     //time(QDateTime::currentDateTimeUtc());
 }
 
-void LogEvent::writeToJson(QJsonObject &json) const
+void TagEvent::writeToJson(QJsonObject &json) const
 {
     QJsonObject tagjson;
     tag.writeToJson(tagjson);
@@ -116,19 +130,14 @@ void LogEvent::writeToJson(QJsonObject &json) const
     json["timestamp"] = getMSecsSinceEpoch();
 }
 
-Tag LogEvent::getTag() const
+Tag &TagEvent::getTag() const
 {
     return tag;
 }
 
-LogEvent::EventType LogEvent::getEvent() const
+TagEvent::EventType TagEvent::getEvent() const
 {
     return event;
-}
-
-qint64 LogEvent::getMSecsSinceEpoch() const
-{
-    return time.toMSecsSinceEpoch();
 }
 
 

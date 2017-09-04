@@ -5,31 +5,38 @@
 #include <QJsonObject>
 #include <QString>
 #include <QDateTime>
+#include <QJsonParseError>
+#include <QSharedPointer>
+
+
+
+/***************** Tags *****************/
 
 #define TID_LENGHT 12
-
 
 class TagMemory
 {
 public:
-    TagMemory(){}
-    virtual ~TagMemory(){}
     enum TagMemoryBank{
-        RESERVE = 0b00,
-        EPC = 0b01,
-        TID = 0b10,
-        USEER = 0b11
+        NONE = 0,
+        RESERVE = 0b0001,
+        EPC = 0b0010,
+        TID = 0b0100,
+        USER = 0b1000
     };
-    virtual TagMemoryBank getMemoryBankNumber() const{return (TagMemoryBank)-1;}
-    virtual QString toString() const {return "";}
+    TagMemory(TagMemoryBank typ = NONE) : memoryBankType(typ){}
+    virtual ~TagMemory(){}
+    virtual QString toString() const {return "nulltag";}
+    const TagMemoryBank memoryBankType;
 };
-
 
 class TagID : public TagMemory
 {
 public:
-    TagID(const TagID & id);
-    TagMemory::TagMemoryBank getMemoryBankNumber() const;
+    TagID();
+    TagID(const TagID & val);
+    const TagID &operator =(const TagID & val);
+    virtual ~TagID(){}
     QString toString() const;
 private:
     uint8_t id[TID_LENGHT];
@@ -38,30 +45,45 @@ private:
 class EPCMem : public TagMemory
 {
 public:
-    TagMemory::TagMemoryBank getMemoryBankNumber() const;
+    EPCMem();
+    EPCMem(const EPCMem & val);
+    const EPCMem &operator =(const EPCMem & val);
+    virtual ~EPCMem(){}
     QString toString() const;
+private:
+    // todo
 };
 
 class User : public TagMemory
 {
 public:
-    TagMemory::TagMemoryBank getMemoryBankNumber() const;
+    User();
+    User(const User & val);
+    const User &operator =(const User & val);
+    virtual ~User(){}
     QString toString() const;
+private:
+    // todo
 };
 
 class Reserve : public TagMemory
 {
 public:
-    TagMemory::TagMemoryBank getMemoryBankNumber() const;
+    Reserve();
+    Reserve(const Reserve & val);
+    const Reserve &operator =(const Reserve & val);
+    virtual ~Reserve(){}
     QString toString() const;
+private:
+    // todo
 };
 
+/***************** Tag ******************/
 
-class Tag
+class Tag : public Serialaizeable
 {
 public:
     Tag(const TagID&, const EPCMem&, const User&, const Reserve&);
-    void writeToJson(QJsonObject &json) const;
     const TagID & getTagID() const;
     const EPCMem & getEpc() const;
     const User & getUser() const;
@@ -70,46 +92,86 @@ public:
     void setUser(const User &value);
     void setReserve(const Reserve &value);
 
+    // Serialaizeable interface
+    QString toString() const;
+    void toJson(QJsonObject &) const;
+    void fromJson(const QJsonObject &, QJsonParseError *);
+
 private:
     const TagID tid;
     EPCMem epc;
     User user;
     Reserve reserve;
+
 };
 
 
-class LogEvent
+/************* Serialaizeable ************/
+
+class Serialaizeable
+{
+public:
+    Serialaizeable(){}
+    virtual ~Serialaizeable(){}
+    /*** interface: ***/
+    virtual QString toString() const {return QStringLiteral("");}
+    virtual void toJson(QJsonObject&) const {}
+    virtual void fromJson(const QJsonObject&, QJsonParseError*) {}
+};
+
+/***************** CMDs *****************/
+//enum CommandsId {
+//};
+
+
+/***************** Event ******************/
+
+class Event : public Serialaizeable
 {
 public:
     enum EventType{
-        LEFT_ZONE = 1,
-        ENTERED_ZONE = 2
-    };
+        ERR = 0,
+        TAG = 1};
+    Event(EventType event) : event(event) {}
+    virtual ~Event(){}
 
-    LogEvent(const Tag &id, EventType evtype);
-    ~LogEvent();
-
-//    QString readToString();
-//    void readFromJson(QJsonObject &json) const;
-    void writeToJson(QJsonObject &json) const;
-    Tag getTag() const;
-    EventType getEvent() const;
-    qint64 getMSecsSinceEpoch() const;
-
-private:
-    const Tag tag;
     const EventType event;
     const QDateTime time;
+    static qint64 getMSecsSinceEpoch() const;
+
+    // Serialaizeable interface
+    virtual QString toString() const;
+    virtual void toJson(QJsonObject &) const;
+    virtual void fromJson(const QJsonObject &, QJsonParseError *);
 };
 
-/*class LogEventMessage
+class TagEvent : public Event
+{
+public:
+    enum TagEventType{
+        TAG_LEFT_ZONE = 1,
+        TAG_ENTERED_ZONE = 2};
+
+    TagEvent(const QSharedPointer<Tag> &tag, TagEventType evtype) :
+        Event(TAG), tagevent(evtype), tag(tag) {}
+    virtual ~TagEvent(){}
+
+    // Serialaizeable interface
+    virtual QString toString() const;
+    virtual void toJson(QJsonObject &) const;
+    virtual void fromJson(const QJsonObject &, QJsonParseError *);
+
+    Tag & getTag() const {return *tag;}
+    const TagEventType tagevent;
+private:
+    QSharedPointer<Tag> tag;
+};
+
+
+class ErrEvent : public Event
 {
 
-};*/
-
-
-
-
+};
 
 
 

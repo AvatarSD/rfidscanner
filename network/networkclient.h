@@ -1,30 +1,44 @@
 #ifndef NETWORKCLIENT_H
 #define NETWORKCLIENT_H
 
+#include "transportiface.h"
+#include <QObject>
+#include <types.h>
 
-class NetworkClient
+class NetworkClient : public QObject
 {
+    Q_OBJECT
 public:
-    NetworkClient();
+    NetworkClient(Transport * transport, QObject *parent = nullptr);
     virtual ~NetworkClient(){}
-
+public slots:
     virtual void run();
+//    virtual void
+
+protected:
+    Transport * transport;
 };
 
 
-class PollingClient : public NetworkClient
-{
-    void run();
-};
+/* need to set:
+ *  *Transport
+ *  **ip and port endpoint
+ *  **
+ */
 
 class EventClient : public NetworkClient
 {
-    void run();
+    virtual void run();
+};
+
+class PollingClient : public NetworkClient
+{
+    virtual void run();
 };
 
 class RpcClient : public NetworkClient
 {
-    void run();
+    virtual void run();
 };
 
 #endif // NETWORKCLIENT_H

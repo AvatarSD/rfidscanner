@@ -3,8 +3,7 @@
 
 
 #include "types.h"
-#include <list>
-
+#include <QObject>
 
 /**** General Reader Settings ****/
 typedef int dBm;
