@@ -8,33 +8,35 @@
 #include <QList>
 #include <QDateTime>
 #include <QThread>
+#include <QTimer>
 
-
+/************* TagStatus *************/
 class TagStatus
 {
 
 public:
-    QDateTime getLastVisiagleTime() const;
-    void setLastVisiagleTime(const QDateTime &value);
+    QDateTime getLastVisiableTime() const;
+    void setLastVisiableTime(const QDateTime &value);
     uint getReadCount() const;
     void setReadCount(const uint &value);
     int getRssi() const;
     void setRssi(int value);
 
 private:
-    QDateTime lastVisiagleTime;
+    QDateTime lastVisiableTime;
     uint readCount;
     int rssi;
 };
 
+/*********** RFIDManamger ***********/
 class RFIDMamanger : public QObject
 {
     Q_OBJECT
 public:
     typedef QMap<TagID,TagStatus> TagField;
 
-    RFIDMamanger(QSharedPointer<RFIDReader> reader);
-    ~RFIDMamanger();
+    RFIDMamanger();
+    virtual ~RFIDMamanger();
 
 public slots:
     virtual void run(){}
@@ -45,18 +47,29 @@ signals:
     void fieldEvent(QSharedPointer<TagEvent> event);
     void otherEvent(QSharedPointer<InfoEvent> event);
 
-private:
-    TagField field;
-    QSharedPointer<RFIDReader> reader;
-    QThread * thread;
+protected:
+    QThread thread;
 };
 
-
+/******** SimpleRFIDMamanger ********/
 class SimpleRFIDMamanger : public RFIDMamanger
 {
     Q_OBJECT
 public:
-    void run() final;
+    SimpleRFIDMamanger(QSharedPointer<RFIDReader> reader);
+    virtual ~SimpleRFIDMamanger();
+
+public slots:
+    virtual void run();
+    virtual void stop();
+
+protected slots:
+    virtual void onTimer();
+
+private:
+    QTimer timer;
+    TagField field;
+    QSharedPointer<RFIDReader> reader;
 };
 
 

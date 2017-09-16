@@ -1,13 +1,16 @@
 #include "rfidmamanger.h"
 
-QDateTime TagStatus::getLastVisiagleTime() const
+
+/************* TagStatus *************/
+
+QDateTime TagStatus::getLastVisiableTime() const
 {
-    return lastVisiagleTime;
+    return lastVisiableTime;
 }
 
-void TagStatus::setLastVisiagleTime(const QDateTime &value)
+void TagStatus::setLastVisiableTime(const QDateTime &value)
 {
-    lastVisiagleTime = value;
+    lastVisiableTime = value;
 }
 
 uint TagStatus::getReadCount() const
@@ -33,22 +36,45 @@ void TagStatus::setRssi(int value)
 
 /*********** RFIDManamger ***********/
 
-RFIDMamanger::RFIDMamanger(QSharedPointer<RFIDReader> reader) :
-    reader(reader)
+RFIDMamanger::RFIDMamanger()
 {
-    thread = new QThread;
-    this->moveToThread(thread);
+    this->moveToThread(&thread);
+    connect(&thread, SIGNAL(finished()), this, SLOT(deleteLater()));
+    thread.start();
 }
 
 RFIDMamanger::~RFIDMamanger()
 {
-    delete thread;
+    thread.quit();
+    thread.wait();
 }
 
 
 /******** SimpleRFIDMamanger ********/
 
-void SimpleRFIDMamanger::run()
+SimpleRFIDMamanger::SimpleRFIDMamanger(QSharedPointer<RFIDReader> reader) :
+    RFIDMamanger(), timer(this), reader(reader)
+{
+    connect(&timer, SIGNAL(timeout()), this, SLOT(onTimer()));
+}
+
+SimpleRFIDMamanger::~SimpleRFIDMamanger()
 {
 
 }
+
+void SimpleRFIDMamanger::run()
+{
+    timer.start(10);
+}
+
+void SimpleRFIDMamanger::stop()
+{
+    timer.stop();
+}
+
+void SimpleRFIDMamanger::onTimer()
+{
+
+}
+

@@ -9,7 +9,9 @@ SOURCES += main.cpp \
     types.cpp \
     network/networkclient.cpp \
     network/transportiface.cpp \
-    events.cpp
+    events.cpp \
+    scanner/transport.cpp \
+    scanner/rfidprotocol.cpp
 
 RESOURCES += qml.qrc
 
@@ -40,4 +42,6 @@ HEADERS += \
     types.h \
     network/networkclient.h \
     network/transportiface.h \
-    events.h
+    events.h \
+    scanner/transport.h \
+    scanner/rfidprotocol.h
