@@ -64,7 +64,7 @@ public:
 class InfoEvent : public Event
 {
 public:
-    enum EventRange{
+    enum EventLevel{
         DEBUG = 1,
         INFO = 2,
         WARNING = 3,
@@ -78,13 +78,15 @@ public:
         COMMANDER = 4
     };
 
-    InfoEvent(EventRange range, EventPlace place, QString dscr) :
-        Event(INF), range(range), place(place), description(dscr) {}
+    InfoEvent(EventLevel level, EventPlace place, QString dscr, int eventid) :
+        Event(INF), level(level), place(place), description(dscr), eventid(eventid)
+    {}
     virtual ~InfoEvent(){}
 
-    const EventRange range;
+    const EventLevel level;
     const EventPlace place;
     const QString description;
+    const int eventid;
 
     // Serialaizeable interface
     virtual QString toString() const;
@@ -95,67 +97,51 @@ public:
 class ScannerEvent : public InfoEvent
 {
 public:
-    enum ErrorType{
+    enum IDs{
         OK = 0,
         ConnectionBreak = 1
     };
-    ScannerEvent(EventRange range, QString dscr, ErrorType error) :
-        InfoEvent(range, SCANNER, dscr), error(error) {}
+    ScannerEvent(EventLevel level, IDs eventid, QString dscr) :
+        InfoEvent(level, EventPlace::SCANNER, dscr, eventid) {}
     virtual ~ScannerEvent(){}
-    const ErrorType error;
-    // Serialaizeable interface
-    virtual QString toString() const;
-    virtual QJsonObject toJson() const;
 };
 
 class NetworkEvent : public InfoEvent
 {
 public:
-    enum ErrorType{
+    enum IDs{
         OK = 0,
         ConnectionBreak = 1
     };
-    NetworkEvent(EventRange range, QString dscr, ErrorType error) :
-        InfoEvent(range, NETWORK, dscr), error(error) {}
+    NetworkEvent(EventLevel level, IDs eventid, QString dscr) :
+        InfoEvent(level, NETWORK, dscr, eventid) {}
     virtual ~NetworkEvent(){}
-    const ErrorType error;
-    // Serialaizeable interface
-    virtual QString toString() const;
-    virtual QJsonObject toJson() const;
 };
 
 class SystemEvent : public InfoEvent
 {
 public:
-    enum ErrorType{
+    enum IDs{
         OK = 0,
-        ConnectionBreak = 1
+        SPACE_LEFT = 1
     };
-    SystemEvent(EventRange range, QString dscr, ErrorType error) :
-        InfoEvent(range, SYSTEM, dscr), error(error) {}
+    SystemEvent(EventLevel level, IDs eventid, QString dscr) :
+        InfoEvent(level, SYSTEM, dscr, eventid) {}
     virtual ~SystemEvent(){}
-    const ErrorType error;
-    // Serialaizeable interface
-    virtual QString toString() const;
-    virtual QJsonObject toJson() const;
 };
 
 class CommanderEvent : public InfoEvent
 {
 public:
-    enum ErrorType{
+    enum IDs{
         OK = 0,
-        ConnectionBreak = 1
+        UNKNOW_CMD = 1
     };
-    CommanderEvent(EventRange range, QString dscr, ErrorType error) :
-        InfoEvent(range, COMMANDER, dscr), error(error) {}
+    CommanderEvent(EventLevel level, IDs eventid, QString dscr) :
+        InfoEvent(level, COMMANDER, dscr, eventid) {}
     virtual ~CommanderEvent(){}
-    const ErrorType error;
-    // Serialaizeable interface
-    virtual QString toString() const;
-    virtual QJsonObject toJson() const;
 };
 
-
+// todo: impl event ID's !
 
 #endif // EVENTS_H
