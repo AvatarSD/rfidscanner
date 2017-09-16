@@ -1,35 +1,25 @@
 #include "types.h"
 #include <cstring>
+#include <stdio.h>
 
 
 /*********** Tag Memory Banks ***********/
 
 TagID::TagID() : TagMemory(TID) {}
-EPCMem::EPCMem() : TagMemory(EPC) {}
-User::User() : TagMemory(USER) {}
-Reserve::Reserve() : TagMemory(RESERVE) {}
-
-
 TagID::TagID(const TagID &val) : TagID() {*this = val;}
-EPCMem::EPCMem(const EPCMem &val) : EPCMem() {*this = val;}
-User::User(const User &val) : User() {*this = val;}
-Reserve::Reserve(const Reserve &val) : Reserve() {*this = val;}
-
 
 const TagID &TagID::operator =(const TagID &val){
     memcpy(this->id, val.id, TID_LENGHT);
     return *this;
 }
 
-const EPCMem &EPCMem::operator =(const EPCMem &val){
-    return *this;}
-
-const User &User::operator =(const User &val){
-    return *this;}
-
-const Reserve &Reserve::operator =(const Reserve &val){
-    return *this;}
-
+bool TagID::operator ==(const TagID &val)
+{
+    for(uint i = 0; i < TID_LENGHT; i++)
+        if(id[i] != val.id[i])
+            return false;
+    return true;
+}
 
 QString TagID::toString() const
 {
@@ -42,7 +32,34 @@ QString TagID::toString() const
     return str;
 }
 
-QString EPCMem::toString() const
+int TagID::fromString(const QString &tag)
+{
+    return sscanf(tag.toUtf8().data(),
+                  "%X:%X:%X:%X:%X:%X:%X:%X",
+                  id+0, id+1, id+2, id+3,
+                  id+4, id+5, id+6, id+7);
+}
+
+/*EPCMem::EPCMem() : TagMemory(EPC) {}
+User::User() : TagMemory(USER) {}
+Reserve::Reserve() : TagMemory(RESERVE) {}
+
+
+EPCMem::EPCMem(const EPCMem &val) : EPCMem() {*this = val;}
+User::User(const User &val) : User() {*this = val;}
+Reserve::Reserve(const Reserve &val) : Reserve() {*this = val;}
+*/
+
+/*const EPCMem &EPCMem::operator =(const EPCMem &val){
+    return *this;}
+
+const User &User::operator =(const User &val){
+    return *this;}
+
+const Reserve &Reserve::operator =(const Reserve &val){
+    return *this;}
+*/
+/*QString EPCMem::toString() const
 {
     return "";
 }
@@ -56,10 +73,10 @@ QString Reserve::toString() const
 {
     return "";
 }
-
+*/
 
 /************ Tag ************/
-
+/*
 Tag::Tag(const TagID &tid, const EPCMem &epc,
          const User &user, const Reserve &reserve) :
     tid(tid), epc(epc), user(user), reserve(reserve)
@@ -107,37 +124,7 @@ void Tag::setReserve(const Reserve &value)
 {
     reserve = value;
 }
+*/
 
-/********** Event *********/
-
-qint64 Event::getMSecsSinceEpoch() const
-{
-    return time.toMSecsSinceEpoch();
-}
-
-TagEvent::TagEvent(const Tag &id, TagEventType evtype) :
-    tag(id), event(evtype), time(QDateTime::currentDateTimeUtc())
-{
-    //time(QDateTime::currentDateTimeUtc());
-}
-
-void TagEvent::writeToJson(QJsonObject &json) const
-{
-    QJsonObject tagjson;
-    tag.writeToJson(tagjson);
-    json["tag"] = tagjson;
-    json["event"] = getEvent();
-    json["timestamp"] = getMSecsSinceEpoch();
-}
-
-Tag &TagEvent::getTag() const
-{
-    return tag;
-}
-
-TagEvent::EventType TagEvent::getEvent() const
-{
-    return event;
-}
 
 

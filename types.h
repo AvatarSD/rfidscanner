@@ -9,12 +9,25 @@
 #include <QSharedPointer>
 
 
+/************* Serialaizeable ************/
 
-/***************** Tags *****************/
+class Serialaizeable
+{
+public:
+    Serialaizeable(){}
+    virtual ~Serialaizeable(){}
+    /*** interface: ***/
+    virtual QString toString() const {return QStringLiteral("");}
+    virtual QJsonObject toJson() const {return QJsonObject();}
+    virtual QJsonParseError fromJson(const QJsonObject&) {return QJsonParseError();}
+};
+
+
+/************** Tag Memory **************/
 
 #define TID_LENGHT 12
 
-class TagMemory
+class TagMemory : public Serialaizeable
 {
 public:
     enum TagMemoryBank{
@@ -26,7 +39,7 @@ public:
     };
     TagMemory(TagMemoryBank typ = NONE) : memoryBankType(typ){}
     virtual ~TagMemory(){}
-    virtual QString toString() const {return "nulltag";}
+    virtual QString toString() const {return QStringLiteral("nulltag");}
     const TagMemoryBank memoryBankType;
 };
 
@@ -36,12 +49,14 @@ public:
     TagID();
     TagID(const TagID & val);
     const TagID &operator =(const TagID & val);
+    bool operator ==(const TagID & val);
     virtual ~TagID(){}
-    QString toString() const;
+    virtual QString toString() const;
+    int fromString(const QString& tag);
 private:
     uint8_t id[TID_LENGHT];
 };
-
+/*
 class EPCMem : public TagMemory
 {
 public:
@@ -49,7 +64,8 @@ public:
     EPCMem(const EPCMem & val);
     const EPCMem &operator =(const EPCMem & val);
     virtual ~EPCMem(){}
-    QString toString() const;
+    virtual QSharedPointer<QString> toString() const;
+    virtual QSharedPointer<QJsonObject> toJson() const;
 private:
     // todo
 };
@@ -61,7 +77,8 @@ public:
     User(const User & val);
     const User &operator =(const User & val);
     virtual ~User(){}
-    QString toString() const;
+    virtual QSharedPointer<QString> toString() const;
+    virtual QSharedPointer<QJsonObject> toJson() const;
 private:
     // todo
 };
@@ -73,13 +90,15 @@ public:
     Reserve(const Reserve & val);
     const Reserve &operator =(const Reserve & val);
     virtual ~Reserve(){}
-    QString toString() const;
+    virtual QSharedPointer<QString> toString() const;
+    virtual QSharedPointer<QJsonObject> toJson() const;
 private:
     // todo
-};
+};*/
+
 
 /***************** Tag ******************/
-
+/*
 class Tag : public Serialaizeable
 {
 public:
@@ -103,77 +122,7 @@ private:
     User user;
     Reserve reserve;
 
-};
-
-
-/************* Serialaizeable ************/
-
-class Serialaizeable
-{
-public:
-    Serialaizeable(){}
-    virtual ~Serialaizeable(){}
-    /*** interface: ***/
-    virtual QString toString() const {return QStringLiteral("");}
-    virtual void toJson(QJsonObject&) const {}
-    virtual void fromJson(const QJsonObject&, QJsonParseError*) {}
-};
-
-/***************** CMDs *****************/
-//enum CommandsId {
-//};
-
-
-/***************** Event ******************/
-
-class Event : public Serialaizeable
-{
-public:
-    enum EventType{
-        ERR = 0,
-        TAG = 1};
-    Event(EventType event) : event(event) {}
-    virtual ~Event(){}
-
-    const EventType event;
-    const QDateTime time;
-    static qint64 getMSecsSinceEpoch() const;
-
-    // Serialaizeable interface
-    virtual QString toString() const;
-    virtual void toJson(QJsonObject &) const;
-    virtual void fromJson(const QJsonObject &, QJsonParseError *);
-};
-
-class TagEvent : public Event
-{
-public:
-    enum TagEventType{
-        TAG_LEFT_ZONE = 1,
-        TAG_ENTERED_ZONE = 2};
-
-    TagEvent(const QSharedPointer<Tag> &tag, TagEventType evtype) :
-        Event(TAG), tagevent(evtype), tag(tag) {}
-    virtual ~TagEvent(){}
-
-    // Serialaizeable interface
-    virtual QString toString() const;
-    virtual void toJson(QJsonObject &) const;
-    virtual void fromJson(const QJsonObject &, QJsonParseError *);
-
-    Tag & getTag() const {return *tag;}
-    const TagEventType tagevent;
-private:
-    QSharedPointer<Tag> tag;
-};
-
-
-class ErrEvent : public Event
-{
-
-};
-
-
+};*/
 
 
 

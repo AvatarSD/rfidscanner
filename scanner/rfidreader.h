@@ -3,6 +3,7 @@
 
 
 #include "types.h"
+#include "events.h"
 #include <QObject>
 
 /**** General Reader Settings ****/
@@ -24,27 +25,6 @@ enum Session{
 };
 typedef uint QValue;
 
-/**** Reader Errors ****/
-class ReaderError
-{
-public:
-    enum ErrorType{
-        OK = 0,
-        ConnectionBreak = 1
-    };
-
-    ReaderError(const QString & dump, ErrorType error);
-    virtual ~ReaderError(){}
-
-    void writeToJson(QJsonObject &json) const;
-    virtual QString toString() const;
-    virtual ErrorType getErrorType() const;
-
-protected:
-    const QString dump;
-    const ErrorType error;
-    const QDateTime time;
-};
 
 /**** RFID Reader ****/
 class RFIDReader
@@ -53,7 +33,7 @@ public:
     RFIDReader();
     virtual ~RFIDReader(){}
 
-    bool getFullMem(Tag& tag);
+   /* bool getFullMem(Tag& tag);
     const std::list<ReaderError> & getReaderErrors();
 
     virtual bool scanVisiableTags(QList<Tag> & tags){return false;};
@@ -80,10 +60,7 @@ public:
     virtual bool setModulationd(Modulation& modulation){return false;};
     virtual bool setTarget(Target& inventory){return false;};
     virtual bool setSession(Session& session){return false;};
-    virtual bool setQValue(QValue& q){return false;};
-
-protected:
-    std::list<ReaderError> errors;
+    virtual bool setQValue(QValue& q){return false;};*/
 };
 
 class RFIDReaderSettings

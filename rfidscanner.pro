@@ -6,9 +6,10 @@ CONFIG += c++11
 SOURCES += main.cpp \
     scanner/rfidmamanger.cpp \
     scanner/rfidreader.cpp \
-    scanner/types.cpp \
+    types.cpp \
     network/networkclient.cpp \
-    network/transportiface.cpp
+    network/transportiface.cpp \
+    events.cpp
 
 RESOURCES += qml.qrc
 
@@ -36,6 +37,7 @@ target.path = /home/pi/scanner
 HEADERS += \
     scanner/rfidmamanger.h \
     scanner/rfidreader.h \
-    scanner/types.h \
+    types.h \
     network/networkclient.h \
-    network/transportiface.h
+    network/transportiface.h \
+    events.h
