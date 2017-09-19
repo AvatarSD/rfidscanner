@@ -1,6 +1,6 @@
 #include "rfidprotocol.h"
 
-RFIDProtocol::RFIDProtocol()
+Protocol::Protocol()
 {
 
 }

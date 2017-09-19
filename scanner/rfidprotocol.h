@@ -1,11 +1,12 @@
 #ifndef RFIDPROTOCOL_H
 #define RFIDPROTOCOL_H
 
+#include "types.h"
 
-class RFIDProtocol
+class Protocol
 {
 public:
-    RFIDProtocol();
+    Protocol();
 
     /* bool getFullMem(Tag& tag);
      const std::list<ReaderError> & getReaderErrors();
@@ -37,5 +38,31 @@ public:
      virtual bool setQValue(QValue& q){return false;};*/
 
 };
+
+class ScannerRequest : public Serialaizeable
+{
+public:
+    ScannerRequest(){}
+    virtual ~ScannerRequest(){}
+
+    virtual QByteArray execute(const Protocol & prot);
+
+    // Serialaizeable interface
+    virtual QString toString() const;
+    virtual QJsonObject toJson() const;
+    virtual QJsonParseError fromJson(const QJsonObject &);
+};
+
+class ScannerReply : public Serialaizeable
+{
+public:
+    ScannerReply(){}
+    virtual ~ScannerReply(){}
+
+    // Serialaizeable interface
+    virtual QString toString() const;
+    virtual QJsonObject toJson() const;
+};
+
 
 #endif // RFIDPROTOCOL_H
