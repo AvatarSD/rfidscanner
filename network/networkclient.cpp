@@ -1,7 +1,7 @@
 #include "networkclient.h"
 
 
-NetworkClient::NetworkClient(Transport *transport, QObject *parent) :
+NetworkClient::NetworkClient(NetClient *transport, QObject *parent) :
     QObject (parent), transport(transport)
 {
 

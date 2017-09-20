@@ -9,19 +9,19 @@ class NetworkClient : public QObject
 {
     Q_OBJECT
 public:
-    NetworkClient(Transport * transport, QObject *parent = nullptr);
+    NetworkClient(NetClient * transport, QObject *parent = nullptr);
     virtual ~NetworkClient(){}
 public slots:
     virtual void run();
 //    virtual void
 
 protected:
-    Transport * transport;
+    NetClient * transport;
 };
 
 
 /* need to set:
- *  *Transport
+ *  *NetClient
  *  **ip and port endpoint
  *  **
  */

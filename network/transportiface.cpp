@@ -21,7 +21,7 @@ void AuthData::write(QJsonObject &json) const
     json["pass"] = pass;
 }
 
-Transport::Transport(const AuthData & auth, QObject *parent) :
+NetClient::NetClient(const AuthData & auth, QObject *parent) :
     QObject(parent), auth(auth)
 {}
 
@@ -45,7 +45,7 @@ void NetPoint::setPort(quint16 value)
 }
 
 SimpleTcpClient::SimpleTcpClient(const NetPoint &netpoint, const AuthData & auth, QObject *parent) :
-    Transport(auth, parent), netpoint(netpoint)
+    NetClient(auth, parent), netpoint(netpoint)
 {
     socket = new QTcpSocket();
     QObject::connect(socket, SIGNAL(disconnected()), this, SLOT(soketDisconneted()));

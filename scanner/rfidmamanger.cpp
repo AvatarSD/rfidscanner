@@ -39,7 +39,6 @@ void TagStatus::setRssi(int value)
 RFIDMamanger::RFIDMamanger()
 {
     this->moveToThread(&thread);
-    connect(&thread, SIGNAL(finished()), this, SLOT(deleteLater()));
     thread.start();
 }
 

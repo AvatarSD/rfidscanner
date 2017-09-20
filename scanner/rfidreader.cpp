@@ -1,6 +1,6 @@
 #include "rfidreader.h"
 
-RFIDReader::RFIDReader(QSharedPointer<Protocol> prot, QSharedPointer<Transport> trnsp):
+RFIDReader::RFIDReader(QSharedPointer<Protocol> prot, QSharedPointer<PhyTransport> trnsp):
     protocol(prot), transport(trnsp)
 {
 

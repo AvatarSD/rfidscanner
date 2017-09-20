@@ -43,26 +43,26 @@ class RFIDReader : public QObject
 {
     Q_OBJECT
 public:
-    RFIDReader(QSharedPointer<Protocol> prot, QSharedPointer<Transport> trnsp);
+    RFIDReader(QSharedPointer<Protocol>, QSharedPointer<PhyTransport>);
     virtual ~RFIDReader(){}
 
 public slots:
-    virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest> cmd);
-    virtual void execAsync(QSharedPointer<ScannerRequest> cmd);
+    virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
+    virtual void execAsync(QSharedPointer<ScannerRequest>)=0;
 
 signals:
-    void executed(QSharedPointer<ScannerReply> cmd);
-    void otherEvent(QSharedPointer<InfoEvent> event);
+    void executed(QSharedPointer<ScannerReply>);
+    void otherEvent(QSharedPointer<InfoEvent>);
 
 protected:
     QSharedPointer<Protocol> protocol;
-    QSharedPointer<Transport> transport;
+    QSharedPointer<PhyTransport> transport;
 //    QQueue<QSharedPointer<ScannerRequest>> msgQueue;
 
 protected slots:
-    virtual void read(QByteArray data);
+    virtual void inData(QByteArray)=0;
 signals:
-    void write(QByteArray data);
+    void outData(QByteArray);
 
 };
 

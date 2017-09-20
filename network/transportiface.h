@@ -24,12 +24,12 @@ private:
 };
 
 
-class Transport : public QObject
+class NetClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit Transport(const AuthData & auth, QObject *parent = nullptr);
-    virtual ~Transport(){}
+    explicit NetClient(const AuthData & auth, QObject *parent = nullptr);
+    virtual ~NetClient(){}
 
 public slots:
     virtual bool connect(){return false;}
@@ -78,7 +78,7 @@ private:
     quint16 port;
 };
 
-class SimpleTcpClient : public Transport
+class SimpleTcpClient : public NetClient
 {
     Q_OBJECT
 public:

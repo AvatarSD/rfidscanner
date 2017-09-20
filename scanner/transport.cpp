@@ -1,6 +1,13 @@
 #include "transport.h"
 
-Transport::Transport(QObject *parent) : QObject(parent)
+PhyTransport::PhyTransport() : QObject(nullptr)
 {
+    this->moveToThread(&thread);
+    thread.start();
+}
 
+PhyTransport::~PhyTransport()
+{
+    thread.quit();
+    thread.wait();
 }
