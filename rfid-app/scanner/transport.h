@@ -24,7 +24,7 @@ public slots:
     virtual int open()=0;
     virtual void close()=0;
     virtual void outData(QByteArray data)=0;
-    virtual bool isOpen();
+    virtual bool isOpen()=0;
 
 protected:
 

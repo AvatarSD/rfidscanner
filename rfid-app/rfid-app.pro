@@ -1,7 +1,7 @@
-TEMPLATE = app
+TEMPLATE = app subdirs
 
 QT += qml quick
-CONFIG += c++11
+CONFIG += c++14
 
 SOURCES += main.cpp \
     scanner/rfidmamanger.cpp \
@@ -45,3 +45,7 @@ HEADERS += \
     events.h \
     scanner/transport.h \
     scanner/rfidprotocol.h
+
+
+LIBS += qusb
+
