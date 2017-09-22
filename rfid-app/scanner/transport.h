@@ -21,16 +21,17 @@ signals:
     void otherEvent(QSharedPointer<InfoEvent>);
 
 public slots:
+    virtual void outData(QByteArray data)=0;
     virtual int open()=0;
     virtual void close()=0;
-    virtual void outData(QByteArray data)=0;
     virtual bool isOpen()=0;
 
-protected:
-
+protected slots:
+    virtual void run()=0;
 
 private:
     QThread thread;
+    QTimer timer;
 };
 
 #endif // TRANSPORT_H

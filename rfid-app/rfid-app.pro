@@ -11,7 +11,9 @@ SOURCES += main.cpp \
     network/transportiface.cpp \
     events.cpp \
     scanner/transport.cpp \
-    scanner/rfidprotocol.cpp
+    scanner/rfidprotocol.cpp \
+    scanner/ConcreteScanners/chinecompacthidscanner.cpp \
+    scanner/commands.cpp
 
 RESOURCES += qml.qrc
 
@@ -44,8 +46,10 @@ HEADERS += \
     network/transportiface.h \
     events.h \
     scanner/transport.h \
-    scanner/rfidprotocol.h
+    scanner/rfidprotocol.h \
+    scanner/ConcreteScanners/chinecompacthidscanner.h \
+    scanner/commands.h
 
-
-LIBS += qusb
+INCLUDEPATH += ../QUSB/src
+LIBS += -L../../build-meta-rfid-Desktop_Qt_5_9_1_GCC_64bit-Release/QUSB/lib -lqusb
 

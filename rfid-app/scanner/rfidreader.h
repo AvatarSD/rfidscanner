@@ -47,7 +47,7 @@ public:
     virtual ~RFIDReader(){}
 
 public slots:
-    virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
+    //virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
     virtual void execAsync(QSharedPointer<ScannerRequest>)=0;
 
 signals:
