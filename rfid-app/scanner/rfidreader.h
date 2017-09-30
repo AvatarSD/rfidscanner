@@ -11,7 +11,7 @@
 
 
 /**** General Reader Settings ****/
-typedef int dBm;
+/*typedef int dBm;
 typedef int Frequency;
 typedef std::list<Frequency> WorkingFrequencies;
 enum Modulation{
@@ -27,13 +27,13 @@ enum Target{
 enum Session{
     S0 = 0, S1 = 1, S2 = 2, S3 = 3
 };
-typedef uint QValue;
+typedef uint QValue;*/
 
 /************/
-class RFIDReaderSettings
+/*class RFIDReaderSettings
 {
 
-};
+};*/
 
 
 

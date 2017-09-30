@@ -1,12 +1,11 @@
 #ifndef TRANSPORTIFACE_H
 #define TRANSPORTIFACE_H
 
-#include <QIODevice>
 #include <QString>
 #include <QJsonObject>
 #include <QTcpSocket>
 #include <QHostAddress>
-
+#include "events.h"
 
 class AuthData
 {
@@ -28,25 +27,24 @@ class NetClient : public QObject
 {
     Q_OBJECT
 public:
-    explicit NetClient(const AuthData & auth, QObject *parent = nullptr);
+    explicit NetClient(const AuthData & auth);
     virtual ~NetClient(){}
 
 public slots:
-    virtual bool connect(){return false;}
-    virtual bool disconnect(){return false;}
+    virtual int send(const QJsonDocument &) = 0; //by mutex
+    virtual bool connectToHost() = 0;
+    virtual bool disconnectFromHost() = 0;
 
-    virtual int send(const QJsonDocument &){return 0;}
-    virtual int read(QJsonDocument &){return 0;}
-
-    virtual int isMessageAvailable(){return 0;}
 
 signals:
+    int read(QJsonDocument &);
     void connectedToHost();
     void disconnectedFromHost();
+    void otherEvent(QSharedPointer<InfoEvent>);
 
 protected:
     const AuthData auth;
-    //    QDataStream stream;
+    QThread thread;
 
 };
 
