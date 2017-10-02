@@ -54,6 +54,9 @@ protected:
  determine protocol of top level.
 *********************
  stack:
+  -accept external msg-
+      |
+  -
   -pack data stream-
          |
   -work with device-

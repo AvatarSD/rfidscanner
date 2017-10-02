@@ -7,7 +7,8 @@
 Logger::Logger() :
     serverLogLevel(InfoEvent::ERROR),
     fileLogLevel(InfoEvent::INFO),
-    stdoutLogLevel(InfoEvent::DEBUG)
+    stdoutLogLevel(InfoEvent::DEBUG),
+    logfilePath("log.txt")
 {
 
 }

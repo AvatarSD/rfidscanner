@@ -2,20 +2,11 @@
 #include <QQmlApplicationEngine>
 
 #include <QtQml>
-#include <QtSerialPort/QSerialPortInfo>
+//#include <QtSerialPort/QSerialPortInfo
+
+#include "common/logger.h"
 
 
-class Logger : public QObject
-{
-    Q_OBJECT
-public:
-    Logger();
-    ~Logger();
-
-public slots:
-
-
-};
 
 
 int main(int argc, char *argv[])
@@ -29,9 +20,16 @@ int main(int argc, char *argv[])
         return -1;
 
 
+    Logger              logger;
+    logger.eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
+                                                    SystemEvent::INFO,
+                                                    SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
+                                                    QStringLiteral("Event object is not InfoEvent object"))));;
 
-
-
+    logger.eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
+                                                    SystemEvent::WARNING,
+                                                    SystemEvent::LOGFILE_OPEN_ERR,
+                                                    QStringLiteral("Cannot open log file to write"))));
 
 
 

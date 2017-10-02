@@ -45,23 +45,23 @@ QString InfoEvent::toString() const
 {
     QString rangeStr;
     switch (level) {
-    case EventLevel::DEBUG: rangeStr = "DEBUG";
-    case EventLevel::INFO: rangeStr = "INFO";
-    case EventLevel::WARNING: rangeStr = "WARNING";
-    case EventLevel::ERROR: rangeStr = "ERROR";
-    case EventLevel::CRITICAL: rangeStr = "CRITICAL";
+    case EventLevel::DEBUG: rangeStr = "DEBUG"; break;
+    case EventLevel::INFO: rangeStr = "INFO"; break;
+    case EventLevel::WARNING: rangeStr = "WARNING"; break;
+    case EventLevel::ERROR: rangeStr = "ERROR"; break;
+    case EventLevel::CRITICAL: rangeStr = "CRITICAL"; break;
     }
 
     QString placeStr;
     switch (place) {
-    case EventPlace::SCANNER: placeStr = "SCANNER";
-    case EventPlace::NETWORK: placeStr = "NETWORK";
-    case EventPlace::SYSTEM: placeStr = "SYSTEM";
-    case EventPlace::COMMANDER: placeStr = "COMMANDER";
+    case EventPlace::SCANNER: placeStr = "SCANNER"; break;
+    case EventPlace::NETWORK: placeStr = "NETWORK"; break;
+    case EventPlace::SYSTEM: placeStr = "SYSTEM"; break;
+    case EventPlace::COMMANDER: placeStr = "COMMANDER"; break;
     }
 
-    return Event::toString() + rangeStr + "->" + placeStr + "->ID:" + eventid +
-            " \"" + description + "\"";
+    return Event::toString() + rangeStr + "->" + placeStr + "->ID:" + QString::number(eventid) +
+            "  \"" + description + "\"";
 }
 
 QJsonObject InfoEvent::toJson() const

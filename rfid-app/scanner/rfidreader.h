@@ -45,25 +45,20 @@ class RFIDReader : public Eventianle
 public:
     RFIDReader(QSharedPointer<Protocol>, QSharedPointer<PhyTransport>);
     virtual ~RFIDReader(){}
-
 public slots:
     //virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
     virtual void execAsync(QSharedPointer<ScannerRequest>)=0;
-
 signals:
     void executed(QSharedPointer<ScannerReply>);
 //    void otherEvent(QSharedPointer<InfoEvent>);
-
 protected:
     QSharedPointer<Protocol> protocol;
     QSharedPointer<PhyTransport> transport;
 //    QQueue<QSharedPointer<ScannerRequest>> msgQueue;
-
 protected slots:
     virtual void inData(QByteArray)=0;
 signals:
     void outData(QByteArray);
-
 };
 
 
