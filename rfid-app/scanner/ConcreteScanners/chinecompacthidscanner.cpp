@@ -1,7 +1,7 @@
 #include "chinecompacthidscanner.h"
 
 
-ChinaCompactHidTransport::ChinaCompactHidTransport(QSharedPointer<QUSB::Device>)
+ChinaCompactHidTransport::ChinaCompactHidTransport(QSharedPointer<UsbDevicePidVid>)
 {
 
 }
