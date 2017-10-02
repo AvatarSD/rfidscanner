@@ -14,7 +14,7 @@ class ChinaCompactHidTransport : public PhyTransport
     Q_OBJECT
 public:
     ChinaCompactHidTransport(QSharedPointer<QUSB::Device>);
-    virtual ~ChinaCompactHidTransport();
+    virtual ~ChinaCompactHidTransport(){}
 
 public slots:
     virtual void outData(QByteArray data);
@@ -43,8 +43,8 @@ class ChinaCompactHidScanner : public RFIDReader
     Q_OBJECT
 public:
     ChinaCompactHidScanner(QSharedPointer<QUSB::Device> dev) :
-        RFIDReader(new ChinaCompactHidProtocol(),
-                   new ChinaCompactHidTransport(dev))
+        RFIDReader(QSharedPointer<ChinaCompactHidProtocol>(new ChinaCompactHidProtocol()),
+                   QSharedPointer<ChinaCompactHidTransport>(new ChinaCompactHidTransport(dev)))
     {}
 };
 

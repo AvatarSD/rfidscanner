@@ -36,6 +36,6 @@ private:
     InfoEvent::EventLevel fileLogLevel;
     InfoEvent::EventLevel stdoutLogLevel;
     QString logfilePath;
-}
+};
 
 #endif // LOGGER_H

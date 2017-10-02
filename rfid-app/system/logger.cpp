@@ -2,6 +2,7 @@
 #include <iostream>
 #include <QFile>
 #include <QTextStream>
+#include <string>
 
 Logger::Logger() :
     serverLogLevel(InfoEvent::ERROR),
@@ -62,12 +63,13 @@ void Logger::eventIn(QSharedPointer<Event> event)
     else if (event->event == Event::INF){
         InfoEvent* infoEvent;
         try{
-            infoEvent = dynamic_cast<InfoEvent*> (*event);
+            infoEvent = dynamic_cast<InfoEvent*>(event.data());
         }
         catch (const std::bad_cast& e){
-            eventIn(new SystemEvent(SystemEvent::INFO,
+            eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
+                                    SystemEvent::INFO,
                                     SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
-                                    QStringLiteral("Event object is not InfoEvent object")));
+                QStringLiteral("Event object is not InfoEvent object"))));
         }
     if(infoEvent->level >= stdoutLogLevel)
         toStdOut(event);
@@ -83,18 +85,19 @@ void Logger::writeToLogFile(QSharedPointer<Event> event)
 {
     QFile logfile(logfilePath);
     if(!logfile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)){
-        eventIn(new SystemEvent(SystemEvent::INFO,
-                                SystemEvent::LOGFILE_OPEN_ERR,
-                                QStringLiteral("Cannot open log file to write")));
+        eventIn(QSharedPointer<SystemEvent> (
+                    new SystemEvent(SystemEvent::INFO,
+                                    SystemEvent::LOGFILE_OPEN_ERR,
+                                QStringLiteral("Cannot open log file to write"))));
         return;
     }
-    QTextStream stream(logfile);
-    stream << event->toString() << std::endl;
+    QTextStream stream(&logfile);
+    stream << event->toString() << "\r\n";
     logfile.close();
 
 }
 
 void Logger::toStdOut(QSharedPointer<Event> event)
 {
-    std::cout << event->toString() << std::endl;
+    std::cout << event->toString().toStdString() << std::endl;
 }
