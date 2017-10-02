@@ -28,6 +28,7 @@ private:
     int rssi;
 };
 
+
 /*********** RFIDManamger ***********/
 class RFIDMamanger : public QObject
 {
@@ -44,12 +45,13 @@ public slots:
 
 signals:
     void fieldChanged(const TagField* tags);
-    void fieldEvent(QSharedPointer<TagEvent> event);
-    void otherEvent(QSharedPointer<InfoEvent> event);
+//    void fieldEvent(QSharedPointer<TagEvent> event);
+//    void otherEvent(QSharedPointer<InfoEvent> event);
 
 protected:
     QThread thread;
 };
+
 
 /******** SimpleRFIDMamanger ********/
 class SimpleRFIDMamanger : public RFIDMamanger

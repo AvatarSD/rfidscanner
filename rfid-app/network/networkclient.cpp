@@ -2,7 +2,7 @@
 
 
 NetworkClient::NetworkClient(NetClient *transport, QObject *parent) :
-    QObject (parent), transport(transport)
+    Eventianle (parent), transport(transport)
 {
 
 }

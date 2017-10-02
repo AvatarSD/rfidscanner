@@ -7,7 +7,7 @@
 #include "events.h"
 
 
-class PhyTransport : public QObject
+class PhyTransport : public Eventianle
 {
     Q_OBJECT
 public:
@@ -18,7 +18,7 @@ signals:
     void inData(QByteArray data);
     void opened();
     void closed();
-    void otherEvent(QSharedPointer<InfoEvent>);
+//    void otherEvent(QSharedPointer<InfoEvent>);
 
 public slots:
     virtual void outData(QByteArray data)=0;

@@ -123,7 +123,9 @@ class SystemEvent : public InfoEvent
 public:
     enum IDs{
         OK = 0,
-        SPACE_LEFT = 1
+        SPACE_LEFT = 1,
+        LOGGER_DYNAMIC_CAST_ERR,
+        LOGFILE_OPEN_ERR
     };
     SystemEvent(EventLevel level, IDs eventid, QString dscr) :
         InfoEvent(level, SYSTEM, dscr, eventid) {}
@@ -143,5 +145,22 @@ public:
 };
 
 // todo: impl event ID's !
+
+
+/************** Eventiable **************/
+
+class Eventianle : public QObject
+{
+    Q_OBJECT
+public:
+    Eventianle(QObject*parent=nullptr): QObject(parent){}
+    virtual ~Eventianle(){}
+    void connectEventianleAsParent(Eventianle*obj);
+    void disconnectEventianleAsParent(Eventianle*obj);
+signals:
+    void otherEvent(QSharedPointer<Event>);
+};
+
+
 
 #endif // EVENTS_H

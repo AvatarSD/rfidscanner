@@ -21,8 +21,8 @@ void AuthData::write(QJsonObject &json) const
     json["pass"] = pass;
 }
 
-NetClient::NetClient(const AuthData & auth) :
-    QObject(null), auth(auth)
+NetClient::NetClient(const AuthData & auth, QObject *parent) :
+    Eventianle(parent), auth(auth)
 {}
 
 NetPoint::NetPoint(const QHostAddress &addr, quint16 port) :

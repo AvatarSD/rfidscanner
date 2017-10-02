@@ -74,3 +74,18 @@ QJsonObject InfoEvent::toJson() const
     json["description"] = description;
     return json;
 }
+
+
+/************** Eventiable **************/
+
+void Eventianle::connectEventianleAsParent(Eventianle *obj)
+{
+    connect(this, SIGNAL(event(QSharedPointer<Event>)),
+            obj, SIGNAL(event(QSharedPointer<Event>)));
+}
+
+void Eventianle::disconnectEventianleAsParent(Eventianle *obj)
+{
+    disconnect(this, SIGNAL(event(QSharedPointer<Event>)),
+               obj, SIGNAL(event(QSharedPointer<Event>)));
+}

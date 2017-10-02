@@ -1,6 +1,6 @@
 #include "transport.h"
 
-PhyTransport::PhyTransport() : QObject(nullptr)
+PhyTransport::PhyTransport() : Eventianle(nullptr)
 {
     connect(&timer, SIGNAL(QTimer::timeout()),this,SLOT(run()));
 

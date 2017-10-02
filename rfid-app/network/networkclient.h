@@ -5,7 +5,7 @@
 #include <QObject>
 #include <types.h>
 
-class NetworkClient : public QObject
+class NetworkClient : public Eventianle
 {
     Q_OBJECT
 public:

@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QTcpSocket>
 #include <QHostAddress>
+#include <QThread>
 #include "events.h"
 
 class AuthData
@@ -23,11 +24,11 @@ private:
 };
 
 
-class NetClient : public QObject
+class NetClient : public Eventianle
 {
     Q_OBJECT
 public:
-    explicit NetClient(const AuthData & auth);
+    explicit NetClient(const AuthData & auth, QObject * parent = nullptr);
     virtual ~NetClient(){}
 
 public slots:
@@ -40,7 +41,7 @@ signals:
     int read(QJsonDocument &);
     void connectedToHost();
     void disconnectedFromHost();
-    void otherEvent(QSharedPointer<InfoEvent>);
+//    void otherEvent(QSharedPointer<InfoEvent>);
 
 protected:
     const AuthData auth;

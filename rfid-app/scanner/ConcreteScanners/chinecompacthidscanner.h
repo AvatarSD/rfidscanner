@@ -26,7 +26,7 @@ protected slots:
     virtual void run();
 
 private:
-    QSharedPointer<QUSB::Device> dev;
+//    QSharedPointer<QUSB::Device> dev;
     bool autoopenRequired;
 };
 
@@ -42,9 +42,9 @@ class ChinaCompactHidScanner : public RFIDReader
 {
     Q_OBJECT
 public:
-    ChinaCompactHidScanner(QSharedPointer<QUSB::Device>) :
+    ChinaCompactHidScanner(QSharedPointer<QUSB::Device> dev) :
         RFIDReader(new ChinaCompactHidProtocol(),
-                   new ChinaCompactHidTransport(QSharedPointer<QUSB::Device>))
+                   new ChinaCompactHidTransport(dev))
     {}
 };
 

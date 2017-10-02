@@ -39,7 +39,7 @@ typedef uint QValue;*/
 
 
 /**** RFID Reader ****/
-class RFIDReader : public QObject
+class RFIDReader : public Eventianle
 {
     Q_OBJECT
 public:
@@ -52,7 +52,7 @@ public slots:
 
 signals:
     void executed(QSharedPointer<ScannerReply>);
-    void otherEvent(QSharedPointer<InfoEvent>);
+//    void otherEvent(QSharedPointer<InfoEvent>);
 
 protected:
     QSharedPointer<Protocol> protocol;

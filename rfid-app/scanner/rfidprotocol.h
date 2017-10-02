@@ -36,7 +36,7 @@ public:
      virtual bool setTarget(Target& inventory){return false;};
      virtual bool setSession(Session& session){return false;};
      virtual bool setQValue(QValue& q){return false;};*/
-
+/*
     int ap_getaddress(int iHandle, int* oAddress, int* oVer);// ap_getaddress - 获取地址
     int ap_setaddress(int iHandle, int iAddress, int iData);// ap_setaddress - 设置地址
 
@@ -65,7 +65,7 @@ public:
     int at_datatocommand(uint8_t* iData, int iSize, CommandInfo oCommand);
     int at_commandtocard(CommandInfo * oCommand, CardInfo * oCard);
     int at_datatocard(uint8_t* iData, int iSize, uint8_t* oCard, int oSize);
-    int at_checksum(uint8_t* iData, int iStart, int iSize);
+    int at_checksum(uint8_t* iData, int iStart, int iSize);*/
 
 };
 
