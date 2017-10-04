@@ -1,6 +1,10 @@
 #include "transportiface.h"
 #include <QJsonDocument>
 
+
+/************ Supply *************/
+/*** auth data ***/
+
 AuthData::AuthData(QString user, QString pass) :
     user(user), pass(pass)
 {}
@@ -15,15 +19,26 @@ QString AuthData::getPass() const
     return pass;
 }
 
-void AuthData::write(QJsonObject &json) const
+void AuthData::setUser(const QString &value)
 {
-    json["user"] = user;
-    json["pass"] = pass;
+    user = value;
 }
 
-NetClient::NetClient(const AuthData & auth, QObject *parent) :
-    Eventianle(parent), auth(auth)
-{}
+void AuthData::setPass(const QString &value)
+{
+    pass = value;
+}
+
+QJsonObject AuthData::toJson() const
+{
+    QJsonObject json;
+    json["user"] = user;
+    json["pass"] = pass;
+    return json;
+}
+
+
+/*** netpoint ***/
 
 NetPoint::NetPoint(const QHostAddress &addr, quint16 port) :
     addr(addr), port(port)
@@ -44,10 +59,28 @@ void NetPoint::setPort(quint16 value)
     port = value;
 }
 
-SimpleTcpClient::SimpleTcpClient(const NetPoint &netpoint, const AuthData & auth, QObject *parent) :
-    NetClient(auth, parent), netpoint(netpoint)
+
+/****** client basics ******/
+
+NetTransport::NetTransport()
 {
-    socket = new QTcpSocket();
+    this->moveToThread(&thread);
+    thread.start();
+}
+
+NetTransport::~NetTransport()
+{
+    thread.quit();
+    thread.wait();
+}
+
+
+/************ simple client *************/
+
+SimpleTcpClient::SimpleTcpClient() :
+    NetTransport(auth, parent), netpoint(netpoint)
+{
+
     QObject::connect(socket, SIGNAL(disconnected()), this, SLOT(soketDisconneted()));
 }
 
@@ -107,6 +140,4 @@ void SimpleTcpClient::soketDisconneted()
         while(socket->state() == QAbstractSocket::SocketState::ConnectingState);
     }
 }
-
-
 

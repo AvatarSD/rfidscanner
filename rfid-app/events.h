@@ -149,14 +149,14 @@ public:
 
 /************** Eventiable **************/
 
-class Eventianle : public QObject
+class Eventful : public QObject
 {
     Q_OBJECT
 public:
-    Eventianle(QObject*parent=nullptr): QObject(parent){}
-    virtual ~Eventianle(){}
-    void connectEventianleAsParent(Eventianle*obj);
-    void disconnectEventianleAsParent(Eventianle*obj);
+    Eventful(QObject*parent=nullptr): QObject(parent){}
+    virtual ~Eventful(){}
+    void connectEventfuleAsParent(Eventful*obj);
+    void disconnectEventfulAsParent(Eventful*obj);
 signals:
     void otherEvent(QSharedPointer<Event>);
 };

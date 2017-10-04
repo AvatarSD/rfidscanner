@@ -5,23 +5,43 @@
 #include <QObject>
 #include <types.h>
 
-class NetworkClient : public Eventianle
+
+class AuthData : public Serialaizeable
+{
+public:
+    AuthData(QString user, QString pass);
+    QString getUser() const;
+    QString getPass() const;
+    void setUser(const QString &value);
+    void setPass(const QString &value);
+    virtual QJsonObject toJson() const;
+private:
+    QString user, pass;
+};
+
+
+class NetworkClient : public Eventful
 {
     Q_OBJECT
 public:
-    NetworkClient(NetClient * transport, QObject *parent = nullptr);
+    NetworkClient(NetTransport * transport, QObject *parent = nullptr);
     virtual ~NetworkClient(){}
 public slots:
     virtual void run();
-//    virtual void
+    virtual void netEventOut(QSharedPointer<Event>);
+
+        void setAuthData(const AuthData & auth);
+    // void makeAnswer();
+    // MsgID whatAnswerID();
 
 protected:
-    NetClient * transport;
+    NetTransport * transport;
+    AuthData auth;
 };
 
 
 /* need to set:
- *  *NetClient
+ *  *NetTransport
  *  **ip and port endpoint
  *  **
  */

@@ -39,7 +39,7 @@ typedef uint QValue;*/
 
 
 /**** RFID Reader ****/
-class RFIDReader : public Eventianle
+class RFIDReader : public Eventful
 {
     Q_OBJECT
 public:

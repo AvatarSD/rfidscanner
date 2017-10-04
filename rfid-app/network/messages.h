@@ -1,11 +1,17 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-#include "types.h"
+#include "events.h"
+#include "common/scannerfacade.h"
 
+#include <QUuid>
+#include <QJsonObject>
+
+
+/**************************************************/
+/*********************** Face *********************/
 
 /************ gen ************/
-
 class NetworkMessage
 {
 public:
@@ -24,51 +30,76 @@ public:
         USERMOD,
         USER_RUNTIME*/
     };
-    const MsgID msgid;
-
-};
-
-class NetworkProtocol
-{
-  public:
     enum ParseError{OK, ERR};
 
-    virtual QSharedPointer<NetworkMessage> parse(QByteArray data, ParseError & err)=0;
-    virtual QByteArray pack(QSharedPointer<NetworkMessage> data)=0;
+    NetworkMessage(MsgID id, QJsonObject payload); // autogenerate UUID
+    NetworkMessage(MsgID id, QJsonObject payload, QUuid uuid);
+
+    static QSharedPointer<NetworkMessage> parse(QByteArray data, ParseError & err);
+    QByteArray pack();
+    virtual void execute(ScannerFacade*){}
+
+    /***** data *****/
+    const QUuid uuid;
+    const MsgID msgid;
+    const QJsonObject payload;
 };
 
-
-/************ msg ************/
-
-class TagEventMsg : public NetworkMessage
+/************ prot ************/
+class NetProtocol : public Eventful
 {
-
+public:
 };
 
+
+
+/**************************************************/
+/********************** Impl **********************/
+
+/************ msgs ************/
+/*class TagEventMsg : public NetworkMessage
+{
+public:
+    TagEventMsg(QJsonObject payload) :
+        NetworkMessage(TAG_EVENT, payload) {}
+    virtual ~TagEventMsg(){}
+};
 class ErrEventMsg : public NetworkMessage
 {
-
+public:
+    ErrEventMsg(QJsonObject payload) :
+        NetworkMessage(ERROR_EVENT, payload) {}
+    virtual ~ErrEventMsg(){}
 };
-
 class AnswertMsg : public NetworkMessage
 {
-
+public:
+    AnswertMsg(QJsonObject payload) :
+        NetworkMessage(ANSWER, payload) {}
+    virtual ~AnswertMsg(){}
 };
-
 class RequestMsg : public NetworkMessage
 {
-
+public:
+    RequestMsg(QJsonObject payload) :
+        NetworkMessage(REQUEST, payload) {}
+    virtual ~RequestMsg(){}
 };
-
 class ScannerRuntimeMsg : public NetworkMessage
 {
-
+public:
+    ScannerRuntimeMsg(QJsonObject payload) :
+        NetworkMessage(SCANNER_RUNTIME, payload) {}
+    virtual ~ScannerRuntimeMsg(){}
 };
-
 class EventsCountMsg : public NetworkMessage
 {
+public:
+    EventsCountMsg(QJsonObject payload) :
+        NetworkMessage(EVENT_COUNT, payload) {}
+    virtual ~EventsCountMsg(){}
+};*/
 
-};
 
 /************ prt ************/
 

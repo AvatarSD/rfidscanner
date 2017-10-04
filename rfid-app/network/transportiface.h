@@ -6,65 +6,108 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QThread>
-#include "events.h"
-
-class AuthData
-{
-public:
-    AuthData(QString user, QString pass);
-
-    QString getUser() const;
-    QString getPass() const;
-
-    void write(QJsonObject &json) const;
-
-private:
-    const QString user;
-    const QString pass;
-};
+#include "messages.h"
 
 
-class NetClient : public Eventianle
+
+/************************************************************************************************************
+ --- Stack ---
+
+    *prog* *prog* *prog*
+         \    |    /
+        - commander -
+              |
+         - message -
+              |
+       - general msg -
+              |
+        - transport -
+              |
+         *hardware*
+
+*************************************************************************************************************
+ --- Detail ---
+
+    Layer:              Should for:                        Contain:                      Settings:
+    _________________________________________________________________________________________________________
+    1. NetTransport:    - Can be: SslTransport,            - TcpSocket obj, eth;         - Connection point;
+                          Binary, rs485, can, etc;         - Server net point;
+                        - Auto re-connection;              - Own thread for I/O;
+                        - Connected/Disconnected           - Eventful iface;
+                          signals;
+    _________________________________________________________________________________________________________
+    2. BoundProt:       - Pack RAW message to              - Incoming buffer(circular
+                          RAW with boundary;                 or not, queue);
+                        - Bound-detection in               - Start/end boundary
+                          incoming RAW bytes                 bytes pattern;
+                          queue for parse. Give            - CRC check;
+                          RAW msg with clean bound;        - Eventful iface;
+    _________________________________________________________________________________________________________
+    3. NetMsg:          - Incapsulate network              - QJSonObject as main
+                          message as object;                 data;
+                        - Packing itself to RAW;           - Pack() method;
+                        - Static factory method            - Get/Set to json field;
+                          which parse RAW data and         - Child must implement
+                          create new NetMsg obj;             exec(ScannerFacade*) for
+                        - Ready to inherits for              impl server request.
+                          implement any action on
+                          ScannerFacade interface;
+    _________________________________________________________________________________________________________
+    4. Commander:       - Queue with outgoing NetMsg       - Queue with associated       - Event/Pool mode;
+                          which require a reply.             NetMsg, timestamp and       - Auth data;
+                        - Measure server response            some flags;
+                          time, event creation time        - Eventful iface;
+                          to now duration(for debug);      - Interface for receiving
+                        - Searching UUID from                Event objects;
+                          incomming msg in outgoing        - Statistic data;
+                          queue. If a match is found,      - Pointers to: BoundProt
+                          the corresponding outgoing         (with NetTransport),
+                          msg will have been delete.         ScannerFacade;
+                        - In EVENT mode all message
+                          in outgoing queue will send
+                          automatically. In POOL mode
+                          it will happenen by correct
+                          request(aka NetMsg);
+                        - Authentication module;
+                        - Call execute() in separate
+                          new thread if require. In
+                          conclusion new outgoing
+                          NetMsg will be created or
+                          something else will be
+                          happen;
+
+*************************************************************************************************************
+ --- Note ---
+   1. Besides settings above, all network mobule must have the
+      choice of implementation for: NetTransport, BoundProt;
+
+************************************************************************************************************/
+
+
+/***** Pack/Unpack general message; Autoconnection ******/
+
+class NetTransport : public Eventful
 {
     Q_OBJECT
 public:
-    explicit NetClient(const AuthData & auth, QObject * parent = nullptr);
-    virtual ~NetClient(){}
-
-public slots:
-    virtual int send(const QJsonDocument &) = 0; //by mutex
-    virtual bool connectToHost() = 0;
-    virtual bool disconnectFromHost() = 0;
-
-
+    NetTransport();
+    virtual ~NetTransport();
 signals:
-    int read(QJsonDocument &);
+    void read(QByteArray msg);
     void connectedToHost();
     void disconnectedFromHost();
-//    void otherEvent(QSharedPointer<InfoEvent>);
-
+public slots:
+    virtual void send(QByteArray msg) = 0; //by mutex
+    virtual bool connectToHost() = 0;
+    virtual void disconnectFromHost() = 0;
+    virtual bool isConnected() = 0;
 protected:
-    const AuthData auth;
     QThread thread;
 
 };
 
-/********************
- transportIfase  coding and bundle data in to the stream,
- determine protocol of top level.
-*********************
- stack:
-  -accept external msg-
-      |
-  -
-  -pack data stream-
-         |
-  -work with device-
-*********************
-todo: write and draw stack at paper!!!
-*********************
-SslTransport, Binary, rs485, can, etc
-*********************/
+
+/**************** Impl *****************/
 
 class NetPoint
 {
@@ -72,29 +115,27 @@ public:
     NetPoint(const QHostAddress &addr, quint16 port);
 
     const QHostAddress &getAddr() const;
-    quint16 getPort() const;
     void setPort(quint16 value);
+    quint16 getPort() const;
 
 private:
     QHostAddress addr;
     quint16 port;
 };
 
-class SimpleTcpClient : public NetClient
+
+class SimpleTcpClient : public NetTransport
 {
     Q_OBJECT
 public:
-    SimpleTcpClient(const NetPoint & netpoint, const AuthData &auth, QObject *parent = nullptr);
+    SimpleTcpClient();
     ~SimpleTcpClient();
 
-    QTcpSocket *getTcpSocket() const;
-
 public slots:
-    bool connectToServer();
-    void disconnectFromServer();
-    int send(const QJsonObject &object);
-    int read(QJsonObject &);
-    int isMessageAvailable();
+    virtual void send(QSharedPointer<NetworkMessage> msg);
+    virtual bool connectToHost();
+    virtual void disconnectFromHost();
+//    QTcpSocket *getTcpSocket() const;
 
 private slots:
     void soketDisconneted();
@@ -102,11 +143,9 @@ private slots:
     //    void stateChanged(QAbstractSocket::SocketState socketState);
 
 private:
+    QTcpSocket socket;
     const NetPoint netpoint;
     bool connRequired;
-    QTcpSocket *socket;
-
-
 };
 
 

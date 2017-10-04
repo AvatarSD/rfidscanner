@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     scanner/commands.cpp \
     network/messages.cpp \
     common/scannerfacade.cpp \
-    common/logger.cpp
+    common/logger.cpp \
+    common/system.cpp
 
 RESOURCES += qml.qrc
 
@@ -54,7 +55,8 @@ HEADERS += \
     scanner/commands.h \
     network/messages.h \
     common/scannerfacade.h \
-    common/logger.h
+    common/logger.h \
+    common/system.h
 
 #INCLUDEPATH += ../QUSB/src
 #LIBS += -L../../build-meta-rfid-Desktop_Qt_5_9_1_GCC_64bit-Release/QUSB/lib -lqusb

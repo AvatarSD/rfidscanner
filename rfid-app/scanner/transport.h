@@ -7,7 +7,7 @@
 #include "events.h"
 
 
-class PhyTransport : public Eventianle
+class PhyTransport : public Eventful
 {
     Q_OBJECT
 public:

@@ -1,8 +1,8 @@
 #include "networkclient.h"
 
 
-NetworkClient::NetworkClient(NetClient *transport, QObject *parent) :
-    Eventianle (parent), transport(transport)
+NetworkClient::NetworkClient(NetTransport *transport, QObject *parent) :
+    Eventful (parent), transport(transport)
 {
 
 }
@@ -10,4 +10,9 @@ NetworkClient::NetworkClient(NetClient *transport, QObject *parent) :
 void NetworkClient::run()
 {
 
+}
+
+void NetworkClient::setAuthData(const AuthData &auth)
+{
+    this->auth = auth;
 }
