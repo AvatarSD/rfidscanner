@@ -2,9 +2,9 @@
 #define TRANSPORTIFACE_H
 
 #include <QString>
-#include <QJsonObject>
-#include <QTcpSocket>
-#include <QHostAddress>
+#include <QAbstractSocket>
+#include <QScopedPointer>
+#include <QTimer>
 #include <QThread>
 #include "messages.h"
 
@@ -86,21 +86,47 @@
 
 /********************** Interface ************************/
 
+/******* NetPoint ********/
+class NetPoint{
+public:
+    NetPoint();
+    NetPoint(QString addr, quint16 port);
+    QString addr() const;
+    quint16 port() const;
+    void addr(QString addr);
+    void port(quint16 port);
+    bool isNull() const;
+    void reset();
+private:
+    QString _addr;
+    quint16 _port;
+};
+
 /***** NetTransport ******/
 class NetTransport : public Eventful
 {
     Q_OBJECT
 public:
-    enum NetTransportState{
-        /* require a signal */
-        NET_CONNECTED,
-        NET_DISCONNECTED,
-        NET_ABOUT_TO_CLOSE,
-        /* just by call state() */
-        NET_HOST_LOOCKUP,
-        NET_RECONNECTING,
-        NET_CONNECTING,
+//    enum NetTransportState{
+//        /* require a signal */
+//        NET_CONNECTED,
+//        NET_DISCONNECTED,
+
+//        /* just by call state() */
+//        NET_HOST_LOOCKUP,
+//        NET_CONNECTING,
+//        NET_ABOUT_TO_CLOSE,
+//        NET_RECONNECTING,
+//    };
+    enum NetTransportState
+    {
+        DISCONNECTED_OK,    // - disconnected by user
+        CONNECTING,        // -> waiting for state changed
+        CONNECTED,          // -> all is ok, moving data
+        DISCONNECTED_ERR,   // -> do reconnect
+        CRITICAL_ERR        // -> error which make reconnection useless
     };
+
     NetTransport();
     virtual ~NetTransport();
 signals:
@@ -108,10 +134,10 @@ signals:
     void stateChanged(NetTransportState newState);
 public slots:
     /* only quened connections! */
-    virtual uint32_t send(QByteArray data) = 0;
-    virtual bool connectToHost(QString host) = 0;
+    virtual qint32 send(QByteArray data) = 0;
+    virtual bool connectToHost(const NetPoint& host = NetPoint()) = 0;
     virtual void disconnectFromHost() = 0;
-    virtual NetTransportState state() const = 0;
+    virtual NetTransportState currentState() const = 0;
 protected:
     QThread thread;
 };
@@ -147,24 +173,31 @@ class SimpleTcpClient : public NetTransport
     Q_OBJECT
 public:
     SimpleTcpClient();
+    SimpleTcpClient(QAbstractSocket * socket);
     ~SimpleTcpClient();
-    const QTcpSocket *getTcpSocket() const;
+    const QAbstractSocket* getSocket() const;
 public slots:
-    virtual uint32_t send(QByteArray data);
-    virtual bool connectToHost(QString host);
+    virtual bool connectToHost(const NetPoint& host);
     virtual void disconnectFromHost();
-    virtual NetTransportState state() const;
+    virtual qint32 send(QByteArray data);
+    virtual NetTransportState currentState() const;
     // all signals:
     //   void recv(QByteArray data);
     //   void sysEv(QSharedPointer<Event>);
     //   void stateChanged(NetState newState);
 protected slots:
-    void soketDisconneted();
+    //socket
+    void socketReadyRead();
+    void socketStateChanged(QAbstractSocket::SocketState state);
+    void socketError(QAbstractSocket::SocketError error);
+    //timer: main loop
+    void run();
+
 protected:
-    QTcpSocket socket;
-    QString host;
-    bool connRequired;
-    NetTransportState linkState;
+    QScopedPointer<QAbstractSocket> socket;
+    QTimer zerotimer;
+    NetPoint host;
+    NetTransportState state;
 };
 
 /***** NetProtocol ******/
