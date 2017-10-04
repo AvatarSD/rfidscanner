@@ -78,14 +78,26 @@ QJsonObject InfoEvent::toJson() const
 
 /************** Eventiable **************/
 
-void Eventful::connectEventfulAsParent(Eventful *obj)
+void Eventful::connectAsEventDrain(Eventful *obj)
 {
     connect(this, SIGNAL(event(QSharedPointer<Event>)),
             obj, SIGNAL(event(QSharedPointer<Event>)));
 }
 
-void Eventful::disconnectEventfulAsParent(Eventful *obj)
+void Eventful::disconnectAsEventDrain(Eventful *obj)
 {
     disconnect(this, SIGNAL(event(QSharedPointer<Event>)),
                obj, SIGNAL(event(QSharedPointer<Event>)));
+}
+
+void Eventful::connectAsEventSource(Eventful *obj)
+{
+    connect(obj, SIGNAL(event(QSharedPointer<Event>)),
+            this, SIGNAL(event(QSharedPointer<Event>)));
+}
+
+void Eventful::disconnectAsEventSource(Eventful *obj)
+{
+    disconnect(obj, SIGNAL(event(QSharedPointer<Event>)),
+               this, SIGNAL(event(QSharedPointer<Event>)));
 }

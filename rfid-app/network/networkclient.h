@@ -6,9 +6,13 @@
 #include <types.h>
 
 
+/********************** Interface ************************/
+
+/******* Auth Data *******/
 class AuthData : public Serialaizeable
 {
 public:
+    AuthData();
     AuthData(QString user, QString pass);
     QString getUser() const;
     QString getPass() const;
@@ -19,18 +23,20 @@ private:
     QString user, pass;
 };
 
-
-class NetworkClient : public Eventful
+/***** NetCommander ******/
+class NetCommander : public Eventful
 {
     Q_OBJECT
 public:
-    NetworkClient(NetTransport * transport, QObject *parent = nullptr);
-    virtual ~NetworkClient(){}
-public slots:
-    virtual void run();
-    virtual void netEventOut(QSharedPointer<Event>);
+    NetCommander(NetTransport * transport, QObject *parent = nullptr);
+    virtual ~NetCommander(){}
 
-        void setAuthData(const AuthData & auth);
+public slots:
+    virtual void start() = 0;
+    virtual void stop() = 0;
+    virtual void netEventOut(QSharedPointer<Event>) = 0;
+
+    void setAuthData(const AuthData & auth);
     // void makeAnswer();
     // MsgID whatAnswerID();
 
@@ -40,23 +46,28 @@ protected:
 };
 
 
+
+/******************** Implementation *********************/
+
 /* need to set:
  *  *NetTransport
  *  **ip and port endpoint
  *  **
  */
 
-class EventClient : public NetworkClient
+/***** NetCommanders ******/
+
+class EventClient : public NetCommander
 {
     virtual void run();
 };
 
-class PollingClient : public NetworkClient
+class PollingClient : public NetCommander
 {
     virtual void run();
 };
 
-class RpcClient : public NetworkClient
+class RpcClient : public NetCommander
 {
     virtual void run();
 };

@@ -72,3 +72,5 @@ Thumbs.db
 *.exe
 
 libusb-test/CMakeLists.txt.user
+libusb-test/build*
+testserver/build*

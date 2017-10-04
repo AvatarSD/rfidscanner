@@ -155,10 +155,12 @@ class Eventful : public QObject
 public:
     Eventful(QObject*parent=nullptr): QObject(parent){}
     virtual ~Eventful(){}
-    void connectEventfuleAsParent(Eventful*obj);
-    void disconnectEventfulAsParent(Eventful*obj);
+    void connectAsEventDrain(Eventful*obj);
+    void disconnectAsEventDrain(Eventful*obj);
+    void connectAsEventSource(Eventful*obj);
+    void disconnectAsEventSource(Eventful*obj);
 signals:
-    void otherEvent(QSharedPointer<Event>);
+    void sysEv(QSharedPointer<Event>);
 };
 
 

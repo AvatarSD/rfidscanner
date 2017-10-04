@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
    // RFIDMamanger * mananger = new SimpleRFIDMamanger;
 
     NetTransport * socket = new SimpleTcpClient;
-   // NetworkClient * net = new EventClient;
+   // NetCommander * net = new EventClient;
 
     //System * sys = new System;
 
