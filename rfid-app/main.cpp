@@ -7,6 +7,8 @@
 #include "scanner/rfidmamanger.h"
 #include "network/networkclient.h"
 
+#include <iostream>
+
 
 
 int main(int argc, char *argv[])
@@ -21,7 +23,7 @@ int main(int argc, char *argv[])
 
 
 
-    QObject * hmi = engine.rootContext()->contextObject();
+//    QObject * hmi = engine.rootContext()->contextObject();
     Logger * logger = new Logger;
 
    // PhyTransport * phy = new PhyTransport;
@@ -35,6 +37,13 @@ int main(int argc, char *argv[])
     //System * sys = new System;
 
 
+    QObject::connect(socket, &NetTransport::recv, [&](QByteArray data){
+       std::cout << "socket data: " << data.toStdString() << std::endl;
+    });
+    QObject::connect(socket, SIGNAL(sysEv(QSharedPointer<Event>)),
+                     logger, SLOT(eventIn(QSharedPointer<Event>)));
+
+
     logger->eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
                                                     SystemEvent::INFO,
                                                     SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
@@ -46,6 +55,8 @@ int main(int argc, char *argv[])
                                                     QStringLiteral("Cannot open log file to write"))));
 
 
+
+    socket->connectToHost(NetPoint("localhost", 5600));
 
 
     return app.exec();

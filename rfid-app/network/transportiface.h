@@ -109,14 +109,14 @@ class NetTransport : public Eventful
 public:
 //    enum NetTransportState{
 //        /* require a signal */
-//        NET_CONNECTED,
 //        NET_DISCONNECTED,
-
-//        /* just by call state() */
 //        NET_HOST_LOOCKUP,
 //        NET_CONNECTING,
+//        NET_CONNECTED,
 //        NET_ABOUT_TO_CLOSE,
 //        NET_RECONNECTING,
+
+//        /* just by call state() */
 //    };
     enum NetTransportState
     {
@@ -141,6 +141,7 @@ public slots:
 protected:
     QThread thread;
 };
+Q_DECLARE_METATYPE(NetTransport::NetTransportState)
 
 /***** NetProtocol ******/
 class NetProtocol : public Eventful
@@ -163,6 +164,7 @@ public:
     virtual QByteArray parse(QByteArray raw, NetProtocolParseErr & err) = 0;
     virtual QByteArray pack (QByteArray msg) = 0;
 };
+
 
 
 /******************** Implementation *********************/
@@ -198,6 +200,9 @@ protected:
     QTimer zerotimer;
     NetPoint host;
     NetTransportState state;
+
+private:
+
 };
 
 /***** NetProtocol ******/

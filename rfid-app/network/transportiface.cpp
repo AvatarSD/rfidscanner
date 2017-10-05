@@ -31,6 +31,7 @@ void NetPoint::reset(){
 
 /****** client basics ******/
 NetTransport::NetTransport(){
+    qRegisterMetaType<NetTransport::NetTransportState>();
     this->moveToThread(&thread);
     thread.start();
 }
@@ -41,16 +42,17 @@ NetTransport::~NetTransport(){
 
 
 
+
 /******************** Implementation *********************/
 
 /***** NetTransport ******/
-
 /* simple client */
-SimpleTcpClient::SimpleTcpClient() : SimpleTcpClient(new QTcpSocket(this)){
+SimpleTcpClient::SimpleTcpClient() : SimpleTcpClient(new QTcpSocket){
 }
-SimpleTcpClient::SimpleTcpClient(QAbstractSocket *socket) :
-    socket(socket), zerotimer(this)
+SimpleTcpClient::SimpleTcpClient(QAbstractSocket *socket) : socket(socket)
 {
+    qRegisterMetaType<QAbstractSocket::SocketState>();
+    qRegisterMetaType<QAbstractSocket::SocketError>();
 
     connect(socket, SIGNAL(readyRead()),
             this, SLOT(socketReadyRead()));
@@ -68,35 +70,56 @@ SimpleTcpClient::~SimpleTcpClient(){
 const QAbstractSocket *SimpleTcpClient::getSocket() const{
     return socket.data();
 }
-
-bool SimpleTcpClient::connectToHost(const NetPoint &host)
-{
-    if(!host.isNull())
-        this->host = host;
-//    socket.connectToHost(netpoint.getAddr(), netpoint.getPort());
-//    while(socket.state() == QAbstractSocket::SocketState::ConnectingState);
-//    return  (socket.state() == QAbstractSocket::SocketState::ConnectedState);
+NetTransport::NetTransportState SimpleTcpClient::currentState() const{
+    return state;
 }
 
-void SimpleTcpClient::disconnectFromHost()
-{
-    socket->disconnectFromHost();
-}
 
-qint32 SimpleTcpClient::send(QByteArray data)
-{
+
+/**** IO operations ****/
+qint32 SimpleTcpClient::send(QByteArray data){
     if(socket->state() == QAbstractSocket::ConnectedState)
     return socket->write(data);
-    else return 0;
+    else return -1;
 }
-
-void SimpleTcpClient::socketReadyRead()
-{
+void SimpleTcpClient::socketReadyRead(){
     emit recv(socket->readAll());
 }
 
+
+
+/**** connection estab. operations ****/
+bool SimpleTcpClient::connectToHost(const NetPoint &host){
+    if(!host.isNull())
+        this->host = host;
+    socket->connectToHost(host.addr(), host.port());
+    return true;
+}
+void SimpleTcpClient::disconnectFromHost(){
+    socket->disconnectFromHost();
+}
+
+
 void SimpleTcpClient::socketStateChanged(QAbstractSocket::SocketState state)
 {
+
+    switch (state) {
+    case QAbstractSocket::UnconnectedState :
+        break;
+    case QAbstractSocket::HostLookupState :
+        break;
+    case QAbstractSocket::ConnectingState :
+        break;
+    case QAbstractSocket::ConnectedState :
+        break;
+    case QAbstractSocket::ClosingState :
+        break;
+
+
+    break;
+    default:
+        break;
+    }
 
 }
 
@@ -105,13 +128,10 @@ void SimpleTcpClient::socketError(QAbstractSocket::SocketError error)
 
 }
 
-NetTransport::NetTransportState SimpleTcpClient::currentState() const
-{
-
-}
-
 void SimpleTcpClient::run()
 {
+
+
 
 }
 
