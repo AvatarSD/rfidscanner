@@ -9,11 +9,14 @@
 
 #include <iostream>
 
-
+Q_DECLARE_METATYPE(QSharedPointer<Event>)
 
 int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
+
+
+    qRegisterMetaType<QSharedPointer<Event>>();
 
 
     QQmlApplicationEngine engine;

@@ -107,26 +107,15 @@ class NetTransport : public Eventful
 {
     Q_OBJECT
 public:
-//    enum NetTransportState{
-//        /* require a signal */
-//        NET_DISCONNECTED,
-//        NET_HOST_LOOCKUP,
-//        NET_CONNECTING,
-//        NET_CONNECTED,
-//        NET_ABOUT_TO_CLOSE,
-//        NET_RECONNECTING,
-
-//        /* just by call state() */
-//    };
-    enum NetTransportState
-    {
-        DISCONNECTED_OK,    // - disconnected by user
-        CONNECTING,        // -> waiting for state changed
-        CONNECTED,          // -> all is ok, moving data
-        DISCONNECTED_ERR,   // -> do reconnect
-        CRITICAL_ERR        // -> error which make reconnection useless
+    enum NetTransportState{
+        NET_DISCONNECTED,      // -> disconnected by user
+        NET_HOST_LOOCKUP,      // -> host lookup
+        NET_CONNECTING,        // -> waiting for connnection estabilish
+        NET_CONNECTED,         // -> all is ok, moving data
+        NET_ABOUT_TO_CLOSE,    // -> start "soft" closing
+        NET_CONN_BROKEN,       // -> do reconnect
+        NET_CRITICAL_ERR       // -> error which make reconnection useless
     };
-
     NetTransport();
     virtual ~NetTransport();
 signals:
@@ -149,9 +138,9 @@ class NetProtocol : public Eventful
     Q_OBJECT
 public:
     enum NetProtocolParseErr{
-    /* Byte     |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |
-     * order:   |              |crop|more|  error code  |
-     */
+        /* Byte     |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |
+         * order:   |              |crop|more|  error code  |
+         */
         PARSE_ERR_OK                  = 0b00000,
         PARSE_ERR_NOTHING             = 0b00001,
         PARSE_ERR_NO_START            = 0b00010, // -> crop data after "\r\n\r\n"
@@ -194,16 +183,15 @@ protected slots:
     void socketError(QAbstractSocket::SocketError error);
     //timer: main loop
     void run();
-
+protected:
+    virtual void setState(NetTransportState state);
 protected:
     QScopedPointer<QAbstractSocket> socket;
     QTimer zerotimer;
     NetPoint host;
     NetTransportState state;
-
-private:
-
 };
+
 
 /***** NetProtocol ******/
 

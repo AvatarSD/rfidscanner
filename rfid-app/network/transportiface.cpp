@@ -79,7 +79,7 @@ NetTransport::NetTransportState SimpleTcpClient::currentState() const{
 /**** IO operations ****/
 qint32 SimpleTcpClient::send(QByteArray data){
     if(socket->state() == QAbstractSocket::ConnectedState)
-    return socket->write(data);
+        return socket->write(data);
     else return -1;
 }
 void SimpleTcpClient::socketReadyRead(){
@@ -116,21 +116,38 @@ void SimpleTcpClient::socketStateChanged(QAbstractSocket::SocketState state)
         break;
 
 
-    break;
+        break;
     default:
         break;
     }
 
 }
 
-void SimpleTcpClient::socketError(QAbstractSocket::SocketError error)
-{
-
-}
-
 void SimpleTcpClient::run()
 {
 
+
+
+}
+
+void SimpleTcpClient::socketError(QAbstractSocket::SocketError error)
+{
+    emit sysEv(QSharedPointer<InfoEvent> (
+                   new NetworkEvent(
+                       NetworkEvent::WARNING,
+                       (NetworkEvent::IDs)error,
+                       socket->errorString())));;
+
+
+}
+
+void SimpleTcpClient::setState(NetTransport::NetTransportState state)
+{
+    emit sysEv(QSharedPointer<InfoEvent> (
+                   new NetworkEvent(
+                       NetworkEvent::INFO,
+                       (NetworkEvent::IDs)state,
+                       QStringLiteral("state changed"))));;
 
 
 }

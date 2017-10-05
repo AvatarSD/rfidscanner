@@ -11,6 +11,7 @@ class Event : public Serialaizeable
 {
 public:
     enum EventType{INF, TAG};
+    Event() : Event(INF) {}
     Event(EventType event) : event(event),
         time(QDateTime::currentDateTimeUtc()) {}
     virtual ~Event(){}
