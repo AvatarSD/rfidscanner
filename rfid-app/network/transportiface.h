@@ -100,6 +100,7 @@ private:
     QString _addr;
     quint16 _port;
 };
+Q_DECLARE_METATYPE(NetPoint)
 
 /***** NetState ******/
 class NetState
@@ -118,7 +119,8 @@ class NetTransport : public Eventful
 {
     Q_OBJECT
 public:
-    NetTransport(){qRegisterMetaType<NetState>();}
+    NetTransport(QObject* parent = nullptr) :
+    Eventful(parent) {qRegisterMetaType<NetState>();}
     virtual ~NetTransport(){}
 signals:
     void recv(QByteArray data);
@@ -126,7 +128,7 @@ signals:
 public slots:
     /* only quened connections! */
     virtual qint32 send(QByteArray data) = 0;
-    virtual bool connectToHost(NetPoint addr = NetPoint()) = 0;
+    virtual void connectToHost(NetPoint addr = NetPoint()) = 0;
     virtual void disconnectFromHost() = 0;
     virtual NetState currentState() const = 0;
 };
@@ -148,6 +150,7 @@ public:
         PARSE_MORE                    = 0b01000, //for bitmask, intend to repeat parse with new data
         PARSE_CROPPED                 = 0b10000, //for bitmask, delete unusable data
     };
+    NetProtocol(QObject*parent=nullptr) : Eventful(parent){}
     virtual ~NetProtocol(){}
     virtual QByteArray parse(QByteArray raw, NetProtocolParseErr & err) = 0;
     virtual QByteArray pack (QByteArray msg) = 0;
@@ -162,12 +165,12 @@ class SimpleTcpClient : public NetTransport
 {
     Q_OBJECT
 public:
-    SimpleTcpClient();
-    SimpleTcpClient(QAbstractSocket * socket);
+    SimpleTcpClient(QObject* parent = nullptr);
+    SimpleTcpClient(QAbstractSocket * socket, QObject* parent = nullptr);
     ~SimpleTcpClient();
     const QAbstractSocket* getSocket() const;
 public slots:
-    virtual bool connectToHost(NetPoint addr = NetPoint());
+    virtual void connectToHost(NetPoint addr = NetPoint());
     virtual void disconnectFromHost();
     virtual qint32 send(QByteArray data);
     virtual NetState currentState() const;

@@ -15,52 +15,60 @@ int main(int argc, char *argv[])
 {
     QGuiApplication app(argc, argv);
 
-
+    /********************************/
     qRegisterMetaType<QSharedPointer<Event>>();
 
-
+    /********************************/
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
 
 
-
-//    QObject * hmi = engine.rootContext()->contextObject();
+    /********************************/
+    //    QObject * hmi = engine.rootContext()->contextObject();
     Logger * logger = new Logger;
 
-   // PhyTransport * phy = new PhyTransport;
-   // Protocol * prot = new Protocol;
-   // RFIDReader * reader = new RFIDReader;
-   // RFIDMamanger * mananger = new SimpleRFIDMamanger;
-
+    // PhyTransport * phy = new PhyTransport;
+    // Protocol * prot = new Protocol;
+    // RFIDReader * reader = new RFIDReader;
+    // RFIDMamanger * mananger = new SimpleRFIDMamanger;
     NetTransport * socket = new SimpleTcpClient;
-   // NetCommander * net = new EventClient;
+    // NetCommander * net = new EventClient;
 
     //System * sys = new System;
 
+    /********************************/
+    QThread netThread;
+    socket->moveToThread(&netThread);
+    netThread.start();
 
+    /********************************/
     QObject::connect(socket, &NetTransport::recv, [&](QByteArray data){
-       std::cout << "socket data: " << data.toStdString() << std::endl;
+        std::cout << "socket data: " << data.toStdString() << std::endl;
     });
     QObject::connect(socket, SIGNAL(sysEvent(QSharedPointer<Event>)),
                      logger, SLOT(sysEventIn(QSharedPointer<Event>)));
 
 
+    /********************************/
     logger->sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
-                                                    SystemEvent::INFO,
-                                                    SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
-                                                    QStringLiteral("Event object is not InfoEvent object"))));;
+                                                        SystemEvent::INFO,
+                                                        SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
+                                                        QStringLiteral("Event object is not InfoEvent object"))));;
 
     logger->sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
-                                                    SystemEvent::WARNING,
-                                                    SystemEvent::LOGFILE_OPEN_ERR,
-                                                    QStringLiteral("Cannot open log file to write"))));
+                                                        SystemEvent::WARNING,
+                                                        SystemEvent::LOGFILE_OPEN_ERR,
+                                                        QStringLiteral("Cannot open log file to write"))));
 
 
+    /********************************/
+    NetPoint np("localhost", 5600);
+    QMetaObject::invokeMethod(socket, "connectToHost",  Qt::QueuedConnection,
+                              Q_ARG(NetPoint, np));
+//    socket->connectToHost(NetPoint("localhost", 5600));
 
-    socket->connectToHost(NetPoint("localhost", 5600));
-
-
+    /********************************/
     return app.exec();
 }

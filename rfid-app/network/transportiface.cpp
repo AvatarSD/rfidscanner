@@ -6,8 +6,10 @@
 
 /******* NetPoint ********/
 NetPoint::NetPoint() : _addr(), _port(0){
+    qRegisterMetaType<NetPoint>();
 }
 NetPoint::NetPoint(QString addr, quint16 port) : _addr(addr), _port(port){
+    qRegisterMetaType<NetPoint>();
 }
 QString NetPoint::addr() const{
     return _addr;
@@ -53,9 +55,12 @@ NetState &NetState::operator =(QAbstractSocket::SocketState state){
 
 /***** NetTransport ******/
 /**** routine ****/
-SimpleTcpClient::SimpleTcpClient() : SimpleTcpClient(new QTcpSocket){
+SimpleTcpClient::SimpleTcpClient(QObject* parent) :
+    SimpleTcpClient(new QTcpSocket(),parent){
+    socket->setParent(this);
 }
-SimpleTcpClient::SimpleTcpClient(QAbstractSocket *socket) : socket(socket)
+SimpleTcpClient::SimpleTcpClient(QAbstractSocket *socket, QObject *parent) :
+    NetTransport(parent), socket(socket), zerotimer(this)
 {
     qRegisterMetaType<QAbstractSocket::SocketState>();
     qRegisterMetaType<QAbstractSocket::SocketError>();
@@ -93,12 +98,11 @@ void SimpleTcpClient::socketReadyRead(){
 
 
 /**** connection estab. operations ****/
-bool SimpleTcpClient::connectToHost(NetPoint addr){
+void SimpleTcpClient::connectToHost(NetPoint addr){
     reconnectRequired = true;
     if(!addr.isNull())
         this->host = addr;
     socket->connectToHost(this->host.addr(), this->host.port());
-    return true;
 }
 void SimpleTcpClient::disconnectFromHost(){
     reconnectRequired = false;
@@ -134,6 +138,7 @@ void SimpleTcpClient::socketError(QAbstractSocket::SocketError error)
  * - thread test
  * - error string conversion
  * - switch state changed events
+ * - invoke method
  */
 
     switch (error)
