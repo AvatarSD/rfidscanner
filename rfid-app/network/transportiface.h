@@ -188,9 +188,16 @@ protected:
 
 
 /***** NetProtocol ******/
-
-
-
+class NetProtocolV1Bound : public NetProtocol
+{
+public:
+    NetProtocolV1Bound(QObject*parent=nullptr) : NetProtocol(parent) {}
+    virtual ~NetProtocolV1Bound(){}
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr &err);
+    virtual QByteArray pack(QByteArray msg);
+private:
+    QByteArray inBuf;
+};
 
 
 

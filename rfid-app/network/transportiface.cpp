@@ -212,4 +212,11 @@ void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 }
 
 
+/******** NetProtocolV1Bound ********/
+QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocol::NetProtocolParseErr &err)
+{
+}
 
+QByteArray NetProtocolV1Bound::pack(QByteArray msg)
+{
+}
