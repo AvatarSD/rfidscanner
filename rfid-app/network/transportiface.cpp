@@ -4,6 +4,11 @@
 
 /************ Supply *************/
 
+#define RECONNECT_TIME 50
+#define RECONNECT_ERR_TIME 1500
+#define RECONNECT_CRI_TIME 10000
+#define RECONNECT_EXT_TIME 100000
+
 /******* NetPoint ********/
 NetPoint::NetPoint() : _addr(), _port(0){
     qRegisterMetaType<NetPoint>();
@@ -54,7 +59,6 @@ NetState &NetState::operator =(QAbstractSocket::SocketState state){
 /******************** Implementation *********************/
 
 /***** NetTransport ******/
-/**** routine ****/
 TcpNetTransport::TcpNetTransport(QObject* parent) :
     TcpNetTransport(new QTcpSocket(),parent){
     socket->setParent(this);
@@ -64,7 +68,6 @@ TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
 {
     qRegisterMetaType<QAbstractSocket::SocketState>();
     qRegisterMetaType<QAbstractSocket::SocketError>();
-
     connect(socket, SIGNAL(readyRead()),
             this, SLOT(socketReadyRead()));
     connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)),
@@ -73,7 +76,9 @@ TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
             this, SLOT(socketError(QAbstractSocket::SocketError)));
     connect(&zerotimer, SIGNAL(timeout()),
             this, SLOT(run()));
-    zerotimer.start(0);
+    zerotimer.setTimerType(Qt::CoarseTimer);
+    zerotimer.setSingleShot(true);
+    zerotimer.start(RECONNECT_TIME);
 }
 TcpNetTransport::~TcpNetTransport(){
     zerotimer.stop();
@@ -115,114 +120,95 @@ void TcpNetTransport::run()
 {
     if((socket->state() == QAbstractSocket::UnconnectedState) && reconnectRequired)
         connectToHost();
+    zerotimer.start(RECONNECT_TIME);
 }
 void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
 {
     QString msg;
-    NetworkEvent::EventLevel lvl = NetworkEvent::DEBUG;
     switch(state){
     case QAbstractSocket::UnconnectedState:
         msg = "Socket unconnected. Last address was: " +
-             host.addr() + ":" + QString::number(host.port());
-        lvl = NetworkEvent::WARNING;
+                host.addr() + ":" + QString::number(host.port());
         break;
     case QAbstractSocket::HostLookupState:
         msg = "Attempt to connect to: " + host.addr() + ":" +
                 QString::number(host.port());
-        lvl = NetworkEvent::INFO;
         break;
     case QAbstractSocket::ConnectingState:
         msg = host.addr() + " look-up'ed. Try to connect to " +
                 QString::number(host.port()) + " port.";
-        lvl = NetworkEvent::INFO;
         break;
     case QAbstractSocket::ConnectedState:
         msg = "Connected to: " + host.addr() + ":" +
                 QString::number(host.port());
-        lvl = NetworkEvent::INFO;
         break;
     case QAbstractSocket::ClosingState:
         msg = "Socket is about to close";
-        lvl = NetworkEvent::INFO;
         break;
     case QAbstractSocket::BoundState:
     case QAbstractSocket::ListeningState:
     default:
-        msg = "Socket go to unexpected state. =((";
-        lvl = NetworkEvent::DEBUG;
-        break;
+        msg = "Socket go to unexpected state. =(("; break;
     }
-
-
     emit sysEvent(QSharedPointer<Event> (
-                      new NetworkEvent(lvl,
-                          NetworkEvent::IDs::SOCKET_STATE, msg)));
+                      new NetworkEvent(NetworkEvent::INFO,
+                                       NetworkEvent::IDs::SOCKET_STATE, msg)));
     emit stateChanged(state);
 }
 void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 {
-    emit sysEvent(QSharedPointer<Event> (
-                      new NetworkEvent(
-                          NetworkEvent::WARNING,
-                          NetworkEvent::SOCKET_ERROR,
-                          QStringLiteral("Code ") + QString::number(error) + ": "
-                          + socket->errorString())));
-/* todo:
- * - list of timings
- * - timer control
- * - msg swap level and place
- * + thread test
- * + error string conversion
- * + switch state changed events
- * + invoke method
- */
-
+    uint intv = RECONNECT_TIME;
+    NetworkEvent::EventLevel lvl = NetworkEvent::ERROR;
     switch (error)
     {
-    case QAbstractSocket::RemoteHostClosedError:
-    case QAbstractSocket::SocketTimeoutError:
-    case QAbstractSocket::NetworkError:
-    case QAbstractSocket::ProxyConnectionClosedError:
-    case QAbstractSocket::ProxyConnectionTimeoutError:
-        /* not critical error -> do reconnect */
-
-
-        break;
-
-    case QAbstractSocket::ConnectionRefusedError:
-    case QAbstractSocket::HostNotFoundError:
-    case QAbstractSocket::SocketResourceError:
-    case QAbstractSocket::AddressInUseError:
-    case QAbstractSocket::SocketAddressNotAvailableError:
-    case QAbstractSocket::SslHandshakeFailedError:
-    case QAbstractSocket::ProxyConnectionRefusedError:
-    case QAbstractSocket::ProxyNotFoundError:
-    case QAbstractSocket::ProxyProtocolError:
-    case QAbstractSocket::SslInternalError:
-    case QAbstractSocket::UnknownSocketError:
-        /* critical error -> reconnnect after wait time*/
-
-
-        break;
-
-    case QAbstractSocket::SocketAccessError:
-    case QAbstractSocket::UnsupportedSocketOperationError:
-    case QAbstractSocket::ProxyAuthenticationRequiredError:
-    case QAbstractSocket::SslInvalidUserDataError:
-        /* critical error -> do not reconnect */
-        break;
-
     case QAbstractSocket::DatagramTooLargeError:
     case QAbstractSocket::UnfinishedSocketOperationError:
     case QAbstractSocket::OperationError:
     case QAbstractSocket::TemporaryError:
         /* nor a error*/
+        lvl = NetworkEvent::WARNING;
+        break;
+    case QAbstractSocket::RemoteHostClosedError:
+    case QAbstractSocket::SocketTimeoutError:
+    case QAbstractSocket::NetworkError:
+    case QAbstractSocket::ProxyConnectionClosedError: // noe
+    case QAbstractSocket::ProxyConnectionTimeoutError:  // noe
+        /* not critical error -> do reconnect */
+        break;
+    case QAbstractSocket::ConnectionRefusedError:  // 1000ms   Ex
+    case QAbstractSocket::SocketResourceError:     // noe 1000ms
+    case QAbstractSocket::AddressInUseError:  // noe
+    case QAbstractSocket::SocketAddressNotAvailableError: // noe
+    case QAbstractSocket::SslHandshakeFailedError:  // 1000ms   Ex
+    case QAbstractSocket::UnknownSocketError:  // noe
+    case QAbstractSocket::UnsupportedSocketOperationError:
+    case QAbstractSocket::ProxyConnectionRefusedError: // noe
+        /* critical error -> reconnnect after wait time*/
+        intv = RECONNECT_ERR_TIME;
+        break;
+    case QAbstractSocket::HostNotFoundError:       // 10000ms
+    case QAbstractSocket::SslInvalidUserDataError:
+    case QAbstractSocket::SslInternalError:     // 100000
+    case QAbstractSocket::SocketAccessError:
+    case QAbstractSocket::ProxyNotFoundError:    // 10000ms
+    case QAbstractSocket::ProxyProtocolError:   // 10000
+        /* critical error -> do not reconnect */
+        intv = RECONNECT_CRI_TIME;
+        lvl = NetworkEvent::CRITICAL;
+        break;
+    case QAbstractSocket::ProxyAuthenticationRequiredError:
+        /*for future*/
+        intv = RECONNECT_EXT_TIME;
         break;
     }
-
-
-    //    setState(NetTransportState::NET_CONN_BROKEN);
-
+    emit sysEvent(QSharedPointer<Event> (
+                      new NetworkEvent(
+                          lvl,NetworkEvent::SOCKET_ERROR,
+                          QStringLiteral("Code ") + QString::number(error) + ": " +
+                          socket->errorString() +
+                          (intv==RECONNECT_TIME ? "." : ". Sleep for " +
+                                                  QString::number(intv) + "ms."))));
+    zerotimer.start(intv);
 }
 
 

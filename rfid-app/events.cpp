@@ -6,13 +6,7 @@
 
 QString Event::toString() const
 {
-    QString type;
-    switch (this->event) {
-    case EventType::INF: type = "INF"; break;
-    case EventType::TAG: type = "TAG"; break;
-    default: type = "UNK"; break;
-    }
-    return type + " [" + time.toString(Qt::ISODate) + "]: ";
+    return QStringLiteral("[") + time.toString(Qt::ISODate) + "]: ";
 }
 
 
@@ -26,7 +20,7 @@ QString TagEvent::toString() const
     case LEAVE: eventName = "leave from zone"; break;
     default: eventName = "undefined tag event"; break;
     }
-    return Event::toString() + tag->toString() + " " + eventName;
+    return Event::toString() + "Tag " + tag->toString() + " " + eventName;
 }
 
 QJsonObject TagEvent::toJson() const
@@ -60,7 +54,7 @@ QString InfoEvent::toString() const
     case EventPlace::COMMANDER: placeStr = "COMMANDER"; break;
     }
 
-    return Event::toString() + rangeStr + "->" + placeStr + "->ID:" + QString::number(eventid) +
+    return Event::toString() + placeStr + "->" + rangeStr + "->ID:" + QString::number(eventid) +
             "  \"" + description + "\"";
 }
 

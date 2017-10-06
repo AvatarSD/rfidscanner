@@ -168,23 +168,17 @@ public:
     TcpNetTransport(QObject* parent = nullptr);
     TcpNetTransport(QAbstractSocket * socket, QObject* parent = nullptr);
     ~TcpNetTransport();
-    const QAbstractSocket* getSocket() const;
 public slots:
+    const QAbstractSocket* getSocket() const;
+    virtual NetState currentState() const;
     virtual void connectToHost(NetPoint addr = NetPoint());
     virtual void disconnectFromHost();
     virtual qint32 send(QByteArray data);
-    virtual NetState currentState() const;
-    // all signals:
-    //   void recv(QByteArray data);
-    //   void sysEvent(QSharedPointer<Event>);
-    //   void stateChanged(NetState newState);
 protected slots:
-    //socket
     void socketReadyRead();
+    void run();
     void socketStateChanged(QAbstractSocket::SocketState state);
     void socketError(QAbstractSocket::SocketError error);
-    //timer: main loop
-    void run();
 protected:
     QScopedPointer<QAbstractSocket> socket;
     QTimer zerotimer;
