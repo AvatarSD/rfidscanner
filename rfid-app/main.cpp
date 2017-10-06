@@ -42,6 +42,16 @@ int main(int argc, char *argv[])
     QThread netThread;
     socket->moveToThread(&netThread);
     netThread.start();
+    QThread logThread;
+    logger->moveToThread(&logThread);
+    logThread.start();
+    //    QObject::connect(&app, SIGNAL(aboutToQuit()),&logThread,SLOT(terminate()));
+
+    QObject::connect(&app, &QCoreApplication::aboutToQuit,[&](){
+        logThread.quit();
+        netThread.quit();
+        logThread.wait();
+        netThread.wait();});
 
     /********************************/
     QObject::connect(socket, &NetTransport::recv, [&](QByteArray data){
@@ -52,22 +62,21 @@ int main(int argc, char *argv[])
 
 
     /********************************/
-    logger->sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
-                                                        SystemEvent::INFO,
-                                                        SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
-                                                        QStringLiteral("Event object is not InfoEvent object"))));;
+    logger->sysEventIn(QSharedPointer<Event> (new SystemEvent(
+                                                  SystemEvent::INFO,
+                                                  SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
+                                                  QStringLiteral("Event object is not InfoEvent object"))));;
 
-    logger->sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
-                                                        SystemEvent::WARNING,
-                                                        SystemEvent::LOGFILE_OPEN_ERR,
-                                                        QStringLiteral("Cannot open log file to write"))));
+    logger->sysEventIn(QSharedPointer<Event> (new SystemEvent(
+                                                  SystemEvent::WARNING,
+                                                  SystemEvent::LOGFILE_OPEN_ERR,
+                                                  QStringLiteral("Cannot open log file to write"))));
 
 
     /********************************/
     NetPoint np("localhost", 5600);
     QMetaObject::invokeMethod(socket, "connectToHost",  Qt::QueuedConnection,
                               Q_ARG(NetPoint, np));
-//    socket->connectToHost(NetPoint("localhost", 5600));
 
     /********************************/
     return app.exec();
