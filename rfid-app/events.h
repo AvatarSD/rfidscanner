@@ -111,8 +111,9 @@ class NetworkEvent : public InfoEvent
 {
 public:
     enum IDs{
-        OK = 0,
-        ConnectionBreak = 1
+        SOCKET_ERROR,
+        SOCKET_STATE,
+        SOCKET_DATA
     };
     NetworkEvent(EventLevel level, IDs eventid, QString dscr) :
         InfoEvent(level, NETWORK, dscr, eventid) {}
@@ -161,7 +162,7 @@ public:
     void connectAsEventSource(Eventful*obj);
     void disconnectAsEventSource(Eventful*obj);
 signals:
-    void sysEv(QSharedPointer<Event>);
+    void sysEvent(QSharedPointer<Event>);
 };
 
 

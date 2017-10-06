@@ -53,7 +53,7 @@ void Logger::setLogfilePath(const QString &value)
     logfilePath = value;
 }
 
-void Logger::eventIn(QSharedPointer<Event> event)
+void Logger::sysEventIn(QSharedPointer<Event> event)
 {
     if(event->event == Event::TAG){
         toStdOut(event);
@@ -67,7 +67,7 @@ void Logger::eventIn(QSharedPointer<Event> event)
             infoEvent = dynamic_cast<InfoEvent*>(event.data());
         }
         catch (const std::bad_cast& e){
-            eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
+            sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
                                     SystemEvent::INFO,
                                     SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
                 QStringLiteral("Event object is not InfoEvent object"))));
@@ -86,7 +86,7 @@ void Logger::writeToLogFile(QSharedPointer<Event> event)
 {
     QFile logfile(logfilePath);
     if(!logfile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)){
-        eventIn(QSharedPointer<SystemEvent> (
+        sysEventIn(QSharedPointer<SystemEvent> (
                     new SystemEvent(SystemEvent::INFO,
                                     SystemEvent::LOGFILE_OPEN_ERR,
                                 QStringLiteral("Cannot open log file to write"))));

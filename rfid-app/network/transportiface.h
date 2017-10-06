@@ -32,8 +32,7 @@
     1. NetTransport:    - Can be: SslTransport,            - TcpSocket obj, eth;         - Connection point;
                           Binary, rs485, can, etc;         - Server net point;
                         - Auto re-connection;              - Own thread for I/O;
-                        - Connected/Disconnected           - Eventful iface;
-                          signals;
+                        - State changed signal;            - Eventful iface;
                         - DNS lookup
     _________________________________________________________________________________________________________
     2. NetProtocol:     - Pack RAW message to              - Incoming buffer(circular
@@ -102,35 +101,35 @@ private:
     quint16 _port;
 };
 
+/***** NetState ******/
+class NetState
+{
+public:
+    NetState(){}
+    NetState(QAbstractSocket::SocketState state);
+    QString toString();
+    NetState & operator = (QAbstractSocket::SocketState state);
+    QAbstractSocket::SocketState _state;
+};
+Q_DECLARE_METATYPE(NetState)
+
 /***** NetTransport ******/
 class NetTransport : public Eventful
 {
     Q_OBJECT
 public:
-    enum NetTransportState{
-        NET_DISCONNECTED,      // -> disconnected by user
-        NET_HOST_LOOCKUP,      // -> host lookup
-        NET_CONNECTING,        // -> waiting for connnection estabilish
-        NET_CONNECTED,         // -> all is ok, moving data
-        NET_ABOUT_TO_CLOSE,    // -> start "soft" closing
-        NET_CONN_BROKEN,       // -> do reconnect
-        NET_CRITICAL_ERR       // -> error which make reconnection useless
-    };
-    NetTransport();
-    virtual ~NetTransport();
+    NetTransport(){qRegisterMetaType<NetState>();}
+    virtual ~NetTransport(){}
 signals:
     void recv(QByteArray data);
-    void stateChanged(NetTransportState newState);
+    void stateChanged(NetState newState);
 public slots:
     /* only quened connections! */
     virtual qint32 send(QByteArray data) = 0;
-    virtual bool connectToHost(const NetPoint& host = NetPoint()) = 0;
+    virtual bool connectToHost(NetPoint addr = NetPoint()) = 0;
     virtual void disconnectFromHost() = 0;
-    virtual NetTransportState currentState() const = 0;
-protected:
-    QThread thread;
+    virtual NetState currentState() const = 0;
 };
-Q_DECLARE_METATYPE(NetTransport::NetTransportState)
 
 /***** NetProtocol ******/
 class NetProtocol : public Eventful
@@ -168,13 +167,13 @@ public:
     ~SimpleTcpClient();
     const QAbstractSocket* getSocket() const;
 public slots:
-    virtual bool connectToHost(const NetPoint& host);
+    virtual bool connectToHost(NetPoint addr = NetPoint());
     virtual void disconnectFromHost();
     virtual qint32 send(QByteArray data);
-    virtual NetTransportState currentState() const;
+    virtual NetState currentState() const;
     // all signals:
     //   void recv(QByteArray data);
-    //   void sysEv(QSharedPointer<Event>);
+    //   void sysEvent(QSharedPointer<Event>);
     //   void stateChanged(NetState newState);
 protected slots:
     //socket
@@ -184,12 +183,10 @@ protected slots:
     //timer: main loop
     void run();
 protected:
-    virtual void setState(NetTransportState state);
-protected:
     QScopedPointer<QAbstractSocket> socket;
     QTimer zerotimer;
     NetPoint host;
-    NetTransportState state;
+    bool reconnectRequired;
 };
 
 

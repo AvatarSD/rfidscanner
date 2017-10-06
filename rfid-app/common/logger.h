@@ -22,7 +22,7 @@ public:
     void setLogfilePath(const QString &value);
 
 public slots:
-    void eventIn(QSharedPointer<Event> event);
+    void sysEventIn(QSharedPointer<Event> event);
 
 signals:
     void netEventOut(QSharedPointer<Event>);

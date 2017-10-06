@@ -43,16 +43,16 @@ int main(int argc, char *argv[])
     QObject::connect(socket, &NetTransport::recv, [&](QByteArray data){
        std::cout << "socket data: " << data.toStdString() << std::endl;
     });
-    QObject::connect(socket, SIGNAL(sysEv(QSharedPointer<Event>)),
-                     logger, SLOT(eventIn(QSharedPointer<Event>)));
+    QObject::connect(socket, SIGNAL(sysEvent(QSharedPointer<Event>)),
+                     logger, SLOT(sysEventIn(QSharedPointer<Event>)));
 
 
-    logger->eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
+    logger->sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
                                                     SystemEvent::INFO,
                                                     SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
                                                     QStringLiteral("Event object is not InfoEvent object"))));;
 
-    logger->eventIn(QSharedPointer<SystemEvent> (new SystemEvent(
+    logger->sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
                                                     SystemEvent::WARNING,
                                                     SystemEvent::LOGFILE_OPEN_ERR,
                                                     QStringLiteral("Cannot open log file to write"))));
