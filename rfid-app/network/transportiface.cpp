@@ -55,11 +55,11 @@ NetState &NetState::operator =(QAbstractSocket::SocketState state){
 
 /***** NetTransport ******/
 /**** routine ****/
-SimpleTcpClient::SimpleTcpClient(QObject* parent) :
-    SimpleTcpClient(new QTcpSocket(),parent){
+TcpNetTransport::TcpNetTransport(QObject* parent) :
+    TcpNetTransport(new QTcpSocket(),parent){
     socket->setParent(this);
 }
-SimpleTcpClient::SimpleTcpClient(QAbstractSocket *socket, QObject *parent) :
+TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
     NetTransport(parent), socket(socket), zerotimer(this)
 {
     qRegisterMetaType<QAbstractSocket::SocketState>();
@@ -75,70 +75,106 @@ SimpleTcpClient::SimpleTcpClient(QAbstractSocket *socket, QObject *parent) :
             this, SLOT(run()));
     zerotimer.start(0);
 }
-SimpleTcpClient::~SimpleTcpClient(){
+TcpNetTransport::~TcpNetTransport(){
     zerotimer.stop();
 }
-const QAbstractSocket *SimpleTcpClient::getSocket() const{
+const QAbstractSocket *TcpNetTransport::getSocket() const{
     return socket.data();
 }
-NetState SimpleTcpClient::currentState() const{
+NetState TcpNetTransport::currentState() const{
     return socket->state();
 }
 
 
 /**** IO operations ****/
-qint32 SimpleTcpClient::send(QByteArray data){
+qint32 TcpNetTransport::send(QByteArray data){
     if(socket->state() == QAbstractSocket::ConnectedState)
         return socket->write(data);
     else return -1;
 }
-void SimpleTcpClient::socketReadyRead(){
+void TcpNetTransport::socketReadyRead(){
     emit recv(socket->readAll());
 }
 
 
 /**** connection estab. operations ****/
-void SimpleTcpClient::connectToHost(NetPoint addr){
+void TcpNetTransport::connectToHost(NetPoint addr){
     reconnectRequired = true;
     if(!addr.isNull())
         this->host = addr;
     socket->connectToHost(this->host.addr(), this->host.port());
 }
-void SimpleTcpClient::disconnectFromHost(){
+void TcpNetTransport::disconnectFromHost(){
     reconnectRequired = false;
     socket->disconnectFromHost();
 }
 
 
 /**** keepalive functionality ****/
-void SimpleTcpClient::run()
+void TcpNetTransport::run()
 {
     if((socket->state() == QAbstractSocket::UnconnectedState) && reconnectRequired)
         connectToHost();
 }
-void SimpleTcpClient::socketStateChanged(QAbstractSocket::SocketState state)
+void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
 {
+    QString msg;
+    NetworkEvent::EventLevel lvl = NetworkEvent::DEBUG;
+    switch(state){
+    case QAbstractSocket::UnconnectedState:
+        msg = "Socket unconnected. Last address was: " +
+             host.addr() + ":" + QString::number(host.port());
+        lvl = NetworkEvent::WARNING;
+        break;
+    case QAbstractSocket::HostLookupState:
+        msg = "Attempt to connect to: " + host.addr() + ":" +
+                QString::number(host.port());
+        lvl = NetworkEvent::INFO;
+        break;
+    case QAbstractSocket::ConnectingState:
+        msg = host.addr() + " look-up'ed. Try to connect to " +
+                QString::number(host.port()) + " port.";
+        lvl = NetworkEvent::INFO;
+        break;
+    case QAbstractSocket::ConnectedState:
+        msg = "Connected to: " + host.addr() + ":" +
+                QString::number(host.port());
+        lvl = NetworkEvent::INFO;
+        break;
+    case QAbstractSocket::ClosingState:
+        msg = "Socket is about to close";
+        lvl = NetworkEvent::INFO;
+        break;
+    case QAbstractSocket::BoundState:
+    case QAbstractSocket::ListeningState:
+    default:
+        msg = "Socket go to unexpected state. =((";
+        lvl = NetworkEvent::DEBUG;
+        break;
+    }
+
+
     emit sysEvent(QSharedPointer<Event> (
-                      new NetworkEvent(
-                          NetworkEvent::INFO,
-                          NetworkEvent::IDs::SOCKET_STATE,
-                          QStringLiteral("socket state changed to: ")+NetState(state).toString())));
+                      new NetworkEvent(lvl,
+                          NetworkEvent::IDs::SOCKET_STATE, msg)));
     emit stateChanged(state);
 }
-void SimpleTcpClient::socketError(QAbstractSocket::SocketError error)
+void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 {
     emit sysEvent(QSharedPointer<Event> (
                       new NetworkEvent(
                           NetworkEvent::WARNING,
-                          (NetworkEvent::IDs)error,
-                          socket->errorString())));
+                          NetworkEvent::SOCKET_ERROR,
+                          QStringLiteral("Code ") + QString::number(error) + ": "
+                          + socket->errorString())));
 /* todo:
  * - list of timings
  * - timer control
- * - thread test
- * - error string conversion
- * - switch state changed events
- * - invoke method
+ * - msg swap level and place
+ * + thread test
+ * + error string conversion
+ * + switch state changed events
+ * + invoke method
  */
 
     switch (error)

@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
     // Protocol * prot = new Protocol;
     // RFIDReader * reader = new RFIDReader;
     // RFIDMamanger * mananger = new SimpleRFIDMamanger;
-    NetTransport * socket = new SimpleTcpClient;
+    NetTransport * socket = new TcpNetTransport;
     // NetCommander * net = new EventClient;
 
     //System * sys = new System;

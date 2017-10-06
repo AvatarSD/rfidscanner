@@ -161,13 +161,13 @@ public:
 /******************** Implementation *********************/
 
 /***** NetTransport ******/
-class SimpleTcpClient : public NetTransport
+class TcpNetTransport : public NetTransport
 {
     Q_OBJECT
 public:
-    SimpleTcpClient(QObject* parent = nullptr);
-    SimpleTcpClient(QAbstractSocket * socket, QObject* parent = nullptr);
-    ~SimpleTcpClient();
+    TcpNetTransport(QObject* parent = nullptr);
+    TcpNetTransport(QAbstractSocket * socket, QObject* parent = nullptr);
+    ~TcpNetTransport();
     const QAbstractSocket* getSocket() const;
 public slots:
     virtual void connectToHost(NetPoint addr = NetPoint());
