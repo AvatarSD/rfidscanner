@@ -1,16 +1,20 @@
 #include "transportiface.h"
 #include <QTcpSocket>
 #include <QDataStream>
+#include <algorithm>
 
 
-/************ Supply *************/
+/********************** Interface ************************/
 
+/**************** Level 1 *****************/
+
+/********* Supply **********/
 #define RECONNECT_TIME 50
 #define RECONNECT_ERR_TIME 1500
 #define RECONNECT_CRI_TIME 10000
 #define RECONNECT_EXT_TIME 100000
 
-/******* NetPoint ********/
+/******** NetPoint *********/
 NetPoint::NetPoint() : _addr(), _port(0){
     qRegisterMetaType<NetPoint>();
 }
@@ -36,7 +40,7 @@ void NetPoint::reset(){
     _addr.clear(); _port = 0;
 }
 
-/******* NetState ********/
+/******** NetState *********/
 NetState::NetState(QAbstractSocket::SocketState state) : _state(state){
 }
 QString NetState::toString(){
@@ -55,13 +59,31 @@ NetState &NetState::operator =(QAbstractSocket::SocketState state){
     return *this;
 }
 
+/******* NetProtocol *******/
+template<class ForwardIt1, class ForwardIt2>
+ForwardIt1 NetProtocol::search(ForwardIt1 &first, ForwardIt1 last,
+                  ForwardIt2 s_first, ForwardIt2 s_last)
+{
+    for (; ; ++first) {
+        ForwardIt1 it = first;
+        for (ForwardIt2 s_it = s_first; ; ++it, ++s_it) {
+            if (s_it == s_last) /* found - all element are equal*/
+                return first;
+            if (it == last)     /* not found - et end()*/
+                return last;
+            if (*it != *s_it)   /* first is not equeal - go to next*/
+                break;
+        }
+    }
+}
+
 
 
 /******************** Implementation *********************/
 
-/************* Level 1 *************/
+/**************** Level 1 *****************/
 
-/***** NetTransport ******/
+/****** NetTransport *******/
 TcpNetTransport::TcpNetTransport(QObject* parent) :
     TcpNetTransport(new QTcpSocket(),parent){
     socket->setParent(this);
@@ -92,7 +114,6 @@ const QAbstractSocket *TcpNetTransport::getSocket() const{
 NetState TcpNetTransport::currentState() const{
     return socket->state();
 }
-
 /**** IO operations ****/
 qint32 TcpNetTransport::send(QByteArray data){
     if(socket->state() == QAbstractSocket::ConnectedState)
@@ -102,7 +123,6 @@ qint32 TcpNetTransport::send(QByteArray data){
 void TcpNetTransport::socketReadyRead(){
     emit recv(socket->readAll());
 }
-
 /**** connection estab. operations ****/
 void TcpNetTransport::connectToHost(NetPoint addr){
     reconnectRequired = true;
@@ -114,8 +134,7 @@ void TcpNetTransport::disconnectFromHost(){
     reconnectRequired = false;
     socket->disconnectFromHost();
 }
-
-/**** keepalive functionality ****/
+/* keepalive functionality */
 void TcpNetTransport::run()
 {
     if((socket->state() == QAbstractSocket::UnconnectedState) && reconnectRequired)
@@ -213,9 +232,9 @@ void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 
 
 
-/************* Level 2 *************/
+/**************** Level 2 *****************/
 
-/***** NetProtocolFormat ******/
+/**** NetProtocolFormat ****/
 uint NetProtocolFormat::headerSize() const{
     return _headerSize;
 }
@@ -261,12 +280,31 @@ void NetProtocolFormat::setTail(const QByteArray &tail)
     _tailSize = _tail.size();
 }
 
-
-/******** NetProtocolV1Bound ********/
-QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
-{
+/***** ByteArrayQueue ******/
+void ByteArrayQueue::enqueue(const QByteArray &t){
+    data.enqueue(t);
+    if(data.size()==1)
+        firstPos = data.begin()->begin();
 }
 
+void ByteArrayQueue::removeUntill(const ByteArrayQueue::iterator &el) //TODO
+{
+    if(el == end()){
+        data.clear();
+        return;
+    }
+    forever{
+        if(begin() == el)
+            return;
+        ++firstPos;
+        if(firstPos == data.begin()->end()){
+            data.dequeue();
+            firstPos = data.begin()->begin();
+        }
+    };
+}
+
+/**** NetProtocolV1Bound ***/
 QByteArray NetProtocolV1Bound::pack(QByteArray msg)
 {
     QByteArray out;
@@ -282,6 +320,30 @@ QByteArray NetProtocolV1Bound::pack(QByteArray msg)
     out += format.tail();
     return out;
 }
+QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
+{
+    /* append data to buf */
+    inBuf.enqueue(raw);
+
+    /* try find the header */
+    auto msgIt  = inBuf.begin();
+    auto msgBegin = search(msgIt, inBuf.end(),
+                     format.header().begin(), format.header().end());
+    if(msgBegin == inBuf.end())
+    {
+        // nothing useful received
+
+    }
+
+    /* try find the tail */
+//    auto tailIt = search(inBuf.begin(), inBuf.end(),
+//                     format.tail().begin(), format.tail().end());
+
+
+    /* check lengh */
+
+}
+
 
 
 

@@ -6,6 +6,9 @@
 #include <QScopedPointer>
 #include <QTimer>
 #include <QThread>
+//#include <queue>
+#include <QQueue>
+#include <iterator>
 #include "messages.h"
 
 
@@ -85,7 +88,9 @@
 
 /********************** Interface ************************/
 
-/******* NetPoint ********/
+/**************** Level 1 *****************/
+
+/******** NetPoint *********/
 class NetPoint{
 public:
     NetPoint();
@@ -102,7 +107,7 @@ private:
 };
 Q_DECLARE_METATYPE(NetPoint)
 
-/***** NetState ******/
+/******** NetState *********/
 class NetState
 {
 public:
@@ -114,7 +119,7 @@ public:
 };
 Q_DECLARE_METATYPE(NetState)
 
-/***** NetTransport ******/
+/****** NetTransport *******/
 class NetTransport : public Eventful
 {
     Q_OBJECT
@@ -133,36 +138,37 @@ public slots:
     virtual NetState currentState() const = 0;
 };
 
-/***** NetProtocol ******/
+/******* NetProtocol *******/
 class NetProtocol : public Eventful
 {
     Q_OBJECT
 public:
     enum NetProtocolParseErr{
-        /* Byte     |  7 |  6 |  5 |  4 |  3 |  2 |  1 |  0 |
-         * order:   |              |crop|more|  error code  |
-         */
-        PARSE_ERR_OK                  = 0b00000,
-        PARSE_ERR_NOTHING             = 0b00001,
-        PARSE_ERR_NO_START            = 0b00010, // -> crop data after "\r\n\r\n"
-        PARSE_ERR_LENGH               = 0b00011, // -> crop data after "\r\n\r\n"
-        PARSE_ERR_CHECKSUM            = 0b00100, // -> crop data after "\r\n\r\n"S
-        PARSE_MORE                    = 0b01000, //for bitmask, intend to repeat parse with new data
-        PARSE_CROPPED                 = 0b10000, //for bitmask, delete unusable data
+        PARSE_ERR_OK,        // -> return QByteArrat with payload
+        PARSE_ERR_CHECKSUM,  //
+        PARSE_ERR_LENGH,     // -> crop buff after "\r\n\r\n"
+        PARSE_ERR_MORE,      //
+        PARSE_ERR_NO_START,  // -> crop data after "\r\n\r\n"
+        PARSE_ERR_NOTHING    // -> delete buff till (buffSize - (headerLength - 1)) elem
     };
     NetProtocol(QObject*parent=nullptr) : Eventful(parent){}
     virtual ~NetProtocol(){}
+
+    template<class ForwardIt1, class ForwardIt2>
+    static ForwardIt1 search(ForwardIt1 & first, ForwardIt1 last,
+                             ForwardIt2 s_first, ForwardIt2 s_last);
 public slots:
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err) = 0;
     virtual QByteArray pack (QByteArray msg) = 0;
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err) = 0;
 };
 
 
 
 /******************** Implementation *********************/
 
-/************* Level 1 *************/
-/***** NetTransport ******/
+/**************** Level 1 *****************/
+
+/****** NetTransport *******/
 class TcpNetTransport : public NetTransport
 {
     Q_OBJECT
@@ -189,9 +195,9 @@ protected:
 };
 
 
-/************* Level 2 *************/
+/**************** Level 2 *****************/
 
-/***** NetProtocolFormat ******/
+/**** NetProtocolFormat ****/
 class NetProtocolFormat
 {
 public:
@@ -224,7 +230,53 @@ private:
     uint _tailSize;
 };
 
-/***** NetProtocol ******/
+/***** ByteArrayQueue ******/
+class ByteArrayQueue
+{
+public:
+    typedef QQueue<QByteArray> ByteQueue;
+    typedef ByteQueue::iterator FirstLevelIt;
+    typedef ByteQueue::value_type::iterator SecondLevelIt;
+
+    class iterator{
+    public:
+        // construct iterator at begin
+        iterator(ByteQueue &data, SecondLevelIt firstPos) :
+            data(data), fit(data.begin()), sit(firstPos){}
+        // construct iterator at end
+        iterator(ByteQueue& data) :
+            data(data), fit(data.end()), sit(data.end()->end())
+        {}
+        inline char operator*() const {return *sit; }
+        inline bool operator==(const iterator& other) const {
+            return ((fit == other.fit) && (fit == data.end() || sit == other.sit));
+        }
+        inline iterator& operator ++() {
+            if (fit == data.end())
+                return *this;
+            ++sit;
+            if (sit >= fit->end()){
+                ++fit;
+                if (fit != data.end())
+                    sit = fit->begin();
+            }
+            return *this;
+        }
+    private:
+        ByteQueue& data;
+        FirstLevelIt fit;
+        SecondLevelIt sit;
+    };
+    inline iterator begin(){ return iterator(data, firstPos); }
+    inline iterator end(){ return iterator(data); }
+    void enqueue(const QByteArray &t);
+    void removeUntill(const iterator& el);
+private:
+    ByteQueue data;
+    SecondLevelIt firstPos; // no resize the Qbytearray, just hold first byte addr;
+};
+
+/**** NetProtocolV1Bound ***/
 class NetProtocolV1Bound : public NetProtocol
 {
     /* Message bound format:
@@ -241,11 +293,11 @@ public:
     virtual ~NetProtocolV1Bound(){}
 
 public slots:
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err);
     virtual QByteArray pack(QByteArray msg);
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err);
 private:
-    QByteArray inBuf;
     const NetProtocolFormat format;
+    ByteArrayQueue inBuf;
 };
 
 
