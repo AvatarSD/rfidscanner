@@ -120,7 +120,7 @@ class NetTransport : public Eventful
     Q_OBJECT
 public:
     NetTransport(QObject* parent = nullptr) :
-    Eventful(parent) {qRegisterMetaType<NetState>();}
+        Eventful(parent) {qRegisterMetaType<NetState>();}
     virtual ~NetTransport(){}
 signals:
     void recv(QByteArray data);
@@ -152,7 +152,8 @@ public:
     };
     NetProtocol(QObject*parent=nullptr) : Eventful(parent){}
     virtual ~NetProtocol(){}
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr & err) = 0;
+public slots:
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err) = 0;
     virtual QByteArray pack (QByteArray msg) = 0;
 };
 
@@ -160,6 +161,7 @@ public:
 
 /******************** Implementation *********************/
 
+/************* Level 1 *************/
 /***** NetTransport ******/
 class TcpNetTransport : public NetTransport
 {
@@ -187,16 +189,63 @@ protected:
 };
 
 
+/************* Level 2 *************/
+
+/***** NetProtocolFormat ******/
+class NetProtocolFormat
+{
+public:
+    typedef quint32 PayloadLengh;
+    typedef quint16 PayloadCrc;
+
+    NetProtocolFormat()
+    {setHeader(QByteArray()); setTail(QByteArray());}
+    NetProtocolFormat(const QByteArray &header,
+                      const QByteArray &tail)
+    {setHeader(header); setTail(tail);}
+
+    QByteArray header() const;
+    QByteArray length(PayloadLengh payloadLength) const;
+    QByteArray crc(PayloadCrc payloadCrc) const;
+    QByteArray tail() const;
+
+    uint headerSize() const;
+    uint lengthSize() const;
+    uint crcSize() const;
+    uint tailSize() const;
+
+    void setHeader(const QByteArray &header);
+    void setTail(const QByteArray &tail);
+
+private:
+    QByteArray _header;
+    QByteArray _tail;
+    uint _headerSize;
+    uint _tailSize;
+};
+
 /***** NetProtocol ******/
 class NetProtocolV1Bound : public NetProtocol
 {
+    /* Message bound format:
+     *    ${HEADER} ${LENGTH} ${PAYLOAD} ${CRC16} ${ENDLINE}
+     * Where:
+     *  - ${LENGTH} - uint32 - size of ${PAYLOAD}
+     *  - ${CRC16} - uint16 - crc-16 of ${PAYLOAD}
+     */
+    Q_OBJECT
 public:
-    NetProtocolV1Bound(QObject*parent=nullptr) : NetProtocol(parent) {}
+    NetProtocolV1Bound(const NetProtocolFormat &format,
+                       QObject*parent=nullptr) :
+        NetProtocol(parent), format(format) {}
     virtual ~NetProtocolV1Bound(){}
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr &err);
+
+public slots:
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err);
     virtual QByteArray pack(QByteArray msg);
 private:
     QByteArray inBuf;
+    const NetProtocolFormat format;
 };
 
 

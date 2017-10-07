@@ -1,5 +1,6 @@
 #include "transportiface.h"
 #include <QTcpSocket>
+#include <QDataStream>
 
 
 /************ Supply *************/
@@ -58,6 +59,8 @@ NetState &NetState::operator =(QAbstractSocket::SocketState state){
 
 /******************** Implementation *********************/
 
+/************* Level 1 *************/
+
 /***** NetTransport ******/
 TcpNetTransport::TcpNetTransport(QObject* parent) :
     TcpNetTransport(new QTcpSocket(),parent){
@@ -90,7 +93,6 @@ NetState TcpNetTransport::currentState() const{
     return socket->state();
 }
 
-
 /**** IO operations ****/
 qint32 TcpNetTransport::send(QByteArray data){
     if(socket->state() == QAbstractSocket::ConnectedState)
@@ -100,7 +102,6 @@ qint32 TcpNetTransport::send(QByteArray data){
 void TcpNetTransport::socketReadyRead(){
     emit recv(socket->readAll());
 }
-
 
 /**** connection estab. operations ****/
 void TcpNetTransport::connectToHost(NetPoint addr){
@@ -113,7 +114,6 @@ void TcpNetTransport::disconnectFromHost(){
     reconnectRequired = false;
     socket->disconnectFromHost();
 }
-
 
 /**** keepalive functionality ****/
 void TcpNetTransport::run()
@@ -212,11 +212,99 @@ void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 }
 
 
+
+/************* Level 2 *************/
+
+/***** NetProtocolFormat ******/
+uint NetProtocolFormat::headerSize() const{
+    return _headerSize;
+}
+uint NetProtocolFormat::lengthSize() const{
+    return sizeof(PayloadLengh);
+}
+uint NetProtocolFormat::crcSize() const{
+    return sizeof(PayloadCrc);
+}
+uint NetProtocolFormat::tailSize() const{
+    return _tailSize;
+}
+QByteArray NetProtocolFormat::header() const{
+    return _header;
+}
+QByteArray NetProtocolFormat::tail() const{
+    return _tail;
+}
+QByteArray NetProtocolFormat::length(NetProtocolFormat::PayloadLengh payloadLength) const
+{
+    QByteArray out;
+    out.reserve(lengthSize()+2); // +2 just for safe
+    QDataStream stream(&out);
+    stream << payloadLength;
+    return out;
+}
+QByteArray NetProtocolFormat::crc(NetProtocolFormat::PayloadCrc payloadCrc) const
+{
+    QByteArray out;
+    out.reserve(crcSize()+2); // +2 just for safe
+    QDataStream stream(&out);
+    stream << payloadCrc;
+    return out;
+}
+void NetProtocolFormat::setHeader(const QByteArray &header)
+{
+    _header = header;
+    _headerSize = _header.size();
+}
+void NetProtocolFormat::setTail(const QByteArray &tail)
+{
+    _tail = tail;
+    _tailSize = _tail.size();
+}
+
+
 /******** NetProtocolV1Bound ********/
-QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocol::NetProtocolParseErr &err)
+QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
 {
 }
 
 QByteArray NetProtocolV1Bound::pack(QByteArray msg)
 {
+    QByteArray out;
+    out.reserve(format.headerSize() +
+                format.lengthSize() +
+                msg.size() +
+                format.crcSize() +
+                format.tailSize());
+    out += format.header();
+    out += format.length(msg.size());
+    out += msg;
+    out += format.crc(qChecksum(msg.data(),msg.size()));
+    out += format.tail();
+    return out;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
