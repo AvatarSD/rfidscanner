@@ -6,7 +6,6 @@
 #include <QScopedPointer>
 #include <QTimer>
 #include <QThread>
-//#include <queue>
 #include <QQueue>
 #include <iterator>
 #include "messages.h"
@@ -144,12 +143,12 @@ class NetProtocol : public Eventful
     Q_OBJECT
 public:
     enum NetProtocolParseErr{
-        PARSE_ERR_OK,        // -> return QByteArrat with payload
-        PARSE_ERR_CHECKSUM,  //
-        PARSE_ERR_LENGH,     // -> crop buff after "\r\n\r\n"
-        PARSE_ERR_MORE,      //
-        PARSE_ERR_NO_START,  // -> crop data after "\r\n\r\n"
-        PARSE_ERR_NOTHING    // -> delete buff till (buffSize - (headerLength - 1)) elem
+        PARSE_ERR_OK = 0,        // -> return QByteArrat with payload
+        PARSE_ERR_CHECKSUM = 1,  //
+        PARSE_ERR_LENGH = 2,     // -> delete buff after TAIL
+        PARSE_ERR_NO_PAYLOAD = 3,
+        PARSE_ERR_NO_END = 4,  // -> delete buff till start
+        PARSE_ERR_NOTHING = 5    // -> delete buff till (buffSize - (headerLength - 1)) elem
     };
     NetProtocol(QObject*parent=nullptr) : Eventful(parent){}
     virtual ~NetProtocol(){}
@@ -238,7 +237,8 @@ public:
     typedef ByteQueue::iterator FirstLevelIt;
     typedef ByteQueue::value_type::iterator SecondLevelIt;
 
-    class iterator{
+    class iterator : public std::iterator<std::input_iterator_tag, char>
+    {
     public:
         // construct iterator at begin
         iterator(ByteQueue &data, SecondLevelIt firstPos) :
@@ -250,6 +250,9 @@ public:
         inline char operator*() const {return *sit; }
         inline bool operator==(const iterator& other) const {
             return ((fit == other.fit) && (fit == data.end() || sit == other.sit));
+        }
+        inline bool operator!=(const iterator& other) const {
+            return !this->operator ==(other);
         }
         inline iterator& operator ++() {
             if (fit == data.end())
