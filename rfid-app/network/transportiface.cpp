@@ -238,7 +238,7 @@ QByteArray NetProtocolFormat::length(NetProtocolFormat::PayloadLengh payloadLeng
 {
     QByteArray out;
     out.reserve(lengthSize()+2); // +2 just for safe
-    QDataStream stream(&out);
+    QDataStream stream(&out, QIODevice::WriteOnly);
     stream << payloadLength;
     return out;
 }
@@ -246,7 +246,7 @@ QByteArray NetProtocolFormat::crc(NetProtocolFormat::PayloadCrc payloadCrc) cons
 {
     QByteArray out;
     out.reserve(crcSize()+2); // +2 just for safe
-    QDataStream stream(&out);
+    QDataStream stream(&out, QIODevice::WriteOnly);
     stream << payloadCrc;
     return out;
 }
