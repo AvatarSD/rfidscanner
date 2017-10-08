@@ -323,7 +323,6 @@ QByteArray NetProtocolV1Bound::pack(QByteArray msg)
 }
 QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
 {
-    try{
     auto errToStr = [](NetProtocolParseErr error) -> QString {
         switch (error) {
         case PARSE_ERR_OK: return QStringLiteral("Parse OK.");
@@ -342,7 +341,8 @@ QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
         if(error < PARSE_ERR_NO_END)
             if(tailItP != nullptr)
                 inBuf.removeUntill(*tailItP);
-        *err = error;
+        if(err!=nullptr)
+            *err = error;
         if(error >= PARSE_ERR_NO_END)
             emit sysEvent(QSharedPointer<Event> (
                               new NetworkEvent(
@@ -418,10 +418,7 @@ QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
 
     /* ret ok */
     return ret(PARSE_ERR_OK, &tailIt, data);
-    }
-    catch(std::exception exp){
-        std::cout << exp.what() << std::endl;
-    }
+
     return QByteArray();
 }
 
@@ -442,7 +439,7 @@ QByteArray NetProtocolV2Bound::pack(QByteArray msg)
     return out;
 }
 
-QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocol::NetProtocolParseErr *err)
+QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocolParseErr *err)
 {
     auto errToStr = [](NetProtocolParseErr error) -> QString {
         switch (error) {
@@ -458,7 +455,8 @@ QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocol::NetProtocolPar
 
     auto ret = [&](NetProtocolParseErr error, QByteArray dat = QByteArray()) -> QByteArray
     {
-        *err = error;
+        if(err!=nullptr)
+            *err = error;
         if(error >= PARSE_ERR_NO_END)
             emit sysEvent(QSharedPointer<Event> (
                               new NetworkEvent(
@@ -507,26 +505,20 @@ QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocol::NetProtocolPar
         state = DATA;
     }
     case DATA:{
-        buff += raw.right(start);
+        buff += raw.mid(start);
         int tail = buff.indexOf(format.tail());
-
         if(tail < 0)
             return ret(PARSE_ERR_NO_END);
-
         state = START;
-
         if(tail <= (int)format.crcSize())
             return ret(PARSE_ERR_NO_PAYLOAD);
-
         auto crcArr = buff.mid(tail-format.crcSize(),format.crcSize());
         buff.truncate(tail-format.crcSize());
         QDataStream streamCrc(&crcArr, QIODevice::ReadOnly);
         quint16 crc;
         streamCrc >> crc;
-
         if(crc != qChecksum(buff.data(),buff.size()))
             return ret(PARSE_ERR_CHECKSUM);
-
         return ret(PARSE_ERR_OK, buff);
     }
     }

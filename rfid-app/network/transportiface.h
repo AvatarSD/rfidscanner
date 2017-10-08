@@ -158,7 +158,8 @@ public:
                              ForwardIt2 s_first, ForwardIt2 s_last);
 public slots:
     virtual QByteArray pack (QByteArray msg) = 0;
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err) = 0;
+    virtual QByteArray parse(QByteArray raw,
+                             NetProtocolParseErr *err = nullptr) = 0;
 };
 
 
@@ -295,7 +296,8 @@ public:
 
 public slots:
     virtual QByteArray pack(QByteArray msg);
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err);
+    virtual QByteArray parse(QByteArray raw,
+                             NetProtocolParseErr *err = nullptr);
 private:
     const NetProtocolFormat format;
     ByteArrayQueue inBuf;
@@ -316,7 +318,8 @@ public:
 
 public slots:
     virtual QByteArray pack(QByteArray msg);
-    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err);
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err
+                             = nullptr);
 private:
     const NetProtocolFormat format;
     QByteArray buff;
