@@ -203,8 +203,6 @@ public:
     typedef quint32 PayloadLengh;
     typedef quint16 PayloadCrc;
 
-    NetProtocolFormat()
-    {setHeader(QByteArray()); setTail(QByteArray());}
     NetProtocolFormat(const QByteArray &header,
                       const QByteArray &tail)
     {setHeader(header); setTail(tail);}
@@ -303,8 +301,27 @@ private:
     ByteArrayQueue inBuf;
 };
 
+/**** NetProtocolV2Bound ***/
+class NetProtocolV2Bound : public NetProtocol
+{
+    Q_OBJECT
+public:
+    enum ParserState{
+        START, LENGTH, DATA
+    };
+    NetProtocolV2Bound(const NetProtocolFormat &format,
+                       QObject*parent=nullptr) :
+        NetProtocol(parent), format(format), state(START) {}
+    virtual ~NetProtocolV2Bound(){}
 
-
+public slots:
+    virtual QByteArray pack(QByteArray msg);
+    virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err);
+private:
+    const NetProtocolFormat format;
+    QByteArray buff;
+    ParserState state;
+};
 
 
 

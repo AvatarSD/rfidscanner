@@ -37,6 +37,8 @@ int main(int argc, char *argv[])
     // NetCommander * net = new EventClient;
 
     //System * sys = new System;
+    NetProtocol *proto = new NetProtocolV2Bound(
+                NetProtocolFormat("$SD#", "\r\n\r\n"));
 
     /********************************/
     QThread netThread;
@@ -47,6 +49,7 @@ int main(int argc, char *argv[])
     logThread.start();
     //    QObject::connect(&app, SIGNAL(aboutToQuit()),&logThread,SLOT(terminate()));
 
+    /********************************/
     QObject::connect(&app, &QCoreApplication::aboutToQuit,[&](){
         logThread.quit();
         netThread.quit();
@@ -54,6 +57,14 @@ int main(int argc, char *argv[])
         netThread.wait();});
 
     /********************************/
+    QObject::connect(socket, &NetTransport::recv, [&](QByteArray data){
+       NetProtocol::NetProtocolParseErr err;
+//       std::cout << "sended: " << socket->send(proto->pack(data)) <<
+       std::cout << "sended: " << socket->send(proto->parse(proto->pack(data), &err)) <<
+                     " byte(s); err: ";
+        std::cout << (uint32_t)err << std::endl;
+    });
+
     QObject::connect(socket, &NetTransport::recv, [&](QByteArray data){
         std::cout << "socket data: " << data.toStdString() << std::endl;
     });
