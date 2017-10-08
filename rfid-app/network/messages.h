@@ -35,8 +35,8 @@ public:
     NetMessage(MsgID id, QJsonObject payload); // autogenerate UUID
     NetMessage(MsgID id, QJsonObject payload, QUuid uuid);
 
-    static QSharedPointer<NetMessage> parse(QByteArray data, ParseError & err);
     QByteArray pack();
+    static QSharedPointer<NetMessage> parse(QByteArray data, ParseError & err);
     virtual void execute(ScannerFacade*){}
 
     /***** data *****/

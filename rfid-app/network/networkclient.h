@@ -32,8 +32,8 @@ public:
     virtual ~NetCommander(){}
 
 public slots:
-    virtual void start() = 0;
-    virtual void stop() = 0;
+//    virtual void start() = 0;
+//    virtual void stop() = 0;
     virtual void netEventOut(QSharedPointer<Event>) = 0;
 
     void setAuthData(const AuthData & auth);
@@ -41,8 +41,15 @@ public slots:
     // MsgID whatAnswerID();
 
 protected:
-    NetTransport * transport;
+    QSharedPointer<NetProtocol> proto;
+    QSharedPointer<NetTransport> phy;
     AuthData auth;
+
+signals:
+    qint32 send(QByteArray data);
+protected slots:
+    virtual void recv(QByteArray data) = 0;
+
 };
 
 

@@ -70,7 +70,8 @@ void Logger::sysEventIn(QSharedPointer<Event> event)
             sysEventIn(QSharedPointer<SystemEvent> (new SystemEvent(
                                     SystemEvent::INFO,
                                     SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
-                QStringLiteral("Event object is not InfoEvent object"))));
+                QStringLiteral("Event object is not InfoEvent object: ") +
+                                                        e.what())));
         }
     if(infoEvent->level >= stdoutLogLevel)
         toStdOut(event);
@@ -86,14 +87,16 @@ void Logger::writeToLogFile(QSharedPointer<Event> event)
 {
     QFile logfile(logfilePath);
     if(!logfile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)){
-        sysEventIn(QSharedPointer<SystemEvent> (
-                    new SystemEvent(SystemEvent::INFO,
+        QSharedPointer<SystemEvent> errEv(
+                    new SystemEvent(SystemEvent::WARNING,
                                     SystemEvent::LOGFILE_OPEN_ERR,
-                                QStringLiteral("Cannot open log file to write"))));
+                                QStringLiteral("Cannot open log file to write")));
+        toStdOut(errEv);
+        emit netEventOut(errEv);
         return;
     }
     QTextStream stream(&logfile);
-    stream << event->toString() << "\r\n";
+    stream << event->toString() << "\n";
     logfile.close();
 
 }

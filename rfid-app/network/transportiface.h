@@ -37,8 +37,8 @@
                         - State changed signal;            - Eventful iface;
                         - DNS lookup
     _________________________________________________________________________________________________________
-    2. NetProtocol:     - Pack RAW message to              - Incoming buffer(circular
-                          RAW with boundary;                 or not, queue);
+    2. NetProtocol:     - Pack RAW message to              - Incoming buffer(circular    - Messege start seq;
+                          RAW with boundary;                 or not, queue);             - Message tail seq;
                         - Bound-detection in               - Start/end boundary
                           incoming RAW bytes                 bytes pattern;
                           queue for parse. Give            - CRC check;
@@ -191,7 +191,6 @@ protected:
     QScopedPointer<QAbstractSocket> socket;
     QTimer zerotimer;
     NetPoint host;
-    bool reconnectRequired;
 };
 
 

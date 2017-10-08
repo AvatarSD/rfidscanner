@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     //System * sys = new System;
     NetProtocol *proto = new NetProtocolV2Bound(
-                NetProtocolFormat("$SD#", "dxdf"/*\r\n\r\n"*/));
+                NetProtocolFormat("$SD#", "\r\n\r\n"));
 
     /********************************/
     QThread netThread;
@@ -47,7 +47,6 @@ int main(int argc, char *argv[])
     QThread logThread;
     logger->moveToThread(&logThread);
     logThread.start();
-    //    QObject::connect(&app, SIGNAL(aboutToQuit()),&logThread,SLOT(terminate()));
 
     /********************************/
     QObject::connect(&app, &QCoreApplication::aboutToQuit,[&](){
@@ -82,17 +81,6 @@ int main(int argc, char *argv[])
     QObject::connect(proto, SIGNAL(sysEvent(QSharedPointer<Event>)),
                      logger, SLOT(sysEventIn(QSharedPointer<Event>)));
 
-
-    /********************************/
-    logger->sysEventIn(QSharedPointer<Event> (new SystemEvent(
-                                                  SystemEvent::INFO,
-                                                  SystemEvent::LOGGER_DYNAMIC_CAST_ERR,
-                                                  QStringLiteral("Event object is not InfoEvent object"))));;
-
-    logger->sysEventIn(QSharedPointer<Event> (new SystemEvent(
-                                                  SystemEvent::WARNING,
-                                                  SystemEvent::LOGFILE_OPEN_ERR,
-                                                  QStringLiteral("Cannot open log file to write"))));
 
 
     /********************************/

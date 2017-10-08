@@ -38,7 +38,7 @@ QJsonObject AuthData::toJson() const
 
 /***** NetCommander ******/
 NetCommander::NetCommander(NetTransport *transport, QObject *parent) :
-    Eventful (parent), transport(transport)
+    Eventful (parent), phy(transport)
 {
 
 }

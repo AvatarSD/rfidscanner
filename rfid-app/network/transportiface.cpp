@@ -127,19 +127,19 @@ void TcpNetTransport::socketReadyRead(){
 }
 /**** connection estab. operations ****/
 void TcpNetTransport::connectToHost(NetPoint addr){
-    reconnectRequired = true;
+    zerotimer.start(RECONNECT_TIME);
     if(!addr.isNull())
         this->host = addr;
     socket->connectToHost(this->host.addr(), this->host.port());
 }
 void TcpNetTransport::disconnectFromHost(){
-    reconnectRequired = false;
+    zerotimer.stop();
     socket->disconnectFromHost();
 }
 /* keepalive functionality */
 void TcpNetTransport::run()
 {
-    if((socket->state() == QAbstractSocket::UnconnectedState) && reconnectRequired)
+    if(socket->state() == QAbstractSocket::UnconnectedState)
         connectToHost();
     zerotimer.start(RECONNECT_TIME);
 }

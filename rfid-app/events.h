@@ -124,8 +124,6 @@ class SystemEvent : public InfoEvent
 {
 public:
     enum IDs{
-        OK = 0,
-        SPACE_LEFT = 1,
         LOGGER_DYNAMIC_CAST_ERR,
         LOGFILE_OPEN_ERR
     };
