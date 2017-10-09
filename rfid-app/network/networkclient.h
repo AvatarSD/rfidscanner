@@ -85,7 +85,7 @@ signals:
 
 #define MSG_INSPECT_PERIOD_MSEC 200
 #define MSG_TRANSMIT_REPEAT_SEC 5
-#define MSG_TRANSMIT_DELETE_NUM 50
+#define MSG_TRANSMIT_DELETE_NUM 5
 /****** NetCommanders ******/
 class BasicV1Client : public NetCommander
 {

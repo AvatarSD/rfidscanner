@@ -15,8 +15,18 @@ QByteArray NetMessage::pack(const QAuthenticator &auth)
 {
     transmitCount++;
     lastTransmit = QDateTime::currentDateTime();
+
+    QJsonObject json;
+    json["auth"] = authDataToJson(auth);
+    json["uuid"] = uuid.toString(); //todo: check!
+    json["msgid"] = msgid;
+    json["msg"] = payload;
+    QJsonDocument doc(json);
+    return doc.toJson();
+
 return QByteArray("sdfasdf"); //todo
 }
+
 
 uint NetMessage::getTransmitCount() const
 {
@@ -26,4 +36,11 @@ uint NetMessage::getTransmitCount() const
 QDateTime NetMessage::getLastTransmit() const
 {
     return lastTransmit;
+}
+
+QJsonObject NetMessage::authDataToJson(const QAuthenticator &auth){
+    QJsonObject json;
+    json["user"] = auth.user();
+    json["pass"] = auth.password();
+    return json;
 }

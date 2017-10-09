@@ -42,6 +42,8 @@ public:
     static QSharedPointer<NetMessage> parse(QByteArray data, ParseError & err);
     virtual void execute(ScannerFacade*){}
 
+    static QJsonObject authDataToJson(const QAuthenticator &auth);
+
     /***** data *****/
     const MsgID msgid;
     const QJsonObject payload;
@@ -57,19 +59,11 @@ private:
 
 };
 
-/*
-QJsonObject AuthData::toJson() const
-{
-    QJsonObject json;
-    json["user"] = user;
-    json["pass"] = pass;
-    return json;
-}*/
 
-/**************************************************/
-/********************** Impl **********************/
 
-/************ msgs ************/
+/************************* Impl **************************/
+
+/********** Msgs ***********/
 class TagEventMsg : public NetMessage
 {
 public:

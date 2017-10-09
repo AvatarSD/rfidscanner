@@ -120,6 +120,8 @@ BasicV1Client::BasicV1Client(NetTransport *transport,
     connect(&inspectTimer, SIGNAL(timeout()), this,SLOT(msgInspect()));
     inspectTimer.setInterval(MSG_INSPECT_PERIOD_MSEC);
 }
+
+/* control */
 void BasicV1Client::start(){
     emit connectToHost(addr);
     QMetaObject::invokeMethod(&inspectTimer, "start", Qt::QueuedConnection);
@@ -128,6 +130,8 @@ void BasicV1Client::stop(){
     QMetaObject::invokeMethod(&inspectTimer, "stop", Qt::QueuedConnection);
     emit disconnectFromHost();
 }
+
+/* settings */
 QAuthenticator BasicV1Client::getAuth() const{
     return auth;
 }
@@ -147,30 +151,30 @@ void BasicV1Client::setAddr(const NetPoint &value){
     addr = value;
 }
 
+/* todo routine */
+void BasicV1Client::receiveMsg(QByteArray data){
 
+}
+void BasicV1Client::stateChanged(NetCommanderState state){
+
+}
+
+/* msg send routine */
 void BasicV1Client::netEventIn(QSharedPointer<Event> event){
     sendMsgEnqueue(QSharedPointer<NetMessage>(event->event == Event::TAG ?
                                                   static_cast<NetMessage*>(new TagEventMsg(event->toJson())) :
                                                   static_cast<NetMessage*>(new ErrEventMsg(event->toJson()))));
 }
-void BasicV1Client::receiveMsg(QByteArray data){
-
-}
-
-void BasicV1Client::stateChanged(NetCommanderState state){
-
-}
-void BasicV1Client::sendMsgEnqueue(QSharedPointer<NetMessage> msg)
-{
+void BasicV1Client::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
     messageQueue.enqueue(msg);
     if(mode == EVENT)
         sendMsgDirect(msg);
 }
-void BasicV1Client::sendMsgDirect(QSharedPointer<NetMessage> msg)
-{
+void BasicV1Client::sendMsgDirect(QSharedPointer<NetMessage> msg){
     emit transmitMsg(msg->pack(auth));
 }
 
+/* msg repeated transmission routine */
 void BasicV1Client::msgInspect()
 {
     foreach (auto msg, messageQueue) {
@@ -183,7 +187,7 @@ void BasicV1Client::msgInspect()
                                                    msg->uuid.toString() +
                                                    QStringLiteral(" lost. It was have ") +
                                                    QString::number(msg->getTransmitCount()) +
-                                                   QStringLiteral("transmission repeat attempt."))));
+                                                   QStringLiteral(" transmission repeat attempt."))));
                 messageQueue.removeOne(msg);
             }
             else if(msg->getLastTransmit().secsTo(QDateTime::currentDateTime())
