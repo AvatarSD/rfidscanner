@@ -32,17 +32,35 @@ public:
         USERMOD,
         USER_RUNTIME*/
     };
-    enum ParseError{OK, ERR};
+    struct ParseError{
+        enum MsgParseStatus{
+            OK = 0,
+            AUTH_ERR = 1, // now only for server
+            MSGID_ERR = 2,
+            JSON_ERR = 3,
+            CONTENT_ERR = 4
+        };
+        MsgParseStatus status;
+        QJsonParseError jsonError;
+    };
 
+    /**** constructor ****/
     NetMessage(MsgID id, QJsonObject payload); // autogenerate UUID
     NetMessage(MsgID id, QJsonObject payload, QUuid uuid);
     virtual ~NetMessage(){}
 
+    /**** serialaized ****/
     QByteArray pack(const QAuthenticator& auth);
-    static QSharedPointer<NetMessage> parse(QByteArray data, ParseError & err);
-    virtual void execute(ScannerFacade*){}
 
+    /**** helper ****/
     static QJsonObject authDataToJson(const QAuthenticator &auth);
+
+    /**** factory ****/
+    static QSharedPointer<NetMessage> createMsg(MsgID id, QJsonObject payload, QUuid uuid);
+    static QSharedPointer<NetMessage> parse(QByteArray data, ParseError * err);
+
+    /**** for ruture ****/
+    virtual void execute(ScannerFacade*){}
 
     /***** data *****/
     const MsgID msgid;
@@ -52,7 +70,6 @@ public:
     /**** status ****/
     uint getTransmitCount() const;
     QDateTime getLastTransmit() const;
-
 private:
     uint transmitCount;
     QDateTime lastTransmit;

@@ -115,7 +115,8 @@ public:
         SOCKET_STATE,
         PARSER_ERROR,
         COMMANDER,
-        AUTHENTICATOR
+        AUTHENTICATOR,
+        MESSAGE_PARSER
     };
     NetworkEvent(EventLevel level, IDs eventid, QString dscr) :
         InfoEvent(level, NETWORK, dscr, eventid) {}

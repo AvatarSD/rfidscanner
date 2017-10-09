@@ -193,7 +193,7 @@ void BasicV1Client::msgInspect()
             else if(msg->getLastTransmit().secsTo(QDateTime::currentDateTime())
                     >= msgTransmitRepeatSec){
                 emit sysEvent(QSharedPointer<Event> (
-                                  new NetworkEvent(NetworkEvent::INFO,
+                                  new NetworkEvent(NetworkEvent::WARNING,
                                                    NetworkEvent::IDs::COMMANDER,
                                                    QStringLiteral("Message ") +
                                                    msg->uuid.toString() +
