@@ -8,51 +8,33 @@ Logger::Logger() :
     serverLogLevel(InfoEvent::ERROR),
     fileLogLevel(InfoEvent::INFO),
     stdoutLogLevel(InfoEvent::DEBUG),
-    logfilePath("log.txt")
-{
-
+    logfilePath("log.txt"){
+    qRegisterMetaType<QSharedPointer<Event>>();
 }
-
-InfoEvent::EventLevel Logger::getServerLogLevel() const
-{
+InfoEvent::EventLevel Logger::getServerLogLevel() const{
     return serverLogLevel;
 }
-
-void Logger::setServerLogLevel(const InfoEvent::EventLevel &value)
-{
+void Logger::setServerLogLevel(const InfoEvent::EventLevel &value){
     serverLogLevel = value;
 }
-
-InfoEvent::EventLevel Logger::getFileLogLevel() const
-{
+InfoEvent::EventLevel Logger::getFileLogLevel() const{
     return fileLogLevel;
 }
-
-void Logger::setFileLogLevel(const InfoEvent::EventLevel &value)
-{
+void Logger::setFileLogLevel(const InfoEvent::EventLevel &value){
     fileLogLevel = value;
 }
-
-InfoEvent::EventLevel Logger::getStdoutLogLevel() const
-{
+InfoEvent::EventLevel Logger::getStdoutLogLevel() const{
     return stdoutLogLevel;
 }
-
-void Logger::setStdoutLogLevel(const InfoEvent::EventLevel &value)
-{
+void Logger::setStdoutLogLevel(const InfoEvent::EventLevel &value){
     stdoutLogLevel = value;
 }
-
-QString Logger::getLogfilePath() const
-{
+QString Logger::getLogfilePath() const{
     return logfilePath;
 }
-
-void Logger::setLogfilePath(const QString &value)
-{
+void Logger::setLogfilePath(const QString &value){
     logfilePath = value;
 }
-
 void Logger::sysEventIn(QSharedPointer<Event> event)
 {
     if(event->event == Event::TAG){
@@ -82,7 +64,6 @@ void Logger::sysEventIn(QSharedPointer<Event> event)
     return;
     }
 }
-
 void Logger::writeToLogFile(QSharedPointer<Event> event)
 {
     QFile logfile(logfilePath);
@@ -100,7 +81,6 @@ void Logger::writeToLogFile(QSharedPointer<Event> event)
     logfile.close();
 
 }
-
 void Logger::toStdOut(QSharedPointer<Event> event)
 {
     std::cout << event->toString().toStdString() << std::endl;

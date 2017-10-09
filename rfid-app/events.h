@@ -19,7 +19,7 @@ public:
     const EventType event;
     const QDateTime time;
 };
-
+Q_DECLARE_METATYPE(QSharedPointer<Event>)
 
 /************ Tag Event Types *************/
 /* base */

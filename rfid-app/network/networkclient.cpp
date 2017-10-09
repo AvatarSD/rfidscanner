@@ -39,11 +39,13 @@ QJsonObject AuthData::toJson() const
 /***** NetCommander ******/
 NetCommander::NetCommander(NetTransport* transport,
                            NetProtocol* protocol,
-                           NetPoint addr,
+                           const NetPoint &addr,
                            QObject *parent) :
-    Eventful (parent), phy(transport), proto(protocol), addr(std::move(addr)),
-    mode(POOL), state(DISCONNECTED)
+    Eventful (parent), phy(transport), proto(protocol), addr(addr),
+    mode(POOL)//, state(DISCONNECTED)
 {
+    qRegisterMetaType<NetCommanderState>();
+
     proto->setParent(this);
     phy->setParent(nullptr);
     phy->moveToThread(&phyThread);
@@ -76,26 +78,34 @@ NetCommander::WorkMode NetCommander::getMode() const{
 void NetCommander::setMode(WorkMode mode){
     mode = mode;
 }
-
+NetPoint NetCommander::getAddr() const{
+    return addr;
+}
+void NetCommander::setAddr(const NetPoint &value){
+    addr = value;
+}
+NetCommanderState NetCommander::getState() const{
+    return state;
+}
 void NetCommander::transportStateChanged(NetState newState)
 {
-    if(newState.state == QAbstractSocket::ConnectedState)
-        setstate(CONNECTED);
-    else
-        setstate(DISCONNECTED);
+//    if(newState.state == QAbstractSocket::ConnectedState)
+//        setstate(CONNECTED);
+//    else
+//        setstate(DISCONNECTED);
 }
 
-void NetCommander::setstate(NetCommander::NetCommanderState state)
+void NetCommander::setState(NetCommanderState state)
 {
-    this->state = state;
-    if(state == AUTHENTICATED){
-        emit sysEvent(QSharedPointer<Event> (
-                          new NetworkEvent(NetworkEvent::INFO,
-                                           NetworkEvent::IDs::COMMANDER_STATE,
-                                           QStringLiteral("Authenticated like: ")+
-                                           auth.getUser())));
-        emit authenticated();
-    }
+//    this->state = state;
+//    if(state == AUTHENTICATED){
+//        emit sysEvent(QSharedPointer<Event> (
+//                          new NetworkEvent(NetworkEvent::INFO,
+//                                           NetworkEvent::IDs::COMMANDER_STATE,
+//                                           QStringLiteral("Authenticated like: ")+
+//                                           auth.getUser())));
+//        emit stateChanged(NetCommanderState state);
+//    }
 }
 
 
@@ -105,8 +115,9 @@ void NetCommander::setstate(NetCommander::NetCommanderState state)
 
 BasicV1Client::BasicV1Client(NetTransport *transport,
                              NetProtocol *protocol,
-                             NetPoint addr, QObject *parent):
-    NetCommander(transport,protocol,std::move(addr),parent)
+                            const NetPoint &addr,
+                             QObject *parent):
+    NetCommander(transport,protocol,addr,parent)
 {
 
 }

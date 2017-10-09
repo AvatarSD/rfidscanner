@@ -3,7 +3,6 @@
 #include <QDataStream>
 #include <functional>
 
-#include "iostream"
 
 
 /********************** Interface ************************/
@@ -43,22 +42,25 @@ void NetPoint::reset(){
 }
 
 /******** NetState *********/
-NetState::NetState(QAbstractSocket::SocketState state) : state(state){
+NetState::NetState(QAbstractSocket::SocketState state, QString message) :
+    state(state), msg(std::move(message)){
 }
 QString NetState::toString(){
+    return msg.isEmpty() ? toRawString() : msg;
+}
+bool NetState::operator ==(QAbstractSocket::SocketState state){
+    return (this->state == state);
+}
+QString NetState::toRawString(){
     switch (state) {
     case QAbstractSocket::UnconnectedState: return QStringLiteral("Unconnected");
-    case QAbstractSocket::HostLookupState: return QStringLiteral("HostLookup");
+    case QAbstractSocket::HostLookupState: return QStringLiteral("Host Lookuping");
     case QAbstractSocket::ConnectingState: return QStringLiteral("Connecting");
     case QAbstractSocket::ConnectedState: return QStringLiteral("Connected");
     case QAbstractSocket::BoundState: return QStringLiteral("Bound");
     case QAbstractSocket::ListeningState: return QStringLiteral("Listening");
     case QAbstractSocket::ClosingState: return QStringLiteral("Closing");
     default: return QStringLiteral("Undefined"); }
-}
-NetState &NetState::operator =(QAbstractSocket::SocketState state){
-    this->state = state;
-    return *this;
 }
 
 /******* NetProtocol *******/
@@ -104,53 +106,27 @@ TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
     connect(&zerotimer, SIGNAL(timeout()),
             this, SLOT(run()));
     zerotimer.setTimerType(Qt::CoarseTimer);
-    zerotimer.setSingleShot(true);
+    //    zerotimer.setSingleShot(true);
     zerotimer.start(RECONNECT_TIME);
 }
 TcpNetTransport::~TcpNetTransport(){
     zerotimer.stop();
     socket->disconnectFromHost();
 }
-const QAbstractSocket *TcpNetTransport::getSocket() const{
-    return socket.data();
-}
 NetState TcpNetTransport::currentState() const{
-    return socket->state();
+    auto state = socket->state();
+    QString stateMsg = stateToString(state, host);
+    if((state == QAbstractSocket::UnconnectedState) && zerotimer.isActive())
+            stateMsg += QStringLiteral(" ") + socket->errorString();
+    return NetState(state, std::move(stateMsg));
 }
-/**** IO operations ****/
-qint32 TcpNetTransport::send(QByteArray data){
-    if(socket->state() == QAbstractSocket::ConnectedState)
-        return socket->write(data);
-    else return -1;
-}
-void TcpNetTransport::socketReadyRead(){
-    emit recv(socket->readAll());
-}
-/**** connection estab. operations ****/
-void TcpNetTransport::connectToHost(NetPoint addr){
-    zerotimer.start(RECONNECT_TIME);
-    if(!addr.isNull())
-        this->host = addr;
-    socket->connectToHost(this->host.addr(), this->host.port());
-}
-void TcpNetTransport::disconnectFromHost(){
-    zerotimer.stop();
-    socket->disconnectFromHost();
-}
-/* keepalive functionality */
-void TcpNetTransport::run()
-{
-    if(socket->state() == QAbstractSocket::UnconnectedState)
-        connectToHost();
-    zerotimer.start(RECONNECT_TIME);
-}
-void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
+QString TcpNetTransport::stateToString(QAbstractSocket::SocketState state,
+                                       const NetPoint& host)
 {
     QString msg;
     switch(state){
     case QAbstractSocket::UnconnectedState:
-        msg = "Socket unconnected. Last address was: " +
-                host.addr() + ":" + QString::number(host.port());
+        msg = "Socket unconnected.";
         break;
     case QAbstractSocket::HostLookupState:
         msg = "Attempt to connect to: " + host.addr() + ":" +
@@ -170,12 +146,60 @@ void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
     case QAbstractSocket::BoundState:
     case QAbstractSocket::ListeningState:
     default:
-        msg = "Socket go to unexpected state. =(("; break;
+        msg = "Socket go to unexpected state. =((";  break;
     }
+    return msg;
+}
+/**** IO operations ****/
+qint32 TcpNetTransport::send(QByteArray data){
+    if(socket->state() == QAbstractSocket::ConnectedState)
+        return socket->write(data);
+    else return -1;
+}
+void TcpNetTransport::socketReadyRead(){
+    emit recv(socket->readAll());
+}
+/**** connection estab. operations ****/
+void TcpNetTransport::connectToHost(const NetPoint &addr){
+    zerotimer.start(RECONNECT_TIME);
+    if(!addr.isNull())
+        this->host = addr;
+    socket->connectToHost(this->host.addr(), this->host.port());
+}
+void TcpNetTransport::disconnectFromHost(){
+    zerotimer.stop();
+    socket->disconnectFromHost();
+}
+/* keepalive functionality */
+void TcpNetTransport::run()
+{
+    if(socket->state() == QAbstractSocket::UnconnectedState)
+        connectToHost();
+    zerotimer.start(RECONNECT_TIME);
+}
+void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
+{
+    QString eventMsg, stateMsg;
+    eventMsg = stateMsg = stateToString(state, host);
+
+    switch (state) {
+    case QAbstractSocket::UnconnectedState:
+        eventMsg += " Last address was: " +
+                host.addr() + ":" + QString::number(host.port());
+        if(zerotimer.isActive())
+            stateMsg += QStringLiteral(" ") + socket->errorString();
+        break;
+    case QAbstractSocket::BoundState:
+    case QAbstractSocket::ListeningState:
+        socket->disconnectFromHost(); break;
+    default: break;
+    }
+
     emit sysEvent(QSharedPointer<Event> (
                       new NetworkEvent(NetworkEvent::INFO,
-                                       NetworkEvent::IDs::SOCKET_STATE, msg)));
-    emit stateChanged(state);
+                                       NetworkEvent::IDs::SOCKET_STATE,
+                                       std::move(eventMsg))));
+    emit stateChanged(NetState(state, std::move(stateMsg)));
 }
 void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 {
@@ -234,7 +258,6 @@ void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 }
 
 
-
 /**************** Level 2 *****************/
 
 /**** NetProtocolFormat ****/
@@ -289,7 +312,7 @@ void ByteArrayQueue::enqueue(const QByteArray &t){
     if(data.size()==1)
         firstPos = data.begin()->begin();
 }
-void ByteArrayQueue::removeUntill(const ByteArrayQueue::iterator &el) //TODO
+void ByteArrayQueue::removeUntill(const ByteArrayQueue::iterator &el)
 {
     if(el == end()){
         data.clear();
@@ -439,7 +462,6 @@ QByteArray NetProtocolV2Bound::pack(QByteArray msg)
     out += format.tail();
     return out;
 }
-
 QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocolParseErr *err)
 {
     auto errToStr = [](NetProtocolParseErr error) -> QString {
@@ -525,28 +547,3 @@ QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocolParseErr *err)
     }
     return QByteArray();
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

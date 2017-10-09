@@ -110,11 +110,16 @@ Q_DECLARE_METATYPE(NetPoint)
 class NetState
 {
 public:
-    NetState(){}
-    NetState(QAbstractSocket::SocketState state);
+    NetState() = default;
+    NetState(const NetState &state) = default;
+    /**************************/
+    NetState(QAbstractSocket::SocketState state, QString message);
     QString toString();
-    NetState & operator = (QAbstractSocket::SocketState state);
+    bool operator == (QAbstractSocket::SocketState state);
+private:
+    QString toRawString();
     QAbstractSocket::SocketState state;
+    QString msg;
 };
 Q_DECLARE_METATYPE(NetState)
 
@@ -130,12 +135,15 @@ signals:
     void recv(QByteArray data);
     void stateChanged(NetState newState);
 public slots:
-    /* only quened connections! */
-    virtual qint32 send(QByteArray data) = 0;
-    virtual void connectToHost(NetPoint addr = NetPoint()) = 0;
+    virtual void connectToHost(const NetPoint &addr = NetPoint()) = 0;
     virtual void disconnectFromHost() = 0;
+    virtual qint32 send(QByteArray data) = 0;
+    /****************************/
     virtual NetState currentState() const = 0;
 };
+
+
+/**************** Level 2 *****************/
 
 /******* NetProtocol *******/
 class NetProtocol : public Eventful
@@ -177,17 +185,19 @@ public:
     TcpNetTransport(QAbstractSocket * socket, QObject* parent = nullptr);
     ~TcpNetTransport();
 public slots:
-    const QAbstractSocket* getSocket() const;
-    virtual NetState currentState() const;
-    virtual void connectToHost(NetPoint addr = NetPoint());
+    virtual void connectToHost(const NetPoint& addr = NetPoint());
     virtual void disconnectFromHost();
     virtual qint32 send(QByteArray data);
+    /****************************/
+    virtual NetState currentState() const;
 protected slots:
     void socketReadyRead();
     void run();
     void socketStateChanged(QAbstractSocket::SocketState state);
     void socketError(QAbstractSocket::SocketError error);
 protected:
+    static QString stateToString(QAbstractSocket::SocketState state,
+                                 const NetPoint &host);
     QScopedPointer<QAbstractSocket> socket;
     QTimer zerotimer;
     NetPoint host;
@@ -324,10 +334,6 @@ private:
     QByteArray buff;
     ParserState state;
 };
-
-
-
-
 
 
 #endif // TRANSPORTIFACE_H
