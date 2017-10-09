@@ -23,9 +23,17 @@ public:
         CLOSING,
         AUTHENTICATED
     };
-    NetCommanderState(){}
-
-
+    NetCommanderState() : state(DISCONNECTED){}
+    NetCommanderState(States state, QString msg) :
+        state(state), msg(msg){}
+    NetCommanderState(const NetState & state);
+    void fromNetState(const NetState &state);
+    void fromRawState(States state, QString msg);
+    void fromSelfState(const NetCommanderState &state);
+    States getState() const;
+    QString getMsg() const;
+    bool operator ==(States state);
+    static States fromSocketState(QAbstractSocket::SocketState state);
 private:
     States state;
     QString msg;
@@ -41,30 +49,32 @@ public:
                  NetProtocol *protocol,
                  QObject *parent = nullptr);
     virtual ~NetCommander();
-signals:
-    void stateChanged(NetCommanderState state);
 public slots:
     virtual void netEventOut(QSharedPointer<Event>) = 0;
     virtual void start() = 0; // connect to server
     virtual void stop() = 0;  // disconnect from server
     const NetCommanderState &getState() const;
-/****************************/
-protected:
-    QScopedPointer<NetTransport> phy;
-    QScopedPointer<NetProtocol> proto;
 signals:
-    qint32 send(QByteArray data);
+    void stateChanged(NetCommanderState state);
+    /****************************/
+protected slots:
+    virtual void receiveMsg(QByteArray data) = 0;
+    void transmitMsg(QByteArray msg);
+    void setState(const NetCommanderState &state);
+signals:
     void connectToHost(const NetPoint &addr);
     void disconnectFromHost();
-protected slots:
-    virtual void recv(QByteArray data) = 0;
-    void setState(NetCommanderState state);
-/****************************/
+    /****************************/
 private:
+    QScopedPointer<NetTransport> phy;
+    QScopedPointer<NetProtocol> proto;
     QThread phyThread;
     NetCommanderState state;
 private slots:
+    void recv(QByteArray data);
     void transportStateChanged(NetState newState);
+signals:
+    qint32 send(QByteArray data);
 };
 
 
@@ -94,11 +104,12 @@ public:
     QAuthenticator getAuth() const;
     void setAuth(const QAuthenticator &value);
 public slots:
-    virtual void netEventOut(QSharedPointer<Event>);
+    virtual void netEventOut(QSharedPointer<Event> event);
     virtual void start();
     virtual void stop();
 protected slots:
-    virtual void recv(QByteArray data);
+    virtual void receiveMsg(QByteArray data);
+    void stateChanged(NetCommanderState state);
     // void makeAnswer();
     // MsgID whatAnswerID();
 protected:

@@ -36,8 +36,8 @@ int TagID::fromString(const QString &tag)
 {
     return sscanf(tag.toUtf8().data(),
                   "%X:%X:%X:%X:%X:%X:%X:%X",
-                  id+0, id+1, id+2, id+3,
-                  id+4, id+5, id+6, id+7);
+                  (uint*)(id+0), (uint*)(id+1),(uint*)(id+2), (uint*)(id+3),
+                  (uint*)(id+4), (uint*)(id+5),(uint*)(id+6), (uint*)(id+7));
 }
 
 /*EPCMem::EPCMem() : TagMemory(EPC) {}

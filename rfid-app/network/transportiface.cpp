@@ -45,13 +45,13 @@ void NetPoint::reset(){
 NetState::NetState(QAbstractSocket::SocketState state, QString message) :
     state(state), msg(std::move(message)){
 }
-QString NetState::toString(){
+QString NetState::toString() const{
     return msg.isEmpty() ? toRawString() : msg;
 }
 bool NetState::operator ==(QAbstractSocket::SocketState state){
     return (this->state == state);
 }
-QString NetState::toRawString(){
+QString NetState::toRawString() const{
     switch (state) {
     case QAbstractSocket::UnconnectedState: return QStringLiteral("Unconnected");
     case QAbstractSocket::HostLookupState: return QStringLiteral("Host Lookuping");
@@ -61,6 +61,9 @@ QString NetState::toRawString(){
     case QAbstractSocket::ListeningState: return QStringLiteral("Listening");
     case QAbstractSocket::ClosingState: return QStringLiteral("Closing");
     default: return QStringLiteral("Undefined"); }
+}
+QAbstractSocket::SocketState NetState::getState() const{
+    return state;
 }
 
 /******* NetProtocol *******/

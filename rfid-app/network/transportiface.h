@@ -114,10 +114,11 @@ public:
     NetState(const NetState &state) = default;
     /**************************/
     NetState(QAbstractSocket::SocketState state, QString message);
-    QString toString();
+    QString toString() const;
     bool operator == (QAbstractSocket::SocketState state);
+    QAbstractSocket::SocketState getState() const;
 private:
-    QString toRawString();
+    QString toRawString() const;
     QAbstractSocket::SocketState state;
     QString msg;
 };

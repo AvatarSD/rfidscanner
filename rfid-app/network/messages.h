@@ -6,6 +6,8 @@
 
 #include <QUuid>
 #include <QJsonObject>
+#include <QAuthenticator>
+#include <QDateTime>
 
 
 /**************************************************/
@@ -34,15 +36,25 @@ public:
 
     NetMessage(MsgID id, QJsonObject payload); // autogenerate UUID
     NetMessage(MsgID id, QJsonObject payload, QUuid uuid);
+    virtual ~NetMessage(){}
 
-    QByteArray pack();
+    QByteArray pack(const QAuthenticator& auth);
     static QSharedPointer<NetMessage> parse(QByteArray data, ParseError & err);
     virtual void execute(ScannerFacade*){}
 
     /***** data *****/
-    const QUuid uuid;
     const MsgID msgid;
     const QJsonObject payload;
+    const QUuid uuid;
+
+    /**** status ****/
+    uint getTransmitCount() const;
+    QDateTime getLastTransmit() const;
+
+private:
+    uint transmitCount;
+    QDateTime lastTransmit;
+
 };
 
 
@@ -51,7 +63,7 @@ public:
 /********************** Impl **********************/
 
 /************ msgs ************/
-/*class TagEventMsg : public NetMessage
+class TagEventMsg : public NetMessage
 {
 public:
     TagEventMsg(QJsonObject payload) :
@@ -92,7 +104,7 @@ public:
     EventsCountMsg(QJsonObject payload) :
         NetMessage(EVENT_COUNT, payload) {}
     virtual ~EventsCountMsg(){}
-};*/
+};
 
 
 /************ prt ************/
