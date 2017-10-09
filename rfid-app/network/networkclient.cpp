@@ -1,5 +1,7 @@
 #include "networkclient.h"
 
+#include <iostream>
+
 
 /********************** Interface ************************/
 
@@ -108,14 +110,22 @@ BasicV1Client::BasicV1Client(NetTransport *transport,
                              NetProtocol *protocol,
                              const NetPoint & addr,
                              QObject *parent ):
-    NetCommander(transport,protocol,parent), addr(addr), mode(POOL){
+    NetCommander(transport,protocol,parent),
+    addr(addr),mode(POOL), inspectTimer(this),
+    msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
+    msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
+{
     connect(this, SIGNAL(stateChanged(NetCommanderState)),
             this, SLOT(stateChanged(NetCommanderState)));
+    connect(&inspectTimer, SIGNAL(timeout()), this,SLOT(msgInspect()));
+    inspectTimer.setInterval(MSG_INSPECT_PERIOD_MSEC);
 }
 void BasicV1Client::start(){
     emit connectToHost(addr);
+    QMetaObject::invokeMethod(&inspectTimer, "start", Qt::QueuedConnection);
 }
 void BasicV1Client::stop(){
+    QMetaObject::invokeMethod(&inspectTimer, "stop", Qt::QueuedConnection);
     emit disconnectFromHost();
 }
 QAuthenticator BasicV1Client::getAuth() const{
@@ -138,14 +148,10 @@ void BasicV1Client::setAddr(const NetPoint &value){
 }
 
 
-void BasicV1Client::netEventOut(QSharedPointer<Event> event){
-    QSharedPointer<NetMessage> newMsg(event->event == Event::TAG ?
-                static_cast<NetMessage*>(new TagEventMsg(event->toJson())) :
-                static_cast<NetMessage*>(new ErrEventMsg(event->toJson())));
-    messageQueue.enqueue(newMsg);
-    if(mode == EVENT)
-        emit transmitMsg(newMsg->pack(auth));
-
+void BasicV1Client::netEventIn(QSharedPointer<Event> event){
+    sendMsgEnqueue(QSharedPointer<NetMessage>(event->event == Event::TAG ?
+                                                  static_cast<NetMessage*>(new TagEventMsg(event->toJson())) :
+                                                  static_cast<NetMessage*>(new ErrEventMsg(event->toJson()))));
 }
 void BasicV1Client::receiveMsg(QByteArray data){
 
@@ -154,15 +160,67 @@ void BasicV1Client::receiveMsg(QByteArray data){
 void BasicV1Client::stateChanged(NetCommanderState state){
 
 }
-
-
-/*
-QJsonObject AuthData::toJson() const
+void BasicV1Client::sendMsgEnqueue(QSharedPointer<NetMessage> msg)
 {
-    QJsonObject json;
-    json["user"] = user;
-    json["pass"] = pass;
-    return json;
-}*/
+    messageQueue.enqueue(msg);
+    if(mode == EVENT)
+        sendMsgDirect(msg);
+}
+void BasicV1Client::sendMsgDirect(QSharedPointer<NetMessage> msg)
+{
+    emit transmitMsg(msg->pack(auth));
+}
+
+void BasicV1Client::msgInspect()
+{
+    foreach (auto msg, messageQueue) {
+        if(msg->getTransmitCount() > 0){
+            if(msg->getTransmitCount() >= msgMaxAtemptToDelete){
+                emit sysEvent(QSharedPointer<Event> (
+                                  new NetworkEvent(NetworkEvent::INFO,
+                                                   NetworkEvent::IDs::COMMANDER,
+                                                   QStringLiteral("Message ") +
+                                                   msg->uuid.toString() +
+                                                   QStringLiteral(" lost. It was have ") +
+                                                   QString::number(msg->getTransmitCount()) +
+                                                   QStringLiteral("transmission repeat attempt."))));
+                messageQueue.removeOne(msg);
+            }
+            else if(msg->getLastTransmit().secsTo(QDateTime::currentDateTime())
+                    >= msgTransmitRepeatSec){
+                emit sysEvent(QSharedPointer<Event> (
+                                  new NetworkEvent(NetworkEvent::INFO,
+                                                   NetworkEvent::IDs::COMMANDER,
+                                                   QStringLiteral("Message ") +
+                                                   msg->uuid.toString() +
+                                                   QStringLiteral(" transmission repeat #")+
+                                                   QString::number(msg->getTransmitCount()))));
+                sendMsgDirect(msg);
+            }
+        }
+    }
+}
+int BasicV1Client::getMsgInspectPeriodMsec() const{
+    return inspectTimer.interval();
+}
+void BasicV1Client::setMsgInspectPeriodMsec(int value){
+    inspectTimer.setInterval(value);
+}
+uint BasicV1Client::getMsgMaxAtemptToDelete() const{
+    return msgMaxAtemptToDelete;
+}
+void BasicV1Client::setMsgMaxAtemptToDelete(uint value){
+    msgMaxAtemptToDelete = value;
+}
+uint BasicV1Client::getMsgTransmitRepeatSec() const{
+    return msgTransmitRepeatSec;
+}
+void BasicV1Client::setMsgTransmitRepeatSec(uint value){
+    msgTransmitRepeatSec = value;
+}
+
+
+
+
 
 

@@ -15,7 +15,7 @@ QByteArray NetMessage::pack(const QAuthenticator &auth)
 {
     transmitCount++;
     lastTransmit = QDateTime::currentDateTime();
-
+return QByteArray("sdfasdf"); //todo
 }
 
 uint NetMessage::getTransmitCount() const

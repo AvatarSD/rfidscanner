@@ -50,7 +50,7 @@ public:
                  QObject *parent = nullptr);
     virtual ~NetCommander();
 public slots:
-    virtual void netEventOut(QSharedPointer<Event>) = 0;
+    virtual void netEventIn(QSharedPointer<Event>) = 0;
     virtual void start() = 0; // connect to server
     virtual void stop() = 0;  // disconnect from server
     const NetCommanderState &getState() const;
@@ -83,6 +83,9 @@ signals:
 
 /**************** Level 4 *****************/
 
+#define MSG_INSPECT_PERIOD_MSEC 200
+#define MSG_TRANSMIT_REPEAT_SEC 5
+#define MSG_TRANSMIT_DELETE_NUM 50
 /****** NetCommanders ******/
 class BasicV1Client : public NetCommander
 {
@@ -103,20 +106,37 @@ public:
     void setMode(const WorkMode &value);
     QAuthenticator getAuth() const;
     void setAuth(const QAuthenticator &value);
+
+    //timing options
+    uint getMsgTransmitRepeatSec() const;
+    void setMsgTransmitRepeatSec(uint value);
+    uint getMsgMaxAtemptToDelete() const;
+    void setMsgMaxAtemptToDelete(uint value);
+    int getMsgInspectPeriodMsec() const;
+    void setMsgInspectPeriodMsec(int value);
+
 public slots:
-    virtual void netEventOut(QSharedPointer<Event> event);
+    virtual void netEventIn(QSharedPointer<Event> event);
     virtual void start();
     virtual void stop();
 protected slots:
     virtual void receiveMsg(QByteArray data);
     void stateChanged(NetCommanderState state);
-    // void makeAnswer();
-    // MsgID whatAnswerID();
 protected:
     QQueue<QSharedPointer<NetMessage>> messageQueue;
     NetPoint addr;
     WorkMode mode;
     QAuthenticator auth;
+private slots:
+    void sendMsgEnqueue(QSharedPointer<NetMessage> msg);
+    void sendMsgDirect(QSharedPointer<NetMessage> msg);
+    // void makeAnswer();
+    // MsgID whatAnswerID();
+    void msgInspect();
+private:
+    QTimer inspectTimer;
+    uint msgTransmitRepeatSec;
+    uint msgMaxAtemptToDelete;
 };
 
 

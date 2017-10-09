@@ -30,10 +30,11 @@ int main(int argc, char *argv[])
     // RFIDMamanger * mananger = new SimpleRFIDMamanger;
 //    NetTransport * socket = ;
 //    NetProtocol *proto = ;
-    NetCommander * net = new BasicV1Client(new TcpNetTransport,
+    auto * net = new BasicV1Client(new TcpNetTransport,
                                            new NetProtocolV2Bound(
                                                NetProtocolFormat("$SD#", "\r\n\r\n")),
                                            NetPoint("localhost", 5600));
+    net->setMode(BasicV1Client::EVENT);
 
     //System * sys = new System;
 
@@ -77,7 +78,8 @@ int main(int argc, char *argv[])
                      logger, SLOT(sysEventIn(QSharedPointer<Event>)));
 //    QObject::connect(proto, SIGNAL(sysEvent(QSharedPointer<Event>)),
 //                     logger, SLOT(sysEventIn(QSharedPointer<Event>)));
-
+    QObject::connect(logger, SIGNAL(netEventOut(QSharedPointer<Event>)),
+                     net,SLOT(netEventIn(QSharedPointer<Event>)));
 
 
     /********************************/

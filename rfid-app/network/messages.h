@@ -57,7 +57,14 @@ private:
 
 };
 
-
+/*
+QJsonObject AuthData::toJson() const
+{
+    QJsonObject json;
+    json["user"] = user;
+    json["pass"] = pass;
+    return json;
+}*/
 
 /**************************************************/
 /********************** Impl **********************/
