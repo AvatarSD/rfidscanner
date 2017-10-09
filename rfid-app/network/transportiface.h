@@ -142,7 +142,6 @@ public slots:
     virtual NetState currentState() const = 0;
 };
 
-
 /**************** Level 2 *****************/
 
 /******* NetProtocol *******/
@@ -169,7 +168,6 @@ public slots:
     virtual QByteArray parse(QByteArray raw,
                              NetProtocolParseErr *err = nullptr) = 0;
 };
-
 
 
 /******************** Implementation *********************/
@@ -202,7 +200,6 @@ protected:
     QTimer zerotimer;
     NetPoint host;
 };
-
 
 /**************** Level 2 *****************/
 

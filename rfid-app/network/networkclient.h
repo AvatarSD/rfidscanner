@@ -5,33 +5,26 @@
 #include <QObject>
 #include <types.h>
 #include <QQueue>
+#include <QAuthenticator>
 
 
 /********************** Interface ************************/
 
 /**************** Level 4 *****************/
 
-/******** Auth Data ********/
-class AuthData : public Serialaizeable
-{
-public:
-    AuthData();
-    AuthData(QString user, QString pass);
-    QString getUser() const;
-    QString getPass() const;
-    void setUser(const QString &value);
-    void setPass(const QString &value);
-    virtual QJsonObject toJson() const;
-private:
-    QString user, pass;
-};
-
 /**** NetCommanderState ****/
 class NetCommanderState{
 public:
     enum States{
-        DISCONNECTED, CONNECTED, AUTHENTICATED
+        DISCONNECTED,
+        LOOKUPING,
+        CONNECTING,
+        CONNECTED,
+        CLOSING,
+        AUTHENTICATED
     };
+    NetCommanderState(){}
+
 
 private:
     States state;
@@ -44,44 +37,34 @@ class NetCommander : public Eventful
 {
     Q_OBJECT
 public:
-    enum WorkMode{
-        POOL, EVENT
-    };
     NetCommander(NetTransport *transport,
                  NetProtocol *protocol,
-                 const NetPoint &addr,
                  QObject *parent = nullptr);
     virtual ~NetCommander();
-    AuthData getAuth() const;
-    void setAuth(const AuthData &value);
-    WorkMode getMode() const;
-    void setMode(WorkMode mode);
-    NetPoint getAddr() const;
-    void setAddr(const NetPoint &value);
 signals:
     void stateChanged(NetCommanderState state);
 public slots:
     virtual void netEventOut(QSharedPointer<Event>) = 0;
     virtual void start() = 0; // connect to server
     virtual void stop() = 0;  // disconnect from server
+    const NetCommanderState &getState() const;
+/****************************/
 protected:
-    void setState(NetCommanderState state);
-    NetCommanderState getState() const;
-    /****************************/
-    QSharedPointer<NetTransport> phy;
-    QSharedPointer<NetProtocol> proto;
-    NetPoint addr;
-    AuthData auth;
-    WorkMode mode;
+    QScopedPointer<NetTransport> phy;
+    QScopedPointer<NetProtocol> proto;
 signals:
     qint32 send(QByteArray data);
+    void connectToHost(const NetPoint &addr);
+    void disconnectFromHost();
 protected slots:
     virtual void recv(QByteArray data) = 0;
-private slots:
-    void transportStateChanged(NetState newState);
+    void setState(NetCommanderState state);
+/****************************/
 private:
     QThread phyThread;
     NetCommanderState state;
+private slots:
+    void transportStateChanged(NetState newState);
 };
 
 
@@ -95,11 +78,21 @@ class BasicV1Client : public NetCommander
 {
     Q_OBJECT
 public:
+    enum WorkMode{
+        POOL, EVENT
+    };
     BasicV1Client(NetTransport* transport,
                   NetProtocol* protocol,
                   const NetPoint &addr,
                   QObject *parent = nullptr);
-    virtual ~BasicV1Client();
+    virtual ~BasicV1Client()
+    {}
+    NetPoint getAddr() const;
+    void setAddr(const NetPoint &value);
+    WorkMode getMode() const;
+    void setMode(const WorkMode &value);
+    QAuthenticator getAuth() const;
+    void setAuth(const QAuthenticator &value);
 public slots:
     virtual void netEventOut(QSharedPointer<Event>);
     virtual void start();
@@ -110,6 +103,9 @@ protected slots:
     // MsgID whatAnswerID();
 protected:
     QQueue<QSharedPointer<NetMessage>> messageQueue;
+    NetPoint addr;
+    WorkMode mode;
+    QAuthenticator auth;
 };
 
 
