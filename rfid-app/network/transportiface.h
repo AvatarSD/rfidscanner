@@ -114,7 +114,7 @@ public:
     NetState(QAbstractSocket::SocketState state);
     QString toString();
     NetState & operator = (QAbstractSocket::SocketState state);
-    QAbstractSocket::SocketState _state;
+    QAbstractSocket::SocketState state;
 };
 Q_DECLARE_METATYPE(NetState)
 

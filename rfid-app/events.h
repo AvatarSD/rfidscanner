@@ -113,7 +113,8 @@ public:
     enum IDs{
         SOCKET_ERROR,
         SOCKET_STATE,
-        PARSER_ERROR
+        PARSER_ERROR,
+        COMMANDER_STATE
     };
     NetworkEvent(EventLevel level, IDs eventid, QString dscr) :
         InfoEvent(level, NETWORK, dscr, eventid) {}

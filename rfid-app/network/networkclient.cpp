@@ -37,16 +37,99 @@ QJsonObject AuthData::toJson() const
 }
 
 /***** NetCommander ******/
-NetCommander::NetCommander(NetTransport *transport, QObject *parent) :
-    Eventful (parent), phy(transport)
+NetCommander::NetCommander(NetTransport* transport,
+                           NetProtocol* protocol,
+                           NetPoint addr,
+                           QObject *parent) :
+    Eventful (parent), phy(transport), proto(protocol), addr(std::move(addr)),
+    mode(POOL), state(DISCONNECTED)
 {
+    proto->setParent(this);
+    phy->setParent(nullptr);
+    phy->moveToThread(&phyThread);
 
+    proto->connectAsEventDrain(this);
+    phy->connectAsEventDrain(this);
+
+    connect(this, SIGNAL(send(QByteArray)), phy.data(), SLOT(send(QByteArray)));
+    connect(phy.data(), SIGNAL(recv(QByteArray)),this,SLOT(recv(QByteArray)));
+    connect(phy.data(), SIGNAL(stateChanged(NetState)),
+            this,SLOT(transportStateChanged(NetState)));
+
+    phyThread.start();
 }
-void NetCommander::setAuthData(const AuthData &auth)
+
+NetCommander::~NetCommander()
 {
-    this->auth = auth;
+    phyThread.quit();
+    phyThread.wait();
+}
+AuthData NetCommander::getAuth() const{
+    return auth;
+}
+void NetCommander::setAuth(const AuthData &value){
+    auth = value;
+}
+NetCommander::WorkMode NetCommander::getMode() const{
+    return mode;
+}
+void NetCommander::setMode(WorkMode mode){
+    mode = mode;
+}
+
+void NetCommander::transportStateChanged(NetState newState)
+{
+    if(newState.state == QAbstractSocket::ConnectedState)
+        setstate(CONNECTED);
+    else
+        setstate(DISCONNECTED);
+}
+
+void NetCommander::setstate(NetCommander::NetCommanderState state)
+{
+    this->state = state;
+    if(state == AUTHENTICATED){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::INFO,
+                                           NetworkEvent::IDs::COMMANDER_STATE,
+                                           QStringLiteral("Authenticated like: ")+
+                                           auth.getUser())));
+        emit authenticated();
+    }
 }
 
 
 /******************** Implementation *********************/
 /***** NetTransport ******/
+
+
+BasicV1Client::BasicV1Client(NetTransport *transport,
+                             NetProtocol *protocol,
+                             NetPoint addr, QObject *parent):
+    NetCommander(transport,protocol,std::move(addr),parent)
+{
+
+}
+BasicV1Client::~BasicV1Client()
+{
+
+}
+
+void BasicV1Client::netEventOut(QSharedPointer<Event>)
+{
+}
+
+void BasicV1Client::start()
+{
+    QMetaObject::invokeMethod(phy.data(), "connectToHost",  Qt::QueuedConnection,
+                                  Q_ARG(NetPoint, addr));
+}
+
+void BasicV1Client::stop()
+{
+    QMetaObject::invokeMethod(phy.data(), "disconnectFromHost",  Qt::QueuedConnection);
+}
+
+void BasicV1Client::recv(QByteArray data)
+{
+}

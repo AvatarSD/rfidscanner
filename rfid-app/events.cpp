@@ -74,24 +74,24 @@ QJsonObject InfoEvent::toJson() const
 
 void Eventful::connectAsEventDrain(Eventful *obj)
 {
-    connect(this, SIGNAL(event(QSharedPointer<Event>)),
-            obj, SIGNAL(event(QSharedPointer<Event>)));
+    connect(this, SIGNAL(sysEvent(QSharedPointer<Event>)),
+            obj, SIGNAL(sysEvent(QSharedPointer<Event>)));
 }
 
 void Eventful::disconnectAsEventDrain(Eventful *obj)
 {
-    disconnect(this, SIGNAL(event(QSharedPointer<Event>)),
-               obj, SIGNAL(event(QSharedPointer<Event>)));
+    disconnect(this, SIGNAL(sysEvent(QSharedPointer<Event>)),
+               obj, SIGNAL(sysEvent(QSharedPointer<Event>)));
 }
 
 void Eventful::connectAsEventSource(Eventful *obj)
 {
-    connect(obj, SIGNAL(event(QSharedPointer<Event>)),
-            this, SIGNAL(event(QSharedPointer<Event>)));
+    connect(obj, SIGNAL(sysEvent(QSharedPointer<Event>)),
+            this, SIGNAL(sysEvent(QSharedPointer<Event>)));
 }
 
 void Eventful::disconnectAsEventSource(Eventful *obj)
 {
-    disconnect(obj, SIGNAL(event(QSharedPointer<Event>)),
-               this, SIGNAL(event(QSharedPointer<Event>)));
+    disconnect(obj, SIGNAL(sysEvent(QSharedPointer<Event>)),
+               this, SIGNAL(sysEvent(QSharedPointer<Event>)));
 }

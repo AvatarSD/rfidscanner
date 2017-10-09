@@ -43,10 +43,10 @@ void NetPoint::reset(){
 }
 
 /******** NetState *********/
-NetState::NetState(QAbstractSocket::SocketState state) : _state(state){
+NetState::NetState(QAbstractSocket::SocketState state) : state(state){
 }
 QString NetState::toString(){
-    switch (_state) {
+    switch (state) {
     case QAbstractSocket::UnconnectedState: return QStringLiteral("Unconnected");
     case QAbstractSocket::HostLookupState: return QStringLiteral("HostLookup");
     case QAbstractSocket::ConnectingState: return QStringLiteral("Connecting");
@@ -57,7 +57,7 @@ QString NetState::toString(){
     default: return QStringLiteral("Undefined"); }
 }
 NetState &NetState::operator =(QAbstractSocket::SocketState state){
-    this->_state = state;
+    this->state = state;
     return *this;
 }
 
@@ -109,6 +109,7 @@ TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
 }
 TcpNetTransport::~TcpNetTransport(){
     zerotimer.stop();
+    socket->disconnectFromHost();
 }
 const QAbstractSocket *TcpNetTransport::getSocket() const{
     return socket.data();
