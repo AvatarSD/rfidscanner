@@ -55,7 +55,7 @@ public slots:
     virtual void stop() = 0;  // disconnect from server
     const NetCommanderState &getState() const;
 signals:
-    void stateChanged(NetCommanderState state);
+    void stateChanged(const NetCommanderState &state);
     /****************************/
 protected slots:
     virtual void receiveMsg(QByteArray data) = 0;

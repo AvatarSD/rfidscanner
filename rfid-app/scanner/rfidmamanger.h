@@ -5,7 +5,7 @@
 #include "types.h"
 
 #include <QSharedPointer>
-#include <QList>
+#include <QMap>
 #include <QDateTime>
 #include <QThread>
 #include <QTimer>
