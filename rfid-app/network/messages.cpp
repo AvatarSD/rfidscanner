@@ -36,33 +36,33 @@ QJsonObject NetMessage::authDataToJson(const QAuthenticator &auth){
 
 QSharedPointer<NetMessage> NetMessage::createMsg(MsgID id, QJsonObject payload, QUuid uuid)
 {
-    switch (id) {
-    case TAG_EVENT: return new TagEventMsg(payload,uuid);
-    ERROR_EVENT,
-    ANSWER,
-    REQUEST,
-    SCANNER_RUNTIME,
-    EVENT_COUNT:
+//    switch (id) {
+//    case TAG_EVENT: return new TagEventMsg(payload,uuid);
+//    ERROR_EVENT,
+//    ANSWER,
+//    REQUEST,
+//    SCANNER_RUNTIME,
+//    EVENT_COUNT:
 
-        break;
-    default:
-        break;
-    }
+//        break;
+//    default:
+//        break;
+//    }
 }
 QSharedPointer<NetMessage> NetMessage::parse(QByteArray data, ParseError *err)
 {
-    QJsonDocument doc = QJsonDocument::fromJson(data, &err->jsonError);
-    if(err->jsonError != QJsonParseError::NoError){
-        err->status = ParseError::JSON_ERR;
-        return nullptr;
-    }
-    if(!doc.isObject()){
-        err->status = ParseError::CONTENT_ERR;
-        return nullptr;
-    }
-    QJsonObject json = doc.object();
-    if(!(json.contains("msgid")&&json.contains("msg")&&json.contains("uuid"))){
-        err->status = ParseError::CONTENT_ERR;
-        return nullptr;
-    }
+//    QJsonDocument doc = QJsonDocument::fromJson(data, &err->jsonError);
+//    if(err->jsonError != QJsonParseError::NoError){
+//        err->status = ParseError::JSON_ERR;
+//        return nullptr;
+//    }
+//    if(!doc.isObject()){
+//        err->status = ParseError::CONTENT_ERR;
+//        return nullptr;
+//    }
+//    QJsonObject json = doc.object();
+//    if(!(json.contains("msgid")&&json.contains("msg")&&json.contains("uuid"))){
+//        err->status = ParseError::CONTENT_ERR;
+//        return nullptr;
+//    }
 }
