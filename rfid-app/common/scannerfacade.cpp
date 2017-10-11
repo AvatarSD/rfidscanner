@@ -1,6 +1,9 @@
 #include "scannerfacade.h"
 
-ScannerFacade::ScannerFacade()
+ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
+    m_socket(TCP), m_msgBoundaries(BOUND_V1),
+    logManengerThread(this), netManengerThread(this),
+    logger(new Logger)
 {
 
 }
@@ -50,12 +53,12 @@ QString ScannerFacade::password() const
     return m_password;
 }
 
-ScannerFacade::State ScannerFacade::state() const
+ScannerFacade::NetState ScannerFacade::netState() const
 {
-    return m_state;
+    return m_netState;
 }
 
-QString ScannerFacade::stateMsg() const
+QString ScannerFacade::netStateMsg() const
 {
     return m_stateMsg;
 }
