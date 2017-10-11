@@ -25,6 +25,7 @@ class ScannerFacade : public Eventful
     /*R*/ // Runtime motifiting
     /*C*/ // Re-Create object(s)
 
+    /* I   */ Q_PROPERTY(bool     isReady         READ isReady                                  NOTIFY isReadyChanged)
     /*     */     /**** net connectio ****/
     /*N C  */ Q_PROPERTY(Socket   socket          READ socket          /*WRITE setSocket*/      /*NOTIFY socketChanged*/)
     /*N R  */ Q_PROPERTY(QString  server          READ server          WRITE setServer          NOTIFY serverChanged)
@@ -32,7 +33,7 @@ class ScannerFacade : public Eventful
     /*O R  */ //Q_PROPERTY(QString  sslKey          READ sslKey          WRITE setSslKey          NOTIFY sslKeyChanged)
     /*O R  */ //Q_PROPERTY(QString  sslCert         READ sslCert         WRITE setSslCert         NOTIFY sslCertChanged)
     /*     */     /**** net proto ****/
-    /*O C D*/ //Q_PROPERTY(MsgBound msgBoundaries   READ msgBoundaries   /*WRITE setMsgBoundaries*/ /*NOTIFY msgBoundariesChanged*/)
+    /*O C D*/ Q_PROPERTY(MsgBound msgBoundaries   READ msgBoundaries /*WRITE setMsgBoundaries*/ NOTIFY msgBoundariesChanged)
     /*O R D*/ Q_PROPERTY(QString  startSqns       READ startSqns       WRITE setStartSqns       NOTIFY startSqnsChanged)
     /*O R D*/ Q_PROPERTY(QString  tailSqns        READ tailSqns        WRITE setTailSqns        NOTIFY tailSqnsChanged)
     /*     */     /**** auth ****/
@@ -62,6 +63,8 @@ class ScannerFacade : public Eventful
 
 
 
+
+
 public:
     typedef BasicV1Client::WorkMode Mode;
     typedef NetCommanderState::States State;
@@ -74,6 +77,70 @@ public:
     ScannerFacade();
 
 
+    bool isReady() const;
+    Socket socket() const;
+    QString server() const;
+    quint16 port() const;
+    MsgBound msgBoundaries() const;
+    QString startSqns() const;
+    QString tailSqns() const;
+    QString username() const;
+    QString password() const;
+    State state() const;
+    QString stateMsg() const;
+    Mode mode() const;
+    uint msgTxRepeatSec() const;
+    uint msgMaxTxAtempt() const;
+    qint32 msgInspectMsec() const;
+    QString logfile() const;
+
+public slots:
+    void setServer(QString server);
+    void setPort(quint16 port);
+    void setStartSqns(QString startSqns);
+    void setTailSqns(QString tailSqns);
+    void setUsername(QString username);
+    void setPassword(QString password);
+    void setMode(Mode mode);
+    void setMsgTxRepeatSec(uint msgTxRepeatSec);
+    void setMsgMaxTxAtempt(uint msgMaxTxAtempt);
+    void setMsgInspectMsec(qint32 msgInspectMsec);
+    void setLogfile(QString logfile);
+
+signals:
+    void isReadyChanged(bool isReady);
+    void serverChanged(QString server);
+    void portChanged(quint16 port);
+    void msgBoundariesChanged(MsgBound msgBoundaries);
+    void startSqnsChanged(QString startSqns);
+    void tailSqnsChanged(QString tailSqns);
+    void usernameChanged(QString username);
+    void passwordChanged(QString password);
+    void stateChanged(State state);
+    void stateMsgChanged(QString stateMsg);
+    void modeChanged(Mode mode);
+    void msgTxRepeatSecChanged(uint msgTxRepeatSec);
+    void msgMaxTxAtemptChanged(uint msgMaxTxAtempt);
+    void msgInspectMsecChanged(qint32 msgInspectMsec);
+    void logfileChanged(QString logfile);
+
+private:
+    bool m_isReady;
+    Socket m_socket;
+    QString m_server;
+    quint16 m_port;
+    MsgBound m_msgBoundaries;
+    QString m_startSqns;
+    QString m_tailSqns;
+    QString m_username;
+    QString m_password;
+    State m_state;
+    QString m_stateMsg;
+    Mode m_mode;
+    uint m_msgTxRepeatSec;
+    uint m_msgMaxTxAtempt;
+    qint32 m_msgInspectMsec;
+    QString m_logfile;
 };
 
 #endif // SCANNERFACADE_H
