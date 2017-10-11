@@ -2,12 +2,8 @@
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
-#include "common/system.h"
-#include "common/logger.h"
-#include "scanner/rfidmamanger.h"
-#include "network/networkclient.h"
+#include "common/scannerfacade.h"
 
-#include <iostream>
 
 int main(int argc, char *argv[])
 {

@@ -111,7 +111,7 @@ class NetState
 {
 public:
     NetState() = default;
-    NetState(const NetState &state) = default;
+    NetState(const NetState&) = default;
     /**************************/
     NetState(QAbstractSocket::SocketState state, QString message);
     QString toString() const;

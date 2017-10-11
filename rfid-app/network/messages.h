@@ -2,7 +2,6 @@
 #define MESSAGES_H
 
 #include "events.h"
-#include "common/scannerfacade.h"
 
 #include <QUuid>
 #include <QJsonObject>
@@ -60,7 +59,7 @@ public:
     static QSharedPointer<NetMessage> parse(QByteArray data, ParseError * err);
 
     /**** for ruture ****/
-    virtual void execute(ScannerFacade*){}
+    virtual void execute(void*){}
 
     /***** data *****/
     const MsgID msgid;

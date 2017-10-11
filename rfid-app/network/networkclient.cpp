@@ -1,7 +1,5 @@
 #include "networkclient.h"
 
-#include <iostream>
-
 
 /********************** Interface ************************/
 
