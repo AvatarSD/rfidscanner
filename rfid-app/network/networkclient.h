@@ -38,6 +38,7 @@ private:
     States state;
     QString msg;
 };
+Q_DECLARE_METATYPE(NetCommanderState::States)
 Q_DECLARE_METATYPE(NetCommanderState)
 
 /****** NetCommander *******/
