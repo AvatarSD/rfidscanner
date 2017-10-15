@@ -32,12 +32,13 @@ public:
     void fromSelfState(const NetCommanderState &state);
     States getState() const;
     QString getMsg() const;
-    bool operator ==(States state);
+    bool operator ==(States state) const;
     static States fromSocketState(QAbstractSocket::SocketState state);
 private:
     States state;
     QString msg;
 };
+Q_DECLARE_METATYPE(NetCommanderState::States)
 Q_DECLARE_METATYPE(NetCommanderState)
 
 /****** NetCommander *******/
@@ -45,17 +46,23 @@ class NetCommander : public Eventful
 {
     Q_OBJECT
 public:
-    NetCommander(NetTransport *transport,
-                 NetProtocol *protocol,
-                 QObject *parent = nullptr);
+    NetCommander(QObject *parent = nullptr);
     virtual ~NetCommander();
+
+    bool isReady() const;
+    const NetCommanderState *state() const;
+    const NetTransport* transport() const;
+    const NetProtocol* protocol() const;
+
 public slots:
     virtual void netEventIn(QSharedPointer<Event>) = 0;
     virtual void start() = 0; // connect to server
     virtual void stop() = 0;  // disconnect from server
-    const NetCommanderState &getState() const;
+    void setTransport(NetTransport* transport);
+    void setProtocol(NetProtocol* protocol);
+
 signals:
-    void stateChanged(const NetCommanderState &state);
+    void stateChanged(const NetCommanderState *state);
     /****************************/
 protected slots:
     virtual void receiveMsg(QByteArray data) = 0;
@@ -69,7 +76,8 @@ private:
     QScopedPointer<NetTransport> phy;
     QScopedPointer<NetProtocol> proto;
     QThread phyThread;
-    NetCommanderState state;
+    NetCommanderState m_state;
+
 private slots:
     void recv(QByteArray data);
     void transportStateChanged(NetState newState);
@@ -94,10 +102,8 @@ public:
     enum WorkMode{
         POOL, EVENT
     };
-    BasicV1Client(NetTransport* transport,
-                  NetProtocol* protocol,
-                  const NetPoint &addr,
-                  QObject *parent = nullptr);
+    Q_ENUM(WorkMode)
+    BasicV1Client(QObject *parent = nullptr);
     virtual ~BasicV1Client()
     {}
     NetPoint getAddr() const;
@@ -121,7 +127,7 @@ public slots:
     virtual void stop();
 protected slots:
     virtual void receiveMsg(QByteArray data);
-    void stateChanged(NetCommanderState state);
+    void stateChanged(const NetCommanderState *state);
 protected:
     QQueue<QSharedPointer<NetMessage>> messageQueue;
     NetPoint addr;

@@ -16,7 +16,7 @@
 #define RECONNECT_EXT_TIME 100000
 
 /******** NetPoint *********/
-NetPoint::NetPoint() : _addr(), _port(0){
+NetPoint::NetPoint(QObject *parent) : QObject(parent), _addr(), _port(0){
     qRegisterMetaType<NetPoint>();
 }
 NetPoint::NetPoint(QString addr, quint16 port) : _addr(addr), _port(port){
@@ -25,20 +25,29 @@ NetPoint::NetPoint(QString addr, quint16 port) : _addr(addr), _port(port){
 QString NetPoint::addr() const{
     return _addr;
 }
-void NetPoint::addr(QString addr){
+void NetPoint::setAddr(QString addr){
     _addr = addr;
+    emit addressChanged(_addr);
+    if(_port != 0)
+        emit nullChanged(false);
 }
 quint16 NetPoint::port() const{
     return _port;
 }
-void NetPoint::port(quint16 port){
+void NetPoint::setPort(quint16 port){
     _port = port;
+    emit portChanged(_port);
+    if(!_addr.isNull())
+        emit nullChanged(false);
 }
 bool NetPoint::isNull() const{
     return (_addr.isNull() && (_port == 0));
 }
-void NetPoint::reset(){
-    _addr.clear(); _port = 0;
+void NetPoint::reset(bool realy){
+    if(realy){
+        _addr.clear(); _port = 0;
+        emit nullChanged(true);
+    }
 }
 
 /******** NetState *********/
@@ -64,6 +73,54 @@ QString NetState::toRawString() const{
 }
 QAbstractSocket::SocketState NetState::getState() const{
     return state;
+}
+
+/**************** Level 2 *****************/
+
+/**** NetProtocolFormat ****/
+uint NetProtocolFormat::headerSize() const{
+    return _headerSize;
+}
+uint NetProtocolFormat::lengthSize() const{
+    return sizeof(PayloadLengh);
+}
+uint NetProtocolFormat::crcSize() const{
+    return sizeof(PayloadCrc);
+}
+uint NetProtocolFormat::tailSize() const{
+    return _tailSize;
+}
+QByteArray NetProtocolFormat::header() const{
+    return _header;
+}
+QByteArray NetProtocolFormat::tail() const{
+    return _tail;
+}
+QByteArray NetProtocolFormat::length(NetProtocolFormat::PayloadLengh payloadLength) const
+{
+    QByteArray out;
+    out.reserve(lengthSize()+2); // +2 just for safe
+    QDataStream stream(&out, QIODevice::WriteOnly);
+    stream << payloadLength;
+    return out;
+}
+QByteArray NetProtocolFormat::crc(NetProtocolFormat::PayloadCrc payloadCrc) const
+{
+    QByteArray out;
+    out.reserve(crcSize()+2); // +2 just for safe
+    QDataStream stream(&out, QIODevice::WriteOnly);
+    stream << payloadCrc;
+    return out;
+}
+void NetProtocolFormat::setHeader(const QByteArray &header)
+{
+    _header = header;
+    _headerSize = _header.size();
+}
+void NetProtocolFormat::setTail(const QByteArray &tail)
+{
+    _tail = tail;
+    _tailSize = _tail.size();
 }
 
 /******* NetProtocol *******/
@@ -120,7 +177,7 @@ NetState TcpNetTransport::currentState() const{
     auto state = socket->state();
     QString stateMsg = stateToString(state, host);
     if((state == QAbstractSocket::UnconnectedState) && zerotimer.isActive())
-            stateMsg += QStringLiteral(" ") + socket->errorString();
+        stateMsg += QStringLiteral(" ") + socket->errorString();
     return NetState(state, std::move(stateMsg));
 }
 QString TcpNetTransport::stateToString(QAbstractSocket::SocketState state,
@@ -163,10 +220,10 @@ void TcpNetTransport::socketReadyRead(){
     emit recv(socket->readAll());
 }
 /**** connection estab. operations ****/
-void TcpNetTransport::connectToHost(const NetPoint &addr){
+void TcpNetTransport::connectToHost(const NetPoint *addr){
     zerotimer.start(RECONNECT_TIME);
-    if(!addr.isNull())
-        this->host = addr;
+    if(addr != nullptr)
+        this->host = *addr;
     socket->connectToHost(this->host.addr(), this->host.port());
 }
 void TcpNetTransport::disconnectFromHost(){
@@ -262,52 +319,6 @@ void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
 
 
 /**************** Level 2 *****************/
-
-/**** NetProtocolFormat ****/
-uint NetProtocolFormat::headerSize() const{
-    return _headerSize;
-}
-uint NetProtocolFormat::lengthSize() const{
-    return sizeof(PayloadLengh);
-}
-uint NetProtocolFormat::crcSize() const{
-    return sizeof(PayloadCrc);
-}
-uint NetProtocolFormat::tailSize() const{
-    return _tailSize;
-}
-QByteArray NetProtocolFormat::header() const{
-    return _header;
-}
-QByteArray NetProtocolFormat::tail() const{
-    return _tail;
-}
-QByteArray NetProtocolFormat::length(NetProtocolFormat::PayloadLengh payloadLength) const
-{
-    QByteArray out;
-    out.reserve(lengthSize()+2); // +2 just for safe
-    QDataStream stream(&out, QIODevice::WriteOnly);
-    stream << payloadLength;
-    return out;
-}
-QByteArray NetProtocolFormat::crc(NetProtocolFormat::PayloadCrc payloadCrc) const
-{
-    QByteArray out;
-    out.reserve(crcSize()+2); // +2 just for safe
-    QDataStream stream(&out, QIODevice::WriteOnly);
-    stream << payloadCrc;
-    return out;
-}
-void NetProtocolFormat::setHeader(const QByteArray &header)
-{
-    _header = header;
-    _headerSize = _header.size();
-}
-void NetProtocolFormat::setTail(const QByteArray &tail)
-{
-    _tail = tail;
-    _tailSize = _tail.size();
-}
 
 /***** ByteArrayQueue ******/
 void ByteArrayQueue::enqueue(const QByteArray &t){
@@ -448,6 +459,12 @@ QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
 
     return QByteArray();
 }
+NetProtocolFormat *NetProtocolV1Bound::getFormat() const{
+    return &format;
+}
+void NetProtocolV1Bound::setFormat(const NetProtocolFormat *value){
+    format = *value;
+}
 
 /**** NetProtocolV2Bound ***/
 QByteArray NetProtocolV2Bound::pack(QByteArray msg)
@@ -549,4 +566,10 @@ QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocolParseErr *err)
     }
     }
     return QByteArray();
+}
+NetProtocolFormat *NetProtocolV2Bound::getFormat() const{
+    return &format;
+}
+void NetProtocolV2Bound::setFormat(const NetProtocolFormat *value){
+    format = *value;
 }

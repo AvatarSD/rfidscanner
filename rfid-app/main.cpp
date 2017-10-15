@@ -24,13 +24,22 @@ int main(int argc, char *argv[])
     // Protocol * prot = new Protocol;
     // RFIDReader * reader = new RFIDReader;
     // RFIDMamanger * mananger = new SimpleRFIDMamanger;
-//    NetTransport * socket = ;
-//    NetProtocol *proto = ;
-    auto * net = new BasicV1Client(new TcpNetTransport,
-                                           new NetProtocolV2Bound(
-                                               NetProtocolFormat("$SD#", "\r\n\r\n")),
-                                           NetPoint("localhost", 5600));
+    //    NetTransport * socket = ;
+    //    NetProtocol *proto = ;
+    auto * net = new BasicV1Client();
+    /*new TcpNetTransport,
+                                               new NetProtocolV2Bound(
+                                                   NetProtocolFormat("$SD#", "\r\n\r\n")),
+                                               NetPoint("localhost", 5600)*/
+    net->setTransport(new TcpNetTransport);
+    net->setProtocol(new NetProtocolV2Bound);
+//    net->protocol()->getFormat().header();
+
+    net->protocol()->getFormat()->setHeader("$SD#");
+    net->protocol()->getFormat()->setTail("\r\n\r\n");
     net->setMode(BasicV1Client::EVENT);
+    net->setAddr(NetPoint("localhost", net->getAddr().port()));
+    net->setAddr(NetPoint(net->getAddr().addr(), 5600));
 
     //System * sys = new System;
 
@@ -50,38 +59,38 @@ int main(int argc, char *argv[])
         netThread.wait();});
 
     /********************************/
-//    QObject::connect(socket, &NetTransport::recv, [&](QByteArray data)
-//    {
-//        //        auto tim = QTime::currentTime();
-//        std::cout << "recved str: " << data.toStdString() << std::endl;
-//        std::cout << "recved hex: " << data.toHex().toStdString() << std::endl;
+    //    QObject::connect(socket, &NetTransport::recv, [&](QByteArray data)
+    //    {
+    //        //        auto tim = QTime::currentTime();
+    //        std::cout << "recved str: " << data.toStdString() << std::endl;
+    //        std::cout << "recved hex: " << data.toHex().toStdString() << std::endl;
 
-//        auto packing = proto->pack(data);
-//        std::cout << "packed str: " << packing.toStdString() << std::endl;
-//        std::cout << "packed hex: " << packing.toHex().toStdString() << std::endl;
+    //        auto packing = proto->pack(data);
+    //        std::cout << "packed str: " << packing.toStdString() << std::endl;
+    //        std::cout << "packed hex: " << packing.toHex().toStdString() << std::endl;
 
-//        QByteArray unpacked;
-//        for(int i = 0; i<packing.size(); i+=5)
-//            unpacked += proto->parse(packing.mid(i,5));
-//        socket->send(unpacked);
-//        std::cout << "sended str: " << unpacked.toStdString() << std::endl;
-//        std::cout << "sended hex: " << unpacked.toHex().toStdString() << std::endl;
+    //        QByteArray unpacked;
+    //        for(int i = 0; i<packing.size(); i+=5)
+    //            unpacked += proto->parse(packing.mid(i,5));
+    //        socket->send(unpacked);
+    //        std::cout << "sended str: " << unpacked.toStdString() << std::endl;
+    //        std::cout << "sended hex: " << unpacked.toHex().toStdString() << std::endl;
 
-//    });
+    //    });
 
 
     QObject::connect(net, SIGNAL(sysEvent(QSharedPointer<Event>)),
                      logger, SLOT(sysEventIn(QSharedPointer<Event>)));
-//    QObject::connect(proto, SIGNAL(sysEvent(QSharedPointer<Event>)),
-//                     logger, SLOT(sysEventIn(QSharedPointer<Event>)));
+    //    QObject::connect(proto, SIGNAL(sysEvent(QSharedPointer<Event>)),
+    //                     logger, SLOT(sysEventIn(QSharedPointer<Event>)));
     QObject::connect(logger, SIGNAL(netEventOut(QSharedPointer<Event>)),
                      net,SLOT(netEventIn(QSharedPointer<Event>)));
 
 
     /********************************/
-//    NetPoint("localhost", 5600);
-//    QMetaObject::invokeMethod(socket, "connectToHost",  Qt::QueuedConnection,
-//                              Q_ARG(NetPoint, np));
+    //    NetPoint("localhost", 5600);
+    //    QMetaObject::invokeMethod(socket, "connectToHost",  Qt::QueuedConnection,
+    //                              Q_ARG(NetPoint, np));
     net->start();
 
     /********************************/

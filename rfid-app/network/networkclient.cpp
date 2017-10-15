@@ -25,7 +25,7 @@ NetCommanderState::States NetCommanderState::getState() const{
 QString NetCommanderState::getMsg() const{
     return msg;
 }
-bool NetCommanderState::operator ==(NetCommanderState::States state){
+bool NetCommanderState::operator ==(NetCommanderState::States state) const{
     return this->state == state;
 }
 NetCommanderState::States NetCommanderState::fromSocketState(QAbstractSocket::SocketState state){
@@ -43,18 +43,44 @@ NetCommanderState::States NetCommanderState::fromSocketState(QAbstractSocket::So
 }
 
 /****** NetCommander *******/
-NetCommander::NetCommander(NetTransport* transport,
-                           NetProtocol* protocol,
-                           QObject *parent) :
-    Eventful (parent), phy(transport), proto(protocol)
+NetCommander::NetCommander(QObject *parent) :
+    Eventful (parent)
 {
     qRegisterMetaType<NetCommanderState>();
+    phyThread.start();
+}
+NetCommander::~NetCommander(){
+    phyThread.quit();
+    phyThread.wait();
+}
 
-    proto->setParent(this);
+bool NetCommander::isReady() const{
+    return !(phy.isNull()||proto.isNull());
+}
+const NetCommanderState *NetCommander::state() const{
+    return &m_state;
+}
+const NetTransport *NetCommander::transport() const{
+    return phy.data();
+}
+const NetProtocol *NetCommander::protocol() const{
+    return proto.data();
+}
+void NetCommander::setTransport(NetTransport *transport){
+    if(transport == nullptr)
+        return;
+
+    if(!(*state() == NetCommanderState::DISCONNECTED)){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::WARNING,
+                                           NetworkEvent::IDs::COMMANDER,
+                                           QStringLiteral("Attemt to change socket type while "
+                                                          "connections in active state"))));
+    }
+    phy.reset(transport);
+
     phy->setParent(nullptr);
     phy->moveToThread(&phyThread);
-
-    proto->connectAsEventDrain(this);
     phy->connectAsEventDrain(this);
 
     connect(this, SIGNAL(send(QByteArray)),
@@ -68,34 +94,51 @@ NetCommander::NetCommander(NetTransport* transport,
     connect(this, SIGNAL(disconnectFromHost()),
             phy.data(), SLOT(disconnectFromHost()));
 
-    phyThread.start();
 }
-NetCommander::~NetCommander(){
-    phyThread.quit();
-    phyThread.wait();
-}
-const NetCommanderState &NetCommander::getState() const{
-    return state;
+void NetCommander::setProtocol(NetProtocol *protocol){
+    if(protocol == nullptr)
+        return;
+    if(!(*state() == NetCommanderState::DISCONNECTED)){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::WARNING,
+                                           NetworkEvent::IDs::COMMANDER,
+                                           QStringLiteral("Attemt to change message "
+                                                          "boundary parser while "
+                                                           "connections in active state"))));
+    }
+    proto.reset(protocol);
+    proto->setParent(this);
+    proto->connectAsEventDrain(this);
 }
 void NetCommander::transportStateChanged(NetState newState){
     this->setState(NetCommanderState(newState));
 }
 void NetCommander::setState(const NetCommanderState &state){
-    this->state = state;
-    if(this->state == NetCommanderState::AUTHENTICATED)
+    this->m_state = state;
+    if(this->m_state == NetCommanderState::AUTHENTICATED)
         emit sysEvent(QSharedPointer<Event> (
                           new NetworkEvent(NetworkEvent::INFO,
                                            NetworkEvent::IDs::AUTHENTICATOR,
                                            state.getMsg())));
-    emit stateChanged(this->state);
+    emit stateChanged(&m_state);
 }
 void NetCommander::recv(QByteArray data){
+    if(proto.isNull()){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::WARNING,
+                                           NetworkEvent::IDs::COMMANDER,
+                                           QStringLiteral("Attemt to PARSE data "
+                                                          "while parser is null"))));
+        return;
+    }
     NetProtocol::NetProtocolParseErr err;
     auto msg = proto->parse(data,&err);
     if(err == NetProtocol::PARSE_ERR_OK)
         receiveMsg(msg);
 }
 void NetCommander::transmitMsg(QByteArray msg){
+    if(!isReady())
+        return;
     emit send(proto->pack(msg));
 }
 
@@ -104,28 +147,40 @@ void NetCommander::transmitMsg(QByteArray msg){
 
 
 /****** BasicV1Client ******/
-BasicV1Client::BasicV1Client(NetTransport *transport,
-                             NetProtocol *protocol,
-                             const NetPoint & addr,
-                             QObject *parent ):
-    NetCommander(transport,protocol,parent),
-    addr(addr),mode(POOL), inspectTimer(this),
+BasicV1Client::BasicV1Client(QObject *parent ):
+    NetCommander(parent), mode(POOL), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
-    connect(this, SIGNAL(stateChanged(NetCommanderState)),
-            this, SLOT(stateChanged(NetCommanderState)));
+    connect(this, SIGNAL(stateChanged(const NetCommanderState*)),
+            this, SLOT(stateChanged(const NetCommanderState*)));
     connect(&inspectTimer, SIGNAL(timeout()), this,SLOT(msgInspect()));
     inspectTimer.setInterval(MSG_INSPECT_PERIOD_MSEC);
 }
 
 /* control */
 void BasicV1Client::start(){
+    if(!this->isReady()){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::WARNING,
+                                           NetworkEvent::IDs::COMMANDER,
+                                           QStringLiteral("Attemt to connect to server"
+                                                          " while network is not ready"))));
+        return;
+    }
+    if(addr.isNull()){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::WARNING,
+                                           NetworkEvent::IDs::COMMANDER,
+                                           QStringLiteral("Attemt to connect to server"
+                                                          " while address is null"))));
+        return;
+    }
     emit connectToHost(addr);
-    QMetaObject::invokeMethod(&inspectTimer, "start", Qt::QueuedConnection);
+    inspectTimer.start();
 }
 void BasicV1Client::stop(){
-    QMetaObject::invokeMethod(&inspectTimer, "stop", Qt::QueuedConnection);
+    inspectTimer.stop();
     emit disconnectFromHost();
 }
 
@@ -151,10 +206,10 @@ void BasicV1Client::setAddr(const NetPoint &value){
 
 /* todo routine */
 void BasicV1Client::receiveMsg(QByteArray data){
-
+ //todo
 }
-void BasicV1Client::stateChanged(NetCommanderState state){
-
+void BasicV1Client::stateChanged(const NetCommanderState *state){
+//todo
 }
 
 /* msg send routine */

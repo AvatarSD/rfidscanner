@@ -8,6 +8,16 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
 
 }
 
+void ScannerFacade::connectToServer()
+{
+
+}
+
+void ScannerFacade::disconnectFromServer()
+{
+
+}
+
 bool ScannerFacade::isReady() const
 {
     return m_isReady;

@@ -90,16 +90,26 @@
 /**************** Level 1 *****************/
 
 /******** NetPoint *********/
-class NetPoint{
+class NetPoint : public QObject {
+    Q_OBJECT
+    Q_PROPERTY(QString address READ addr WRITE setAddr NOTIFY addressChanged)
+    Q_PROPERTY(quint16 port READ port WRITE setPort NOTIFY portChanged)
+    Q_PROPERTY(bool null READ isNull WRITE reset NOTIFY nullChanged)
+
 public:
-    NetPoint();
-    NetPoint(QString addr, quint16 port);
+    NetPoint(QObject*parent=nullptr);
+//    NetPoint(QString addr, quint16 port);
     QString addr() const;
     quint16 port() const;
-    void addr(QString addr);
-    void port(quint16 port);
     bool isNull() const;
-    void reset();
+public slots:
+    void setAddr(QString addr);
+    void setPort(quint16 port);
+    void reset(bool realy);
+signals:
+    void addressChanged(QString address);
+    void portChanged(quint16 port);
+    void nullChanged(bool really);
 private:
     QString _addr;
     quint16 _port;
@@ -136,70 +146,11 @@ signals:
     void recv(QByteArray data);
     void stateChanged(NetState newState);
 public slots:
-    virtual void connectToHost(const NetPoint &addr = NetPoint()) = 0;
+    virtual void connectToHost(const NetPoint *addr = nullptr) = 0;
     virtual void disconnectFromHost() = 0;
     virtual qint32 send(QByteArray data) = 0;
     /****************************/
     virtual NetState currentState() const = 0;
-};
-
-/**************** Level 2 *****************/
-
-/******* NetProtocol *******/
-class NetProtocol : public Eventful
-{
-    Q_OBJECT
-public:
-    enum NetProtocolParseErr{
-        PARSE_ERR_OK = 0,        // -> return QByteArrat with payload
-        PARSE_ERR_CHECKSUM = 1,  //
-        PARSE_ERR_LENGH = 2,     // -> delete buff after TAIL
-        PARSE_ERR_NO_PAYLOAD = 3,
-        PARSE_ERR_NO_END = 4,  // -> delete buff till start
-        PARSE_ERR_NOTHING = 5    // -> delete buff till (buffSize - (headerLength - 1)) elem
-    };
-    NetProtocol(QObject*parent=nullptr) : Eventful(parent){}
-    virtual ~NetProtocol(){}
-
-    template<class ForwardIt1, class ForwardIt2>
-    static ForwardIt1 search(ForwardIt1 & first, ForwardIt1 last,
-                             ForwardIt2 s_first, ForwardIt2 s_last);
-public slots:
-    virtual QByteArray pack (QByteArray msg) = 0;
-    virtual QByteArray parse(QByteArray raw,
-                             NetProtocolParseErr *err = nullptr) = 0;
-};
-
-
-/******************** Implementation *********************/
-
-/**************** Level 1 *****************/
-
-/****** NetTransport *******/
-class TcpNetTransport : public NetTransport
-{
-    Q_OBJECT
-public:
-    TcpNetTransport(QObject* parent = nullptr);
-    TcpNetTransport(QAbstractSocket * socket, QObject* parent = nullptr);
-    ~TcpNetTransport();
-public slots:
-    virtual void connectToHost(const NetPoint& addr = NetPoint());
-    virtual void disconnectFromHost();
-    virtual qint32 send(QByteArray data);
-    /****************************/
-    virtual NetState currentState() const;
-protected slots:
-    void socketReadyRead();
-    void run();
-    void socketStateChanged(QAbstractSocket::SocketState state);
-    void socketError(QAbstractSocket::SocketError error);
-protected:
-    static QString stateToString(QAbstractSocket::SocketState state,
-                                 const NetPoint &host);
-    QScopedPointer<QAbstractSocket> socket;
-    QTimer zerotimer;
-    NetPoint host;
 };
 
 /**************** Level 2 *****************/
@@ -211,6 +162,7 @@ public:
     typedef quint32 PayloadLengh;
     typedef quint16 PayloadCrc;
 
+    NetProtocolFormat(){}
     NetProtocolFormat(const QByteArray &header,
                       const QByteArray &tail)
     {setHeader(header); setTail(tail);}
@@ -234,6 +186,67 @@ private:
     uint _headerSize;
     uint _tailSize;
 };
+
+/******* NetProtocol *******/
+class NetProtocol : public Eventful
+{
+    Q_OBJECT
+public:
+    enum NetProtocolParseErr{
+        PARSE_ERR_OK = 0,        // -> return QByteArrat with payload
+        PARSE_ERR_CHECKSUM = 1,  //
+        PARSE_ERR_LENGH = 2,     // -> delete buff after TAIL
+        PARSE_ERR_NO_PAYLOAD = 3,
+        PARSE_ERR_NO_END = 4,  // -> delete buff till start
+        PARSE_ERR_NOTHING = 5    // -> delete buff till (buffSize - (headerLength - 1)) elem
+    };
+    NetProtocol(QObject*parent=nullptr) : Eventful(parent){}
+    virtual ~NetProtocol(){}
+
+    template<class ForwardIt1, class ForwardIt2>
+    static ForwardIt1 search(ForwardIt1 & first, ForwardIt1 last,
+                             ForwardIt2 s_first, ForwardIt2 s_last);
+public slots:
+    virtual NetProtocolFormat *getFormat() const = 0;
+    virtual void setFormat(const NetProtocolFormat *value) = 0;
+    virtual QByteArray pack (QByteArray msg) = 0;
+    virtual QByteArray parse(QByteArray raw,
+                             NetProtocolParseErr *err = nullptr) = 0;
+};
+
+
+/******************** Implementation *********************/
+
+/**************** Level 1 *****************/
+
+/****** NetTransport *******/
+class TcpNetTransport : public NetTransport
+{
+    Q_OBJECT
+public:
+    TcpNetTransport(QObject* parent = nullptr);
+    TcpNetTransport(QAbstractSocket * socket, QObject* parent = nullptr);
+    ~TcpNetTransport();
+public slots:
+    virtual void connectToHost(const NetPoint* addr =nullptr);
+    virtual void disconnectFromHost();
+    virtual qint32 send(QByteArray data);
+    /****************************/
+    virtual NetState currentState() const;
+protected slots:
+    void socketReadyRead();
+    void run();
+    void socketStateChanged(QAbstractSocket::SocketState state);
+    void socketError(QAbstractSocket::SocketError error);
+protected:
+    static QString stateToString(QAbstractSocket::SocketState state,
+                                 const NetPoint &host);
+    QScopedPointer<QAbstractSocket> socket;
+    QTimer zerotimer;
+    NetPoint host;
+};
+
+/**************** Level 2 *****************/
 
 /***** ByteArrayQueue ******/
 class ByteArrayQueue
@@ -296,17 +309,18 @@ class NetProtocolV1Bound : public NetProtocol
      */
     Q_OBJECT
 public:
-    NetProtocolV1Bound(const NetProtocolFormat &format,
-                       QObject*parent=nullptr) :
-        NetProtocol(parent), format(format) {}
+    NetProtocolV1Bound(QObject*parent=nullptr) :
+        NetProtocol(parent) {}
     virtual ~NetProtocolV1Bound(){}
 
 public slots:
+    virtual NetProtocolFormat *getFormat() const;
+    virtual void setFormat(const NetProtocolFormat *value);
     virtual QByteArray pack(QByteArray msg);
     virtual QByteArray parse(QByteArray raw,
                              NetProtocolParseErr *err = nullptr);
 private:
-    const NetProtocolFormat format;
+    NetProtocolFormat format;
     ByteArrayQueue inBuf;
 };
 
@@ -318,17 +332,18 @@ public:
     enum ParserState{
         START, LENGTH, DATA
     };
-    NetProtocolV2Bound(const NetProtocolFormat &format,
-                       QObject*parent=nullptr) :
-        NetProtocol(parent), format(format), state(START) {}
+    NetProtocolV2Bound(QObject*parent=nullptr) :
+        NetProtocol(parent), state(START) {}
     virtual ~NetProtocolV2Bound(){}
 
 public slots:
+    virtual NetProtocolFormat *getFormat() const;
+    virtual void setFormat(const NetProtocolFormat *value);
     virtual QByteArray pack(QByteArray msg);
     virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err
                              = nullptr);
 private:
-    const NetProtocolFormat format;
+    NetProtocolFormat format;
     QByteArray buff;
     ParserState state;
 };
