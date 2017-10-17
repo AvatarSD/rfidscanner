@@ -3,8 +3,8 @@
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logger(new Logger)
 {
-    netReCreateRequired = true;
-    netReConectRequired = true;
+    netReCreateRequire = true;
+    netReConectRequire = true;
 
     m_socket = Socket::TCP;
     m_msgBoundaries = MsgBound::BOUND_V1;
@@ -43,6 +43,9 @@ void ScannerFacade::disconnectFromServer()
 
 }
 
+bool ScannerFacade::isReconRequire() const{
+    return netReCreateRequire || netReConectRequire;
+}
 ScannerFacade::NetStatus ScannerFacade::isReady() {
     uint8_t stat = OK;
     if(m_server.isEmpty())
@@ -92,6 +95,14 @@ void ScannerFacade::putStatusToLog(ScannerFacade::NetStatus isReady){
 void ScannerFacade::netStateChanged(NetCommanderState state){
     emit netStateChanged(state.getState());
     emit netStateMsgChanged(state.getMsg());
+}
+void ScannerFacade::setNetReCreateRequire(bool require){
+    netReCreateRequire = require;
+    emit isReconRequireChanged(isReconRequire());
+}
+void ScannerFacade::setNetReConectRequire(bool require){
+    netReConectRequire = require;
+    emit isReconRequireChanged(isReconRequire());
 }
 
 ScannerFacade::Socket ScannerFacade::socket() const{
@@ -149,28 +160,28 @@ QString ScannerFacade::logfile() const{
 void ScannerFacade::setSocket(ScannerFacade::Socket socket){
     if (m_socket == socket)
         return;
-    netReCreateRequired = true;
+    setNetReCreateRequire(true);
     m_socket = socket;
     emit socketChanged(m_socket);
 }
 void ScannerFacade::setMsgBoundaries(ScannerFacade::MsgBound msgBoundaries){
     if (m_msgBoundaries == msgBoundaries)
         return;
-    netReCreateRequired = true;
+    setNetReCreateRequire(true);
     m_msgBoundaries = msgBoundaries;
     emit msgBoundariesChanged(m_msgBoundaries);
 }
 void ScannerFacade::setStartSqns(QString startSqns){
     if (m_startSqns == startSqns)
         return;
-    netReCreateRequired = true;
+    setNetReCreateRequire(true);
     m_startSqns = startSqns;
     emit startSqnsChanged(m_startSqns);
 }
 void ScannerFacade::setTailSqns(QString tailSqns){
     if (m_tailSqns == tailSqns)
         return;
-    netReCreateRequired = true;
+    setNetReCreateRequire(true);
     m_tailSqns = tailSqns;
     emit tailSqnsChanged(m_tailSqns);
 }
@@ -178,28 +189,28 @@ void ScannerFacade::setTailSqns(QString tailSqns){
 void ScannerFacade::setServer(QString server){
     if (m_server == server)
         return;
-    netReConectRequired = true;
+    setNetReConectRequire(true);
     m_server = server;
     emit serverChanged(m_server);
 }
 void ScannerFacade::setPort(quint16 port){
     if (m_port == port)
         return;
-    netReConectRequired = true;
+    setNetReConectRequire(true);
     m_port = port;
     emit portChanged(m_port);
 }
 void ScannerFacade::setUsername(QString username){
     if (m_username == username)
         return;
-    netReConectRequired = true;
+    setNetReConectRequire(true);
     m_username = username;
     emit usernameChanged(m_username);
 }
 void ScannerFacade::setPassword(QString password){
     if (m_password == password)
         return;
-    netReConectRequired = true;
+    setNetReConectRequire(true);
     m_password = password;
     emit passwordChanged(m_password);
 }

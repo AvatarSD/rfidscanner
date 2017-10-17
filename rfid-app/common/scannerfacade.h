@@ -27,6 +27,7 @@ class ScannerFacade : public Eventful
     /*C*/ // Re-Create object(s)
 
     /* I   */ Q_PROPERTY(NetStatus   isReady         READ isReady                                  NOTIFY isReadyChanged)
+    /* I   */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
     /*     */     /**** net connectio ****/
     /*N C D*/ Q_PROPERTY(Socket      socket          READ socket          WRITE setSocket          NOTIFY socketChanged)
     /*N R  */ Q_PROPERTY(QString     server          READ server          WRITE setServer          NOTIFY serverChanged)
@@ -90,6 +91,7 @@ public slots:
 
 public:
     /* net info */
+    bool isReconRequire() const;
     NetStatus isReady();
     NetState netState() const;
     QString netStateMsg() const;
@@ -110,6 +112,7 @@ public:
     qint32 msgInspectMsec() const;
     /* by mutex */
     QString logfile() const;
+
 
 
 public slots:
@@ -135,6 +138,7 @@ public slots:
 
 signals:
     /* info */
+    void isReconRequireChanged(bool isReconRequire);
     void isReadyChanged(NetStatus isReady);
     void netStateChanged(NetState netState);
     void netStateMsgChanged(QString stateMsg);
@@ -161,6 +165,8 @@ private slots:
 
 private:
     void putStatusToLog(NetStatus isReady);
+    void setNetReCreateRequire(bool require);
+    void setNetReConectRequire(bool require);
 
 private:
     QThread logManengerThread;
@@ -175,8 +181,8 @@ private:
 //    QScopedPointer<RFIDMamanger> reader;
 //    QScopedPointer<System> system;
 
-    bool netReCreateRequired;
-    bool netReConectRequired;
+    bool netReCreateRequire;
+    bool netReConectRequire;
 
 
 private:
@@ -195,7 +201,6 @@ private:
     uint m_msgTxRepeatSec;
     uint m_msgMaxTxAtempt;
     qint32 m_msgInspectMsec;
-
 
 };
 
