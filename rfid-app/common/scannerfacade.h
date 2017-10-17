@@ -78,6 +78,7 @@ public:
     };
 
     explicit ScannerFacade(QObject*parent=nullptr);
+    ~ScannerFacade();
 
 public slots:
     void connectToServer();
@@ -88,10 +89,8 @@ public slots:
     //void disconnectFromWlan();
 
 public:
-    /* testing */
-    NetStatus isReady();
-
     /* net info */
+    NetStatus isReady();
     NetState netState() const;
     QString netStateMsg() const;
     /* net re-create */
@@ -104,6 +103,7 @@ public:
     quint16 port() const;
     QString username() const;
     QString password() const;
+    /* realtime */
     Mode mode() const;
     uint msgTxRepeatSec() const;
     uint msgMaxTxAtempt() const;
@@ -123,6 +123,7 @@ public slots:
     void setPort(quint16 port);
     void setUsername(QString username);
     void setPassword(QString password);
+    /* realtime */
     void setMode(Mode mode);
     void setMsgTxRepeatSec(uint msgTxRepeatSec);
     void setMsgMaxTxAtempt(uint msgMaxTxAtempt);
@@ -133,10 +134,8 @@ public slots:
 
 
 signals:
-    /*test*/
-    void isReadyChanged(NetStatus isReady);
-
     /* info */
+    void isReadyChanged(NetStatus isReady);
     void netStateChanged(NetState netState);
     void netStateMsgChanged(QString stateMsg);
     /* net re-create */
@@ -149,12 +148,16 @@ signals:
     void portChanged(quint16 port);
     void usernameChanged(QString username);
     void passwordChanged(QString password);
+    /* realtime */
     void modeChanged(Mode mode);
     void msgTxRepeatSecChanged(uint msgTxRepeatSec);
     void msgMaxTxAtemptChanged(uint msgMaxTxAtempt);
     void msgInspectMsecChanged(qint32 msgInspectMsec);
     /* by internal mutex */
     void logfileChanged(QString logfile);
+
+private slots:
+    void netStateChanged(NetCommanderState state);
 
 private:
     void putStatusToLog(NetStatus isReady);
@@ -177,18 +180,23 @@ private:
 
 
 private:
+    /* net re-create */
     Socket m_socket;
     MsgBound m_msgBoundaries;
-    QString m_server;
-    quint16 m_port;
     QString m_startSqns;
     QString m_tailSqns;
+    /* net re-connect */
+    QString m_server;
+    quint16 m_port;
     QString m_username;
     QString m_password;
+    /* realtime (save for reconnections)*/
     Mode m_mode;
     uint m_msgTxRepeatSec;
     uint m_msgMaxTxAtempt;
     qint32 m_msgInspectMsec;
+
+
 };
 
 #endif // SCANNERFACADE_H

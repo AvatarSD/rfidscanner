@@ -46,10 +46,27 @@ class NetCommander : public Eventful
 {
     Q_OBJECT
 public:
+    enum WorkMode{
+        DISABLED, POOL, EVENT
+    };
     NetCommander(NetTransport *transport,
                  NetProtocol *protocol,
                  QObject *parent = nullptr);
     virtual ~NetCommander();
+    /* settings */
+    virtual NetPoint getAddr() const = 0;
+    virtual void setAddr(const NetPoint &value) = 0;
+    virtual WorkMode getMode() const = 0;
+    virtual void setMode(const WorkMode &value) = 0;
+    virtual QAuthenticator getAuth() const = 0;
+    virtual void setAuth(const QAuthenticator &value) = 0;
+    /* timing options */
+    virtual uint getMsgTransmitRepeatSec() const = 0;
+    virtual void setMsgTransmitRepeatSec(uint value) = 0;
+    virtual uint getMsgMaxAtemptToDelete() const = 0;
+    virtual void setMsgMaxAtemptToDelete(uint value) = 0;
+    virtual int getMsgInspectPeriodMsec() const = 0;
+    virtual void setMsgInspectPeriodMsec(int value) = 0;
 public slots:
     virtual void netEventIn(QSharedPointer<Event>) = 0;
     virtual void start() = 0; // connect to server
@@ -92,30 +109,26 @@ class BasicV1Client : public NetCommander
 {
     Q_OBJECT
 public:
-    enum WorkMode{
-        POOL, EVENT
-    };
     BasicV1Client(NetTransport* transport,
                   NetProtocol* protocol,
                   const NetPoint &addr,
                   QObject *parent = nullptr);
     virtual ~BasicV1Client()
     {}
-    NetPoint getAddr() const;
-    void setAddr(const NetPoint &value);
-    WorkMode getMode() const;
-    void setMode(const WorkMode &value);
-    QAuthenticator getAuth() const;
-    void setAuth(const QAuthenticator &value);
-
-    //timing options
-    uint getMsgTransmitRepeatSec() const;
-    void setMsgTransmitRepeatSec(uint value);
-    uint getMsgMaxAtemptToDelete() const;
-    void setMsgMaxAtemptToDelete(uint value);
-    int getMsgInspectPeriodMsec() const;
-    void setMsgInspectPeriodMsec(int value);
-
+    /* settings */
+    virtual NetPoint getAddr() const;
+    virtual void setAddr(const NetPoint &value);
+    virtual WorkMode getMode() const;
+    virtual void setMode(const WorkMode &value);
+    virtual QAuthenticator getAuth() const;
+    virtual void setAuth(const QAuthenticator &value);
+    /* timing options */
+    virtual uint getMsgTransmitRepeatSec() const;
+    virtual void setMsgTransmitRepeatSec(uint value);
+    virtual uint getMsgMaxAtemptToDelete() const;
+    virtual void setMsgMaxAtemptToDelete(uint value);
+    virtual int getMsgInspectPeriodMsec() const;
+    virtual void setMsgInspectPeriodMsec(int value);
 public slots:
     virtual void netEventIn(QSharedPointer<Event> event);
     virtual void start();

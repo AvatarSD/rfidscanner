@@ -109,7 +109,7 @@ BasicV1Client::BasicV1Client(NetTransport *transport,
                              const NetPoint & addr,
                              QObject *parent ):
     NetCommander(transport,protocol,parent),
-    addr(addr),mode(POOL), inspectTimer(this),
+    addr(addr),mode(DISABLED), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
@@ -169,6 +169,8 @@ void BasicV1Client::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
         sendMsgDirect(msg);
 }
 void BasicV1Client::sendMsgDirect(QSharedPointer<NetMessage> msg){
+    if(mode == DISABLED)
+        return;
     emit transmitMsg(msg->pack(auth));
 }
 
