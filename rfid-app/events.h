@@ -128,7 +128,8 @@ class SystemEvent : public InfoEvent
 public:
     enum IDs{
         LOGGER_DYNAMIC_CAST_ERR,
-        LOGFILE_OPEN_ERR
+        LOGFILE_OPEN_ERR,
+        FACADE_STATUS
     };
     SystemEvent(EventLevel level, IDs eventid, QString dscr) :
         InfoEvent(level, SYSTEM, dscr, eventid) {}

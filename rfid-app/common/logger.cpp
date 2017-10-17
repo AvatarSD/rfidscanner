@@ -30,9 +30,11 @@ void Logger::setStdoutLogLevel(const InfoEvent::EventLevel &value){
     stdoutLogLevel = value;
 }
 QString Logger::getLogfilePath() const{
+    QMutexLocker(&this->pathAcces);
     return logfilePath;
 }
-void Logger::setLogfilePath(const QString &value){
+void Logger::setLogfilePath(QString value){
+    QMutexLocker(&this->pathAcces);
     logfilePath = value;
 }
 void Logger::sysEventIn(QSharedPointer<Event> event)
@@ -66,7 +68,9 @@ void Logger::sysEventIn(QSharedPointer<Event> event)
 }
 void Logger::writeToLogFile(QSharedPointer<Event> event)
 {
+    pathAcces.lock();
     QFile logfile(logfilePath);
+    pathAcces.unlock();
     if(!logfile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)){
         QSharedPointer<SystemEvent> errEv(
                     new SystemEvent(SystemEvent::WARNING,

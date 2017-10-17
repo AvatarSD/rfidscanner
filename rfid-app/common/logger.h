@@ -2,7 +2,8 @@
 #define LOGGER_H
 
 #include "events.h"
-#include "QFile"
+#include <QFile>
+#include <QMutex>
 
 class Logger : public QObject
 {
@@ -19,7 +20,7 @@ public:
     void setStdoutLogLevel(const InfoEvent::EventLevel &value);
 
     QString getLogfilePath() const;
-    void setLogfilePath(const QString &value);
+    void setLogfilePath(QString value);
 
 public slots:
     void sysEventIn(QSharedPointer<Event> event);
@@ -36,6 +37,7 @@ private:
     InfoEvent::EventLevel fileLogLevel;
     InfoEvent::EventLevel stdoutLogLevel;
     QString logfilePath;
+    mutable QMutex pathAcces;
 };
 
 #endif // LOGGER_H
