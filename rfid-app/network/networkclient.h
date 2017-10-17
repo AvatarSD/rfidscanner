@@ -111,7 +111,6 @@ class BasicV1Client : public NetCommander
 public:
     BasicV1Client(NetTransport* transport,
                   NetProtocol* protocol,
-                  const NetPoint &addr,
                   QObject *parent = nullptr);
     virtual ~BasicV1Client()
     {}

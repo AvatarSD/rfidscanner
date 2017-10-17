@@ -28,8 +28,8 @@ int main(int argc, char *argv[])
 //    NetProtocol *proto = ;
     auto * net = new BasicV1Client(new TcpNetTransport,
                                            new NetProtocolV2Bound(
-                                               NetProtocolFormat("$SD#", "\r\n\r\n")),
-                                           NetPoint("localhost", 5600));
+                                               NetProtocolFormat("$SD#", "\r\n\r\n")));
+    net->setAddr(NetPoint("localhost", 5600));
     net->setMode(BasicV1Client::EVENT);
 
     //System * sys = new System;

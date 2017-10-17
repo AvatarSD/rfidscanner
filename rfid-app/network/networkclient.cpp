@@ -106,10 +106,9 @@ void NetCommander::transmitMsg(QByteArray msg){
 /****** BasicV1Client ******/
 BasicV1Client::BasicV1Client(NetTransport *transport,
                              NetProtocol *protocol,
-                             const NetPoint & addr,
                              QObject *parent ):
     NetCommander(transport,protocol,parent),
-    addr(addr),mode(DISABLED), inspectTimer(this),
+    mode(DISABLED), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
@@ -121,6 +120,15 @@ BasicV1Client::BasicV1Client(NetTransport *transport,
 
 /* control */
 void BasicV1Client::start(){
+    if(addr.isNull()){
+        emit sysEvent(QSharedPointer<Event> (
+                          new NetworkEvent(NetworkEvent::WARNING,
+                                           NetworkEvent::IDs::COMMANDER,
+                                           QStringLiteral("Try ty connect, but "
+                                                          "address and port "
+                                                          "didn't set."))));
+        return;
+    }
     emit connectToHost(addr);
     QMetaObject::invokeMethod(&inspectTimer, "start", Qt::QueuedConnection);
 }
