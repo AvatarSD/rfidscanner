@@ -16,6 +16,20 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     m_msgMaxTxAtempt = MSG_TRANSMIT_DELETE_NUM;
     m_msgInspectMsec = MSG_INSPECT_PERIOD_MSEC;
 
+    connect(this, SIGNAL(sysEvent(QSharedPointer<Event>)),
+            logger.data(),SLOT(sysEventIn(QSharedPointer<Event>)));
+
+    logManengerThread.start();
+    netManengerThread.start();
+}
+
+ScannerFacade::~ScannerFacade()
+{
+    netManengerThread.quit();
+    netManengerThread.wait();
+
+    logManengerThread.quit();
+    logManengerThread.wait();
 }
 
 void ScannerFacade::connectToServer()
@@ -74,6 +88,10 @@ void ScannerFacade::putStatusToLog(ScannerFacade::NetStatus isReady){
                           new SystemEvent(SystemEvent::WARNING,
                                            SystemEvent::IDs::FACADE_STATUS,
                                            QStringLiteral("Password is not set"))));
+}
+void ScannerFacade::netStateChanged(NetCommanderState state){
+    emit netStateChanged(state.getState());
+    emit netStateMsgChanged(state.getMsg());
 }
 
 ScannerFacade::Socket ScannerFacade::socket() const
