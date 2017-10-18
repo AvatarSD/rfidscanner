@@ -50,6 +50,7 @@ NetClient::NetClient(NetPhy* transport,
 {
     qRegisterMetaType<NetClientState*>();
     qRegisterMetaType<QAuthenticator>();
+    qRegisterMetaType<WorkMode>("WorkMode");
 
     proto->setParent(this);
     phy->setParent(nullptr);

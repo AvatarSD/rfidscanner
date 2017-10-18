@@ -11,10 +11,10 @@
 class ScannerFacade : public Eventful
 {
     Q_OBJECT
-    Q_ENUMS(WorkMode)
+    Q_ENUMS(NetWorkMode)
     Q_ENUMS(ReaderType)
     Q_ENUMS(MsgBound)
-    Q_ENUMS(NetClientStateEnum)
+    Q_ENUMS(NetStateEnum)
     Q_ENUMS(AuthType)
     Q_ENUMS(SocketType)
     Q_ENUMS(NetSettStat)
@@ -46,11 +46,11 @@ class ScannerFacade : public Eventful
     /*     */     /**** auth ****/
     /*N R  */ Q_PROPERTY(QString     username        READ username        WRITE setUsername        NOTIFY usernameChanged)
     /*N R  */ Q_PROPERTY(QString     password        READ password        WRITE setPassword        NOTIFY passwordChanged)
-    /* I   */ Q_PROPERTY(NetClientStateEnum netState READ netState                                 NOTIFY netStateChanged)
+    /* I   */ Q_PROPERTY(NetStateEnum netState       READ netState                                 NOTIFY netStateChanged)
     /* I   */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
     /*O C D*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
     /*     */     /**** net commander ****/
-    /*N R D*/ Q_PROPERTY(WorkMode    mode            READ mode            WRITE setMode            NOTIFY modeChanged)
+    /*N R D*/ Q_PROPERTY(NetWorkMode mode            READ mode            WRITE setMode            NOTIFY modeChanged)
     /*O R D*/ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
     /*O R D*/ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
     /*O R D*/ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
@@ -67,8 +67,8 @@ class ScannerFacade : public Eventful
     /* I   */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
 
 public:
-    typedef NetClient::WorkMode WorkMode;
-    typedef NetClientState::NetClientStateEnum NetClientStateEnum;
+    typedef NetClient::WorkMode NetWorkMode;
+    typedef NetClientState::NetClientStateEnum NetStateEnum;
 
     enum ClientType{V1Basic};
     enum SocketType{TCP, SSL};
@@ -100,7 +100,7 @@ public:
     /* net: is all required fields are fill */
     NetSettStat isReady();
     /* net info */
-    NetClientStateEnum netState() const;
+    NetStateEnum netState() const;
     QString netStateMsg() const;
     /* net re-create */
     SocketType socket() const;
@@ -113,7 +113,7 @@ public:
     QString username() const;
     QString password() const;
     /* net: realtime */
-    WorkMode mode() const;
+    NetWorkMode mode() const;
     uint msgTxRepeatSec() const;
     uint msgMaxTxAtempt() const;
     qint32 msgInspectMsec() const;
@@ -122,10 +122,7 @@ public:
 
 
     
-    ClientType clientType() const
-    {
-        return m_clientType;
-    }
+    ClientType clientType() const;
     
 public slots:
     /* net: re-create */
@@ -140,7 +137,7 @@ public slots:
     void setUsername(QString username);
     void setPassword(QString password);
     /* net: realtime */
-    void setMode(WorkMode mode);
+    void setMode(NetWorkMode mode);
     void setMsgTxRepeatSec(uint msgTxRepeatSec);
     void setMsgMaxTxAtempt(uint msgMaxTxAtempt);
     void setMsgInspectMsec(qint32 msgInspectMsec);
@@ -156,7 +153,7 @@ signals:
     /* net: is all required fields are fill */
     void isReadyChanged(NetSettStat isReady);
     /* net: info */
-    void netStateChanged(NetClientStateEnum netState);
+    void netStateChanged(NetStateEnum netState);
     void netStateMsgChanged(QString stateMsg);
     /* net: re-create */
     void clientTypeChanged(ClientType clientType);
@@ -170,7 +167,7 @@ signals:
     void usernameChanged(QString username);
     void passwordChanged(QString password);
     /* net: realtime */
-    void modeChanged(WorkMode mode);
+    void modeChanged(NetWorkMode mode);
     void msgTxRepeatSecChanged(uint msgTxRepeatSec);
     void msgMaxTxAtemptChanged(uint msgMaxTxAtempt);
     void msgInspectMsecChanged(qint32 msgInspectMsec);
@@ -215,7 +212,7 @@ private:
     QString m_username;
     QString m_password;
     /* realtime (save for reconnections)*/
-    WorkMode m_mode;
+    NetWorkMode m_mode;
     uint m_msgTxRepeatSec;
     uint m_msgMaxTxAtempt;
     qint32 m_msgInspectMsec;
