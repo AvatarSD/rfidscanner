@@ -14,15 +14,10 @@ int main(int argc, char *argv[])
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
-    
-    
+
     /********************************/
-    // QObject * hmi = engine.rootContext()->contextObject();
-    //System * sys = new System;
-    
     QScopedPointer<ScannerFacade> facade(new ScannerFacade);
     
-    /********************************/
     QThread facadeThread;
     facade->moveToThread(&facadeThread);
     facadeThread.start();
@@ -32,7 +27,10 @@ int main(int argc, char *argv[])
         facadeThread.quit();
         facadeThread.wait();
     });
-
+    
+    /********************************/
+    engine.rootContext()->setContextProperty("facade", facade.data());
+    
     /********************************/
     facade->setServer("localhost");
     facade->setPort(5600);
@@ -40,6 +38,7 @@ int main(int argc, char *argv[])
     facade->setPassword("qwerty88");
     facade->setMode(NetClient::EVENT);
 
+    // testing
     facade->connectToServer();
 
     /********************************/
