@@ -4,16 +4,17 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread(this), netManengerThread(this),
     //rfidManengerThread(this), sysManengerThread(this);
     logger(new Logger)
-{
+{    
     netReCreateRequire = true;
     netReConectRequire = true;
     
-    m_socket = Socket::TCP;
+    m_clientType = ClientType::V1Basic;
+    m_socket = SocketType::TCP;
     m_msgBoundaries = MsgBound::BOUND_V1;
     m_startSqns = QStringLiteral("$SD#");
     m_tailSqns = QStringLiteral("\r\n\r\n");
     //    m_authType = AuthType::JSON;
-    m_mode = Mode::DISABLED;
+    m_mode = WorkMode::DISABLED;
     m_msgTxRepeatSec = MSG_TRANSMIT_REPEAT_SEC;
     m_msgMaxTxAtempt = MSG_TRANSMIT_DELETE_NUM;
     m_msgInspectMsec = MSG_INSPECT_PERIOD_MSEC;
@@ -30,15 +31,19 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
 
 ScannerFacade::~ScannerFacade()
 {
+    //void disconnectFromReader();
+    disconnectFromServer();
+    //void disconnectFromWlan();
+    
     netManengerThread.quit();
-    logManengerThread.quit();
     //rfidManengerThread.quit();
     //sysManengerThread.quit();
+    logManengerThread.quit();
     
     netManengerThread.wait();
-    logManengerThread.wait();
     //rfidManengerThread.wait();
     //sysManengerThread.wait();
+    logManengerThread.wait();
 }
 
 void ScannerFacade::connectToServer()
@@ -81,7 +86,8 @@ void ScannerFacade::connectToServer()
             break; }
         /* create new client */
         NetClient * client = nullptr;
-        switch (1) {
+        switch (m_clientType) {
+        case ClientType::V1Basic:
         default:
             client = new NetClientV1Basic(phy, proto);
             break;
@@ -127,7 +133,7 @@ void ScannerFacade::connectToServer()
     
     /* set other */
     QMetaObject::invokeMethod(network.data(),"setMode", 
-                              Qt::QueuedConnection, Q_ARG(Mode, m_mode));
+                              Qt::QueuedConnection, Q_ARG(WorkMode, m_mode));
     QMetaObject::invokeMethod(network.data(),"setMsgTransmitRepeatSec", 
                               Qt::QueuedConnection, Q_ARG(uint, m_msgTxRepeatSec));
     QMetaObject::invokeMethod(network.data(),"setMsgMaxAtemptToDelete", 
@@ -163,7 +169,7 @@ void ScannerFacade::setNetReConectRequire(bool require){
 }
 
 /* net: is all required fields are fill */
-ScannerFacade::NetFillFieldStatus ScannerFacade::isReady() {
+ScannerFacade::NetSettStat ScannerFacade::isReady() {
     uint8_t stat = OK;
     if(m_server.isEmpty())
         stat |= NO_SERV;
@@ -173,10 +179,10 @@ ScannerFacade::NetFillFieldStatus ScannerFacade::isReady() {
         stat |= NO_USER;
     if(m_password.isEmpty())
         stat |= NO_PASS;
-    emit isReadyChanged((NetFillFieldStatus)stat);
-    return (NetFillFieldStatus)stat;
+    emit isReadyChanged((NetSettStat)stat);
+    return (NetSettStat)stat;
 }
-void ScannerFacade::putStatusToLog(ScannerFacade::NetFillFieldStatus isReady){
+void ScannerFacade::putStatusToLog(ScannerFacade::NetSettStat isReady){
     if(isReady&NO_SERV)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::ERROR,
@@ -215,7 +221,7 @@ QString ScannerFacade::netStateMsg() const{
     return network->state()->stateMessage();
 }
 
-ScannerFacade::Socket ScannerFacade::socket() const{
+ScannerFacade::SocketType ScannerFacade::socket() const{
     return m_socket;
 }
 ScannerFacade::MsgBound ScannerFacade::msgBoundaries() const{
@@ -241,7 +247,7 @@ QString ScannerFacade::password() const{
     return m_password;
 }
 
-ScannerFacade::Mode ScannerFacade::mode() const{
+ScannerFacade::WorkMode ScannerFacade::mode() const{
     if(network.isNull())
         return m_mode;
     return network->getMode();
@@ -267,7 +273,14 @@ QString ScannerFacade::logfile() const{
 }
 
 
-void ScannerFacade::setSocket(ScannerFacade::Socket socket){
+void ScannerFacade::setClientType(ScannerFacade::ClientType clientType){
+    if (m_clientType == clientType)
+        return;
+    setNetReCreateRequire(true);
+    m_clientType = clientType;
+    emit clientTypeChanged(m_clientType);
+}
+void ScannerFacade::setSocket(ScannerFacade::SocketType socket){
     if (m_socket == socket)
         return;
     setNetReCreateRequire(true);
@@ -325,7 +338,7 @@ void ScannerFacade::setPassword(QString password){
     emit passwordChanged(m_password);
 }
 
-void ScannerFacade::setMode(ScannerFacade::Mode mode){
+void ScannerFacade::setMode(ScannerFacade::WorkMode mode){
     if (m_mode == mode)
         return;
     m_mode = mode;

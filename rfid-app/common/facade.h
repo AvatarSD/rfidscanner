@@ -11,41 +11,46 @@
 class ScannerFacade : public Eventful
 {
     Q_OBJECT
-    Q_ENUMS(Mode)
-    Q_ENUMS(Reader)
+    Q_ENUMS(WorkMode)
+    Q_ENUMS(ReaderType)
     Q_ENUMS(MsgBound)
     Q_ENUMS(NetClientStateEnum)
     Q_ENUMS(AuthType)
-    Q_ENUMS(Socket)
-    Q_ENUMS(NetFillFieldStatus)
+    Q_ENUMS(SocketType)
+    Q_ENUMS(NetSettStat)
+    Q_ENUMS(ClientType)
 
+    /*I*/ // Informations
+    /******************/
     /*N*/ // Need
     /*O*/ // Optional
-    /*I*/ // Informations
-    /*D*/ // Default value
+    /******************/
     /*R*/ // Runtime motifiting
     /*C*/ // Re-Create object(s)
+    /******************/
+    /*D*/ // Default value
 
-    /* I   */ Q_PROPERTY(NetFillFieldStatus   isReady         READ isReady                                  NOTIFY isReadyChanged)
+    /* I   */ Q_PROPERTY(NetSettStat isReady         READ isReady                                  NOTIFY isReadyChanged)
     /* I   */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
     /*     */     /**** net connectio ****/
-    /*N C D*/ Q_PROPERTY(Socket      socket          READ socket          WRITE setSocket          NOTIFY socketChanged)
+    /*N C D*/ Q_PROPERTY(ClientType  clientType      READ clientType      WRITE setClientType      NOTIFY clientTypeChanged)
+    /*N C D*/ Q_PROPERTY(SocketType  socket          READ socket          WRITE setSocket          NOTIFY socketChanged)
     /*N R  */ Q_PROPERTY(QString     server          READ server          WRITE setServer          NOTIFY serverChanged)
     /*N R  */ Q_PROPERTY(quint16     port            READ port            WRITE setPort            NOTIFY portChanged)
-    /*O R  */ //Q_PROPERTY(QString     sslKey          READ sslKey          WRITE setSslKey          NOTIFY sslKeyChanged)
-    /*O R  */ //Q_PROPERTY(QString     sslCert         READ sslCert         WRITE setSslCert         NOTIFY sslCertChanged)
+    /*O R D*/ //Q_PROPERTY(QString     sslKey          READ sslKey          WRITE setSslKey          NOTIFY sslKeyChanged)
+    /*O R D*/ //Q_PROPERTY(QString     sslCert         READ sslCert         WRITE setSslCert         NOTIFY sslCertChanged)
     /*     */     /**** net proto ****/
-    /*O C D*/ Q_PROPERTY(MsgBound    msgBoundaries   READ msgBoundaries  WRITE setMsgBoundaries    NOTIFY msgBoundariesChanged)
-    /*O R D*/ Q_PROPERTY(QString     startSqns       READ startSqns       WRITE setStartSqns       NOTIFY startSqnsChanged)
-    /*O R D*/ Q_PROPERTY(QString     tailSqns        READ tailSqns        WRITE setTailSqns        NOTIFY tailSqnsChanged)
+    /*N C D*/ Q_PROPERTY(MsgBound    msgBoundaries   READ msgBoundaries   WRITE setMsgBoundaries   NOTIFY msgBoundariesChanged)
+    /*N C D*/ Q_PROPERTY(QString     startSqns       READ startSqns       WRITE setStartSqns       NOTIFY startSqnsChanged)
+    /*N C D*/ Q_PROPERTY(QString     tailSqns        READ tailSqns        WRITE setTailSqns        NOTIFY tailSqnsChanged)
     /*     */     /**** auth ****/
     /*N R  */ Q_PROPERTY(QString     username        READ username        WRITE setUsername        NOTIFY usernameChanged)
     /*N R  */ Q_PROPERTY(QString     password        READ password        WRITE setPassword        NOTIFY passwordChanged)
-    /* I   */ Q_PROPERTY(NetClientStateEnum    netState        READ netState                                 NOTIFY netStateChanged)
+    /* I   */ Q_PROPERTY(NetClientStateEnum netState READ netState                                 NOTIFY netStateChanged)
     /* I   */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
     /*O C D*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
     /*     */     /**** net commander ****/
-    /*O R D*/ Q_PROPERTY(Mode        mode            READ mode            WRITE setMode            NOTIFY modeChanged)
+    /*N R D*/ Q_PROPERTY(WorkMode    mode            READ mode            WRITE setMode            NOTIFY modeChanged)
     /*O R D*/ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
     /*O R D*/ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
     /*O R D*/ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
@@ -62,14 +67,15 @@ class ScannerFacade : public Eventful
     /* I   */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
 
 public:
-    typedef NetClientV1Basic::WorkMode Mode;
+    typedef NetClient::WorkMode WorkMode;
     typedef NetClientState::NetClientStateEnum NetClientStateEnum;
 
-    enum Socket{TCP, SSL};
+    enum ClientType{V1Basic};
+    enum SocketType{TCP, SSL};
     enum MsgBound{SIMPLE, BOUND_V1};
     enum AuthType{JSON, BASE64};
-    enum Reader{ADS_USB, LINK_SPRITE};
-    enum NetFillFieldStatus{
+    enum ReaderType{ADS_USB, LINK_SPRITE};
+    enum NetSettStat{
         OK = 0,
         NO_SERV = 0b0001,
         NO_PORT = 0b0010,
@@ -92,12 +98,12 @@ public:
     /* net: is reconnection required */
     bool isReconRequire() const;
     /* net: is all required fields are fill */
-    NetFillFieldStatus isReady();
+    NetSettStat isReady();
     /* net info */
     NetClientStateEnum netState() const;
     QString netStateMsg() const;
     /* net re-create */
-    Socket socket() const;
+    SocketType socket() const;
     MsgBound msgBoundaries() const;
     QString startSqns() const;
     QString tailSqns() const;
@@ -107,7 +113,7 @@ public:
     QString username() const;
     QString password() const;
     /* net: realtime */
-    Mode mode() const;
+    WorkMode mode() const;
     uint msgTxRepeatSec() const;
     uint msgMaxTxAtempt() const;
     qint32 msgInspectMsec() const;
@@ -115,10 +121,16 @@ public:
     QString logfile() const;
 
 
-
+    
+    ClientType clientType() const
+    {
+        return m_clientType;
+    }
+    
 public slots:
     /* net: re-create */
-    void setSocket(Socket socket);
+    void setClientType(ClientType clientType);
+    void setSocket(SocketType socket);
     void setMsgBoundaries(MsgBound msgBoundaries);
     void setStartSqns(QString startSqns);
     void setTailSqns(QString tailSqns);
@@ -128,7 +140,7 @@ public slots:
     void setUsername(QString username);
     void setPassword(QString password);
     /* net: realtime */
-    void setMode(Mode mode);
+    void setMode(WorkMode mode);
     void setMsgTxRepeatSec(uint msgTxRepeatSec);
     void setMsgMaxTxAtempt(uint msgMaxTxAtempt);
     void setMsgInspectMsec(qint32 msgInspectMsec);
@@ -136,17 +148,19 @@ public slots:
     void setLogfile(QString logfile);
 
 
-
+    
+    
 signals:
     /* net: is reconnection required */
     void isReconRequireChanged(bool isReconRequire);
     /* net: is all required fields are fill */
-    void isReadyChanged(NetFillFieldStatus isReady);
+    void isReadyChanged(NetSettStat isReady);
     /* net: info */
     void netStateChanged(NetClientStateEnum netState);
     void netStateMsgChanged(QString stateMsg);
     /* net: re-create */
-    void socketChanged(Socket socket);
+    void clientTypeChanged(ClientType clientType);
+    void socketChanged(SocketType socket);
     void msgBoundariesChanged(MsgBound msgBoundaries);
     void startSqnsChanged(QString startSqns);
     void tailSqnsChanged(QString tailSqns);
@@ -156,17 +170,18 @@ signals:
     void usernameChanged(QString username);
     void passwordChanged(QString password);
     /* net: realtime */
-    void modeChanged(Mode mode);
+    void modeChanged(WorkMode mode);
     void msgTxRepeatSecChanged(uint msgTxRepeatSec);
     void msgMaxTxAtemptChanged(uint msgMaxTxAtempt);
     void msgInspectMsecChanged(qint32 msgInspectMsec);
     /* by internal mutex */
     void logfileChanged(QString logfile);
-
+    
+    
 private slots:
     void netStateChangedHandler(const NetClientState *state);
 private:
-    void putStatusToLog(NetFillFieldStatus isReady);
+    void putStatusToLog(NetSettStat isReady);
     void setNetReCreateRequire(bool require);
     void setNetReConectRequire(bool require);
 
@@ -189,7 +204,8 @@ private:
 
 private:
     /* net re-create */
-    Socket m_socket;
+    ClientType m_clientType;
+    SocketType m_socket;
     MsgBound m_msgBoundaries;
     QString m_startSqns;
     QString m_tailSqns;
@@ -199,11 +215,11 @@ private:
     QString m_username;
     QString m_password;
     /* realtime (save for reconnections)*/
-    Mode m_mode;
+    WorkMode m_mode;
     uint m_msgTxRepeatSec;
     uint m_msgMaxTxAtempt;
     qint32 m_msgInspectMsec;
-
+    
 };
 
 #endif // SCANNERFACADE_H

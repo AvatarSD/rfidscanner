@@ -49,6 +49,7 @@ NetClient::NetClient(NetPhy* transport,
     Eventful (parent), phy(transport), proto(protocol)
 {
     qRegisterMetaType<NetClientState*>();
+    qRegisterMetaType<QAuthenticator>();
 
     proto->setParent(this);
     phy->setParent(nullptr);
@@ -58,15 +59,20 @@ NetClient::NetClient(NetPhy* transport,
     phy->connectAsEventDrain(this);
 
     connect(this, SIGNAL(send(QByteArray)),
-            phy.data(), SLOT(send(QByteArray)));
+            phy.data(), SLOT(send(QByteArray)),
+            Qt::QueuedConnection);
     connect(phy.data(), SIGNAL(recv(QByteArray)),
-            this,SLOT(recv(QByteArray)));
+            this,SLOT(recv(QByteArray)),
+            Qt::QueuedConnection);
     connect(phy.data(), SIGNAL(stateChanged(NetPhyState)),
-            this,SLOT(NetPhyStateHandler(NetPhyState)));
+            this,SLOT(NetPhyStateHandler(NetPhyState)),
+            Qt::QueuedConnection);
     connect(this, SIGNAL(connectToHost(NetPoint)),
-            phy.data(),SLOT(connectToHost(NetPoint)));
+            phy.data(),SLOT(connectToHost(NetPoint)),
+            Qt::QueuedConnection);
     connect(this, SIGNAL(disconnectFromHost()),
-            phy.data(), SLOT(disconnectFromHost()));
+            phy.data(), SLOT(disconnectFromHost()),
+            Qt::QueuedConnection);
 
     phyThread.start();
 }

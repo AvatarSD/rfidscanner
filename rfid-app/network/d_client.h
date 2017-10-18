@@ -43,15 +43,18 @@ private:
 };
 Q_DECLARE_METATYPE(NetClientState::NetClientStateEnum)
 Q_DECLARE_METATYPE(NetClientState*)
+Q_DECLARE_METATYPE(QAuthenticator)
 
 /******** NetClient ********/
 class NetClient : public Eventful
 {
     Q_OBJECT
+
 public:
     enum WorkMode{
         DISABLED, POOL, EVENT
     };
+    Q_ENUM(WorkMode)
     NetClient(NetPhy *transport,
                  NetProtocol *protocol,
                  QObject *parent = nullptr);
