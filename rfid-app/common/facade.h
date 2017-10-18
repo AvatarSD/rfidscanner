@@ -62,14 +62,13 @@ class ScannerFacade : public Eventful
     /* I   */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
 
 public:
-    typedef NetClientBasicV1::WorkMode Mode;
+    typedef NetClientV1Basic::WorkMode Mode;
     typedef NetClientState::NetClientStateEnum NetClientStateEnum;
 
     enum Socket{TCP, SSL};
     enum MsgBound{SIMPLE, BOUND_V1};
     enum AuthType{JSON, BASE64};
     enum Reader{ADS_USB, LINK_SPRITE};
-
     enum NetFillFieldStatus{
         OK = 0,
         NO_SERV = 0b0001,

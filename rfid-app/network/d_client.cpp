@@ -99,8 +99,8 @@ void NetClient::transmitMsg(QByteArray msg){
 
 /************ Implementation **************/
 
-/***** NetClientBasicV1 ****/
-NetClientBasicV1::NetClientBasicV1(NetPhy *transport,
+/***** NetClientV1Basic ****/
+NetClientV1Basic::NetClientV1Basic(NetPhy *transport,
                              NetProtocol *protocol,
                              QObject *parent ):
     NetClient(transport,protocol,parent),
@@ -115,7 +115,7 @@ NetClientBasicV1::NetClientBasicV1(NetPhy *transport,
 }
 
 /* control */
-void NetClientBasicV1::start(){
+void NetClientV1Basic::start(){
     if(addr.isNull()){
         emit sysEvent(QSharedPointer<Event> (
                           new NetworkEvent(NetworkEvent::WARNING,
@@ -128,58 +128,58 @@ void NetClientBasicV1::start(){
     emit connectToHost(addr);
     inspectTimer.start();
 }
-void NetClientBasicV1::stop(){
+void NetClientV1Basic::stop(){
     inspectTimer.stop();
     emit disconnectFromHost();
 }
 
 /* settings */
-QAuthenticator NetClientBasicV1::getAuth() const{
+QAuthenticator NetClientV1Basic::getAuth() const{
     return auth;
 }
-void NetClientBasicV1::setAuth(const QAuthenticator &value){
+void NetClientV1Basic::setAuth(const QAuthenticator &value){
     auth = value;
 }
-NetClientBasicV1::WorkMode NetClientBasicV1::getMode() const{
+NetClientV1Basic::WorkMode NetClientV1Basic::getMode() const{
     return mode;
 }
-void NetClientBasicV1::setMode(const WorkMode &value){
+void NetClientV1Basic::setMode(const WorkMode &value){
     mode = value;
 }
-NetPoint NetClientBasicV1::getAddr() const{
+NetPoint NetClientV1Basic::getAddr() const{
     return addr;
 }
-void NetClientBasicV1::setAddr(const NetPoint &value){
+void NetClientV1Basic::setAddr(const NetPoint &value){
     addr = value;
 }
 
 /* todo routine */
-void NetClientBasicV1::receiveMsg(QByteArray data){
+void NetClientV1Basic::receiveMsg(QByteArray data){
     //todo
 }
-void NetClientBasicV1::netClientStateChangedHelperHandler(const NetClientState *state){
+void NetClientV1Basic::netClientStateChangedHelperHandler(const NetClientState *state){
     //todo
 }
 
 /* msg send routine */
-void NetClientBasicV1::netEventIn(QSharedPointer<Event> event){
+void NetClientV1Basic::netEventIn(QSharedPointer<Event> event){
     sendMsgEnqueue(QSharedPointer<NetMessage>(event->event == Event::TAG ?
                                                   static_cast<NetMessage*>(new TagEventMsg(event->toJson())) :
                                                   static_cast<NetMessage*>(new ErrEventMsg(event->toJson()))));
 }
-void NetClientBasicV1::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
+void NetClientV1Basic::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
     messageQueue.enqueue(msg);
     if(mode == EVENT)
         sendMsgDirect(msg);
 }
-void NetClientBasicV1::sendMsgDirect(QSharedPointer<NetMessage> msg){
+void NetClientV1Basic::sendMsgDirect(QSharedPointer<NetMessage> msg){
     if(mode == DISABLED)
         return;
     emit transmitMsg(msg->pack(auth));
 }
 
 /* msg repeated transmission routine */
-void NetClientBasicV1::msgInspect()
+void NetClientV1Basic::msgInspect()
 {
     foreach (auto msg, messageQueue) {
         if(msg->getTransmitCount() > 0){
@@ -208,22 +208,22 @@ void NetClientBasicV1::msgInspect()
         }
     }
 }
-int NetClientBasicV1::getMsgInspectPeriodMsec() const{
+int NetClientV1Basic::getMsgInspectPeriodMsec() const{
     return inspectTimer.interval();
 }
-void NetClientBasicV1::setMsgInspectPeriodMsec(int value){
+void NetClientV1Basic::setMsgInspectPeriodMsec(int value){
     inspectTimer.setInterval(value);
 }
-uint NetClientBasicV1::getMsgMaxAtemptToDelete() const{
+uint NetClientV1Basic::getMsgMaxAtemptToDelete() const{
     return msgMaxAtemptToDelete;
 }
-void NetClientBasicV1::setMsgMaxAtemptToDelete(uint value){
+void NetClientV1Basic::setMsgMaxAtemptToDelete(uint value){
     msgMaxAtemptToDelete = value;
 }
-uint NetClientBasicV1::getMsgTransmitRepeatSec() const{
+uint NetClientV1Basic::getMsgTransmitRepeatSec() const{
     return msgTransmitRepeatSec;
 }
-void NetClientBasicV1::setMsgTransmitRepeatSec(uint value){
+void NetClientV1Basic::setMsgTransmitRepeatSec(uint value){
     msgTransmitRepeatSec = value;
 }
 

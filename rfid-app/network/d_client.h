@@ -56,6 +56,7 @@ public:
                  NetProtocol *protocol,
                  QObject *parent = nullptr);
     virtual ~NetClient();
+public slots:
     /* settings */
     virtual NetPoint getAddr() const = 0;
     virtual void setAddr(const NetPoint &value) = 0;
@@ -70,11 +71,13 @@ public:
     virtual void setMsgMaxAtemptToDelete(uint value) = 0;
     virtual int getMsgInspectPeriodMsec() const = 0;
     virtual void setMsgInspectPeriodMsec(int value) = 0;
-    const NetClientState *state() const;
-public slots:
+    /* main event input*/
     virtual void netEventIn(QSharedPointer<Event>) = 0;
+    /* control */
     virtual void start() = 0; // connect to server
     virtual void stop() = 0;  // disconnect from server
+    /* info */
+    const NetClientState *state() const;
 signals:
     void stateChanged(const NetClientState *state);
     /****************************/
@@ -105,16 +108,16 @@ signals:
 #define MSG_TRANSMIT_REPEAT_SEC 5
 #define MSG_TRANSMIT_DELETE_NUM 5
 
-/***** NetClientBasicV1 ****/
-class NetClientBasicV1 : public NetClient
+/***** NetClientV1Basic ****/
+class NetClientV1Basic : public NetClient
 {
     Q_OBJECT
 public:
-    NetClientBasicV1(NetPhy* transport,
+    NetClientV1Basic(NetPhy* transport,
                   NetProtocol* protocol,
                   QObject *parent = nullptr);
-    virtual ~NetClientBasicV1()
-    {}
+    virtual ~NetClientV1Basic(){}
+public slots:
     /* settings */
     virtual NetPoint getAddr() const;
     virtual void setAddr(const NetPoint &value);
@@ -122,17 +125,18 @@ public:
     virtual void setMode(const WorkMode &value);
     virtual QAuthenticator getAuth() const;
     virtual void setAuth(const QAuthenticator &value);
-    /* timing options */
+    /* timing optio */
     virtual uint getMsgTransmitRepeatSec() const;
     virtual void setMsgTransmitRepeatSec(uint value);
     virtual uint getMsgMaxAtemptToDelete() const;
     virtual void setMsgMaxAtemptToDelete(uint value);
     virtual int getMsgInspectPeriodMsec() const;
     virtual void setMsgInspectPeriodMsec(int value);
-public slots:
-    virtual void netEventIn(QSharedPointer<Event> event);
-    virtual void start();
-    virtual void stop();
+    /* main event input*/
+    virtual void netEventIn(QSharedPointer<Event>);
+    /* control */
+    virtual void start(); // connect to server
+    virtual void stop();  // disconnect from server
 protected slots:
     virtual void receiveMsg(QByteArray data);
     void netClientStateChangedHelperHandler(const NetClientState *state);

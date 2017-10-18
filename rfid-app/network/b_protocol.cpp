@@ -97,8 +97,8 @@ void ByteArrayQueue::removeUntill(const ByteArrayQueue::iterator &el)
     };
 }
 
-/* NetProtocolBoundV1Queue */
-QByteArray NetProtocolBoundV1Queue::pack(QByteArray msg)
+/* NetProtocolV1FormatQueue */
+QByteArray NetProtocolV1FormatQueue::pack(QByteArray msg)
 {
     QByteArray out;
     out.reserve(format.headerSize() +
@@ -113,7 +113,7 @@ QByteArray NetProtocolBoundV1Queue::pack(QByteArray msg)
     out += format.tail();
     return out;
 }
-QByteArray NetProtocolBoundV1Queue::parse(QByteArray raw, NetProtocolParseErr *err)
+QByteArray NetProtocolV1FormatQueue::parse(QByteArray raw, NetProtocolParseErr *err)
 {
     auto errToStr = [](NetProtocolParseErr error) -> QString {
         switch (error) {
@@ -214,8 +214,8 @@ QByteArray NetProtocolBoundV1Queue::parse(QByteArray raw, NetProtocolParseErr *e
     return QByteArray();
 }
 
-/**** NetProtocolBoundV1 ***/
-QByteArray NetProtocolBoundV1::pack(QByteArray msg)
+/**** NetProtocolV1Format ***/
+QByteArray NetProtocolV1Format::pack(QByteArray msg)
 {
     QByteArray out;
     out.reserve(format.headerSize() +
@@ -230,7 +230,7 @@ QByteArray NetProtocolBoundV1::pack(QByteArray msg)
     out += format.tail();
     return out;
 }
-QByteArray NetProtocolBoundV1::parse(QByteArray raw, NetProtocolParseErr *err)
+QByteArray NetProtocolV1Format::parse(QByteArray raw, NetProtocolParseErr *err)
 {
     auto errToStr = [](NetProtocolParseErr error) -> QString {
         switch (error) {

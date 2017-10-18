@@ -117,8 +117,8 @@ private:
     SecondLevelIt firstPos; // no resize the Qbytearray, just hold first byte addr;
 };
 
-/* NetProtocolBoundV1Queue */
-class NetProtocolBoundV1Queue : public NetProtocol
+/* NetProtocolV1FormatQueue */
+class NetProtocolV1FormatQueue : public NetProtocol
 {
     /* Message bound format:
      *    ${HEADER} ${LENGTH} ${PAYLOAD} ${CRC16} ${ENDLINE}
@@ -128,10 +128,10 @@ class NetProtocolBoundV1Queue : public NetProtocol
      */
     Q_OBJECT
 public:
-    NetProtocolBoundV1Queue(const NetProtocolBound &format,
+    NetProtocolV1FormatQueue(const NetProtocolBound &format,
                        QObject*parent=nullptr) :
         NetProtocol(parent), format(format) {}
-    virtual ~NetProtocolBoundV1Queue(){}
+    virtual ~NetProtocolV1FormatQueue(){}
 
 public slots:
     virtual QByteArray pack(QByteArray msg);
@@ -142,18 +142,18 @@ private:
     ByteArrayQueue inBuf;
 };
 
-/**** NetProtocolBoundV1 ***/
-class NetProtocolBoundV1 : public NetProtocol
+/**** NetProtocolV1Format ***/
+class NetProtocolV1Format : public NetProtocol
 {
     Q_OBJECT
 public:
     enum ParserState{
         START, LENGTH, DATA
     };
-    NetProtocolBoundV1(const NetProtocolBound &format,
+    NetProtocolV1Format(const NetProtocolBound &format,
                        QObject*parent=nullptr) :
         NetProtocol(parent), format(format), state(START) {}
-    virtual ~NetProtocolBoundV1(){}
+    virtual ~NetProtocolV1Format(){}
 
 public slots:
     virtual QByteArray pack(QByteArray msg);
