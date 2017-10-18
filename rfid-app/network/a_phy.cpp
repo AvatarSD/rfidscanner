@@ -38,7 +38,7 @@ void NetPoint::reset(){
     _addr.clear(); _port = 0;
 }
 
-/******** NetState *********/
+/******* NetPhyState *******/
 NetPhyState::NetPhyState(QAbstractSocket::SocketState state, QString message) :
     state(state), msg(std::move(message)){
 }
@@ -66,7 +66,7 @@ QAbstractSocket::SocketState NetPhyState::getState() const{
 
 /************ Implementation **************/
 
-/****** NetTransport *******/
+/******** NetPhyTcp ********/
 NetPhyTcp::NetPhyTcp(QObject* parent) :
     NetPhyTcp(new QTcpSocket(),parent){
     socket->setParent(this);

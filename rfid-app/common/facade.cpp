@@ -1,4 +1,4 @@
-#include "scannerfacade.h"
+#include "facade.h"
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logger(new Logger)

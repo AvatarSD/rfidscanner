@@ -2,7 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QtQml>
 
-#include "common/scannerfacade.h"
+#include "common/facade.h"
 
 
 int main(int argc, char *argv[])
@@ -27,8 +27,8 @@ int main(int argc, char *argv[])
 //    NetTransport * socket = ;
 //    NetProtocol *proto = ;
     auto * net = new NetClientBasicV1(new NetPhyTcp,
-                                           new NetProtocolV2Bound(
-                                               NetProtocolFormat("$SD#", "\r\n\r\n")));
+                                           new NetProtocolBoundV1(
+                                               NetProtocolBound("$SD#", "\r\n\r\n")));
     net->setAddr(NetPoint("localhost", 5600));
     net->setMode(NetClientBasicV1::EVENT);
 

@@ -29,25 +29,25 @@ ForwardIt1 NetProtocol::search(ForwardIt1 &first, ForwardIt1 last,
 /************ Implementation **************/
 
 /**** NetProtocolFormat ****/
-uint NetProtocolFormat::headerSize() const{
+uint NetProtocolBound::headerSize() const{
     return _headerSize;
 }
-uint NetProtocolFormat::lengthSize() const{
+uint NetProtocolBound::lengthSize() const{
     return sizeof(PayloadLengh);
 }
-uint NetProtocolFormat::crcSize() const{
+uint NetProtocolBound::crcSize() const{
     return sizeof(PayloadCrc);
 }
-uint NetProtocolFormat::tailSize() const{
+uint NetProtocolBound::tailSize() const{
     return _tailSize;
 }
-QByteArray NetProtocolFormat::header() const{
+QByteArray NetProtocolBound::header() const{
     return _header;
 }
-QByteArray NetProtocolFormat::tail() const{
+QByteArray NetProtocolBound::tail() const{
     return _tail;
 }
-QByteArray NetProtocolFormat::length(NetProtocolFormat::PayloadLengh payloadLength) const
+QByteArray NetProtocolBound::length(NetProtocolBound::PayloadLengh payloadLength) const
 {
     QByteArray out;
     out.reserve(lengthSize()+2); // +2 just for safe
@@ -55,7 +55,7 @@ QByteArray NetProtocolFormat::length(NetProtocolFormat::PayloadLengh payloadLeng
     stream << payloadLength;
     return out;
 }
-QByteArray NetProtocolFormat::crc(NetProtocolFormat::PayloadCrc payloadCrc) const
+QByteArray NetProtocolBound::crc(NetProtocolBound::PayloadCrc payloadCrc) const
 {
     QByteArray out;
     out.reserve(crcSize()+2); // +2 just for safe
@@ -63,12 +63,12 @@ QByteArray NetProtocolFormat::crc(NetProtocolFormat::PayloadCrc payloadCrc) cons
     stream << payloadCrc;
     return out;
 }
-void NetProtocolFormat::setHeader(const QByteArray &header)
+void NetProtocolBound::setHeader(const QByteArray &header)
 {
     _header = header;
     _headerSize = _header.size();
 }
-void NetProtocolFormat::setTail(const QByteArray &tail)
+void NetProtocolBound::setTail(const QByteArray &tail)
 {
     _tail = tail;
     _tailSize = _tail.size();
@@ -97,8 +97,8 @@ void ByteArrayQueue::removeUntill(const ByteArrayQueue::iterator &el)
     };
 }
 
-/**** NetProtocolV1Bound ***/
-QByteArray NetProtocolV1Bound::pack(QByteArray msg)
+/* NetProtocolBoundV1Queue */
+QByteArray NetProtocolBoundV1Queue::pack(QByteArray msg)
 {
     QByteArray out;
     out.reserve(format.headerSize() +
@@ -113,7 +113,7 @@ QByteArray NetProtocolV1Bound::pack(QByteArray msg)
     out += format.tail();
     return out;
 }
-QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
+QByteArray NetProtocolBoundV1Queue::parse(QByteArray raw, NetProtocolParseErr *err)
 {
     auto errToStr = [](NetProtocolParseErr error) -> QString {
         switch (error) {
@@ -214,8 +214,8 @@ QByteArray NetProtocolV1Bound::parse(QByteArray raw, NetProtocolParseErr *err)
     return QByteArray();
 }
 
-/**** NetProtocolV2Bound ***/
-QByteArray NetProtocolV2Bound::pack(QByteArray msg)
+/**** NetProtocolBoundV1 ***/
+QByteArray NetProtocolBoundV1::pack(QByteArray msg)
 {
     QByteArray out;
     out.reserve(format.headerSize() +
@@ -230,7 +230,7 @@ QByteArray NetProtocolV2Bound::pack(QByteArray msg)
     out += format.tail();
     return out;
 }
-QByteArray NetProtocolV2Bound::parse(QByteArray raw, NetProtocolParseErr *err)
+QByteArray NetProtocolBoundV1::parse(QByteArray raw, NetProtocolParseErr *err)
 {
     auto errToStr = [](NetProtocolParseErr error) -> QString {
         switch (error) {

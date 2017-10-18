@@ -36,14 +36,14 @@ public slots:
 
 /************ Implementation **************/
 
-/**** NetProtocolFormat ****/
-class NetProtocolFormat
+/**** NetProtocolBound *****/
+class NetProtocolBound
 {
 public:
     typedef quint32 PayloadLengh;
     typedef quint16 PayloadCrc;
 
-    NetProtocolFormat(const QByteArray &header,
+    NetProtocolBound(const QByteArray &header,
                       const QByteArray &tail)
     {setHeader(header); setTail(tail);}
 
@@ -117,8 +117,8 @@ private:
     SecondLevelIt firstPos; // no resize the Qbytearray, just hold first byte addr;
 };
 
-/**** NetProtocolV1Bound ***/
-class NetProtocolV1Bound : public NetProtocol
+/* NetProtocolBoundV1Queue */
+class NetProtocolBoundV1Queue : public NetProtocol
 {
     /* Message bound format:
      *    ${HEADER} ${LENGTH} ${PAYLOAD} ${CRC16} ${ENDLINE}
@@ -128,39 +128,39 @@ class NetProtocolV1Bound : public NetProtocol
      */
     Q_OBJECT
 public:
-    NetProtocolV1Bound(const NetProtocolFormat &format,
+    NetProtocolBoundV1Queue(const NetProtocolBound &format,
                        QObject*parent=nullptr) :
         NetProtocol(parent), format(format) {}
-    virtual ~NetProtocolV1Bound(){}
+    virtual ~NetProtocolBoundV1Queue(){}
 
 public slots:
     virtual QByteArray pack(QByteArray msg);
     virtual QByteArray parse(QByteArray raw,
                              NetProtocolParseErr *err = nullptr);
 private:
-    const NetProtocolFormat format;
+    const NetProtocolBound format;
     ByteArrayQueue inBuf;
 };
 
-/**** NetProtocolV2Bound ***/
-class NetProtocolV2Bound : public NetProtocol
+/**** NetProtocolBoundV1 ***/
+class NetProtocolBoundV1 : public NetProtocol
 {
     Q_OBJECT
 public:
     enum ParserState{
         START, LENGTH, DATA
     };
-    NetProtocolV2Bound(const NetProtocolFormat &format,
+    NetProtocolBoundV1(const NetProtocolBound &format,
                        QObject*parent=nullptr) :
         NetProtocol(parent), format(format), state(START) {}
-    virtual ~NetProtocolV2Bound(){}
+    virtual ~NetProtocolBoundV1(){}
 
 public slots:
     virtual QByteArray pack(QByteArray msg);
     virtual QByteArray parse(QByteArray raw, NetProtocolParseErr *err
                              = nullptr);
 private:
-    const NetProtocolFormat format;
+    const NetProtocolBound format;
     QByteArray buff;
     ParserState state;
 };
