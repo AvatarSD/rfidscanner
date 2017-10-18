@@ -1,18 +1,18 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-#include "events.h"
-
 #include <QUuid>
 #include <QJsonObject>
 #include <QAuthenticator>
 #include <QDateTime>
+#include "events.h"
 
 
-/**************************************************/
-/*********************** Face *********************/
+/********************** Level 3(C) ***********************/
 
-/************ gen ************/
+/*************** Interface ****************/
+
+/******* NetMessage ********/
 class NetMessage
 {
 public:
@@ -76,8 +76,7 @@ private:
 };
 
 
-
-/************************* Impl **************************/
+/************ Implementation **************/
 
 /********** Msgs ***********/
 class TagEventMsg : public NetMessage
@@ -123,11 +122,7 @@ public:
     virtual ~EventsCountMsg(){}
 };
 
-
 /************ prt ************/
-
-
-
 
 
 #endif // MESSAGES_H

@@ -7,17 +7,18 @@ SOURCES += main.cpp \
     scanner/rfidmamanger.cpp \
     scanner/rfidreader.cpp \
     types.cpp \
-    network/networkclient.cpp \
-    network/transportiface.cpp \
     events.cpp \
     scanner/transport.cpp \
     scanner/rfidprotocol.cpp \
     scanner/ConcreteScanners/chinecompacthidscanner.cpp \
     scanner/commands.cpp \
-    network/messages.cpp \
     common/scannerfacade.cpp \
     common/logger.cpp \
-    common/system.cpp
+    common/system.cpp \
+    network/b_protocol.cpp \
+    network/c_messages.cpp \
+    network/a_phy.cpp \
+    network/d_client.cpp
 
 RESOURCES += qml.qrc
 
@@ -46,17 +47,18 @@ HEADERS += \
     scanner/rfidmamanger.h \
     scanner/rfidreader.h \
     types.h \
-    network/networkclient.h \
-    network/transportiface.h \
     events.h \
     scanner/transport.h \
     scanner/rfidprotocol.h \
     scanner/ConcreteScanners/chinecompacthidscanner.h \
     scanner/commands.h \
-    network/messages.h \
     common/scannerfacade.h \
     common/logger.h \
-    common/system.h
+    common/system.h \
+    network/b_protocol.h \
+    network/c_messages.h \
+    network/d_client.h \
+    network/a_phy.h
 
 #INCLUDEPATH += ../QUSB/src
 #LIBS += -L../../build-meta-rfid-Desktop_Qt_5_9_1_GCC_64bit-Release/QUSB/lib -lqusb

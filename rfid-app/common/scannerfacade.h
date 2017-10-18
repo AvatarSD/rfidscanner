@@ -6,7 +6,7 @@
 #include "common/system.h"
 #include "common/logger.h"
 #include "scanner/rfidmamanger.h"
-#include "network/networkclient.h"
+#include "network/d_client.h"
 
 class ScannerFacade : public Eventful
 {

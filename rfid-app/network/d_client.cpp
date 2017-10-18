@@ -1,12 +1,11 @@
-#include "networkclient.h"
+#include "d_client.h"
 
 
-/********************** Interface ************************/
+/********************** Level 4(D) ***********************/
 
-/**** NetCommanderState ****/
-//NetClientState::NetClientState(const NetPhyState &state){
-//    fromNetState(state);
-//}
+/*************** Interface ****************/
+
+/****** NetClientState *****/
 void NetClientState::fromPhyState(const NetPhyState &state){
     QMutexLocker(&this->access);
     this->state = fromPhyStateHelper(state.getState());
@@ -43,7 +42,7 @@ NetClientState::NetClientStateEnum NetClientState::fromPhyStateHelper(QAbstractS
     }
 }
 
-/****** NetCommander *******/
+/******** NetClient ********/
 NetClient::NetClient(NetPhy* transport,
                            NetProtocol* protocol,
                            QObject *parent) :
@@ -98,10 +97,9 @@ void NetClient::transmitMsg(QByteArray msg){
 }
 
 
-/******************** Implementation *********************/
+/************ Implementation **************/
 
-
-/****** BasicV1Client ******/
+/***** NetClientBasicV1 ****/
 NetClientBasicV1::NetClientBasicV1(NetPhy *transport,
                              NetProtocol *protocol,
                              QObject *parent ):
@@ -128,10 +126,10 @@ void NetClientBasicV1::start(){
         return;
     }
     emit connectToHost(addr);
-    QMetaObject::invokeMethod(&inspectTimer, "start", Qt::QueuedConnection);
+    inspectTimer.start();
 }
 void NetClientBasicV1::stop(){
-    QMetaObject::invokeMethod(&inspectTimer, "stop", Qt::QueuedConnection);
+    inspectTimer.stop();
     emit disconnectFromHost();
 }
 

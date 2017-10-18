@@ -1,19 +1,19 @@
 #ifndef NETWORKCLIENT_H
 #define NETWORKCLIENT_H
 
-#include "transportiface.h"
 #include <QObject>
 #include <types.h>
 #include <QQueue>
 #include <QAuthenticator>
 #include <QMutex>
+#include "b_protocol.h"
 
 
-/********************** Interface ************************/
+/********************** Level 4(D) ***********************/
 
-/**************** Level 4 *****************/
+/*************** Interface ****************/
 
-/**** NetCommanderState ****/
+/****** NetClientState *****/
 class NetClientState{
 public:
     /* static */
@@ -44,7 +44,7 @@ private:
 Q_DECLARE_METATYPE(NetClientState::NetClientStateEnum)
 Q_DECLARE_METATYPE(NetClientState*)
 
-/****** NetCommander *******/
+/******** NetClient ********/
 class NetClient : public Eventful
 {
     Q_OBJECT
@@ -98,15 +98,14 @@ signals:
 };
 
 
+/************ Implementation **************/
 
-/******************** Implementation *********************/
-
-/**************** Level 4 *****************/
-
+/********* Supply **********/
 #define MSG_INSPECT_PERIOD_MSEC 200
 #define MSG_TRANSMIT_REPEAT_SEC 5
 #define MSG_TRANSMIT_DELETE_NUM 5
-/****** NetCommanders ******/
+
+/***** NetClientBasicV1 ****/
 class NetClientBasicV1 : public NetClient
 {
     Q_OBJECT
