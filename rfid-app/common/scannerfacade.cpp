@@ -34,7 +34,9 @@ ScannerFacade::~ScannerFacade()
 
 void ScannerFacade::connectToServer()
 {
+    if(netReCreateRequire){
 
+    }
 
 }
 
@@ -92,7 +94,7 @@ void ScannerFacade::putStatusToLog(ScannerFacade::NetStatus isReady){
                                            SystemEvent::IDs::FACADE_STATUS,
                                            QStringLiteral("Password is not set"))));
 }
-void ScannerFacade::netStateChanged(NetCommanderState state){
+void ScannerFacade::netStateChangedHandler(NetCommanderState state){
     emit netStateChanged(state.getState());
     emit netStateMsgChanged(state.getMsg());
 }

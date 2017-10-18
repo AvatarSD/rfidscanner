@@ -161,7 +161,7 @@ signals:
     void logfileChanged(QString logfile);
 
 private slots:
-    void netStateChanged(NetCommanderState state);
+    void netStateChangedHandler(NetCommanderState state);
 
 private:
     void putStatusToLog(NetStatus isReady);
