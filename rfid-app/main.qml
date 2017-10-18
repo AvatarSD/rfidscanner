@@ -3,6 +3,8 @@ import QtQuick.Window 2.2
 import QtQuick.Controls 1.5
 import QtQuick.Layouts 1.3
 
+import ScannerMainElements 1.0
+
 Window {
     visible: true
     width: 640
@@ -84,7 +86,13 @@ Window {
         Connections{
             target: facade
             onNetStateChanged:{
-                connectBtn.width = connectBtn.width + 10;
+                switch(facade.netState){
+                case NetStateEnum.DISCONNECTED : NetStateEnum.text = "disc"
+                    break
+                case NetStateEnum.CONNECTED : NetStateEnum.text = "ok"
+                    break
+                }
+                
             }
         }
     }
@@ -100,12 +108,5 @@ Window {
         renderType: Text.QtRendering
         font.pixelSize: 10
     }
-    
-//            Connections{
-//                target: facade
-//                onNetStateMsgChanged:{
-//                    connectBtn.width = connectBtn.width + 10;
-//                }
-//            }
     
 }

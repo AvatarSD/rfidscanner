@@ -1,4 +1,5 @@
 #include "facade.h"
+#include <QtQml>
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread(this), netManengerThread(this),
@@ -6,6 +7,9 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logger(new Logger)
 {    
     qRegisterMetaType<NetWorkMode>("NetWorkMode");
+    qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
+    qmlRegisterType<NetClientState>("ScannerMainElements",1,0,"NetClientState");
+    qmlRegisterType<NetClient>("ScannerMainElements",1,0,"NetClient");
     
     netReCreateRequire = true;
     netReConectRequire = true;
