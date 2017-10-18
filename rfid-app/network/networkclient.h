@@ -6,6 +6,7 @@
 #include <types.h>
 #include <QQueue>
 #include <QAuthenticator>
+#include <QMutex>
 
 
 /********************** Interface ************************/
@@ -13,46 +14,48 @@
 /**************** Level 4 *****************/
 
 /**** NetCommanderState ****/
-class NetCommanderState{
+class NetClientState{
 public:
-    enum States{
+    /* static */
+    enum NetClientStateEnum {
         DISCONNECTED,
         LOOKUPING,
         CONNECTING,
         CONNECTED,
         CLOSING,
-        AUTHENTICATED
-    };
-    NetCommanderState() : state(DISCONNECTED){}
-    NetCommanderState(States state, QString msg) :
-        state(state), msg(msg){}
-    NetCommanderState(const NetState & state);
-    void fromNetState(const NetState &state);
-    void fromRawState(States state, QString msg);
-    void fromSelfState(const NetCommanderState &state);
-    States getState() const;
-    QString getMsg() const;
-    bool operator ==(States state);
-    static States fromSocketState(QAbstractSocket::SocketState state);
+        AUTHENTICATED };
+    static NetClientStateEnum fromPhyStateHelper(QAbstractSocket::SocketState state);
+    /* set */
+    NetClientState() : state(DISCONNECTED){}
+    void fromPhyState(const NetPhyState &state);
+    void fromRawState(NetClientStateEnum state, QString msg);
+    /* get */
+    NetClientStateEnum stateEnum() const;
+    QString stateMessage() const;
+    /* helpers */
+    bool operator ==(NetClientStateEnum state) const;
+    bool operator !=(NetClientStateEnum state) const{
+        return !this->operator ==(state);}
 private:
-    States state;
+    NetClientStateEnum state;
     QString msg;
+    mutable QMutex access;
 };
-Q_DECLARE_METATYPE(NetCommanderState::States)
-Q_DECLARE_METATYPE(NetCommanderState)
+Q_DECLARE_METATYPE(NetClientState::NetClientStateEnum)
+Q_DECLARE_METATYPE(NetClientState*)
 
 /****** NetCommander *******/
-class NetCommander : public Eventful
+class NetClient : public Eventful
 {
     Q_OBJECT
 public:
     enum WorkMode{
         DISABLED, POOL, EVENT
     };
-    NetCommander(NetTransport *transport,
+    NetClient(NetPhy *transport,
                  NetProtocol *protocol,
                  QObject *parent = nullptr);
-    virtual ~NetCommander();
+    virtual ~NetClient();
     /* settings */
     virtual NetPoint getAddr() const = 0;
     virtual void setAddr(const NetPoint &value) = 0;
@@ -67,30 +70,29 @@ public:
     virtual void setMsgMaxAtemptToDelete(uint value) = 0;
     virtual int getMsgInspectPeriodMsec() const = 0;
     virtual void setMsgInspectPeriodMsec(int value) = 0;
+    const NetClientState *state() const;
 public slots:
     virtual void netEventIn(QSharedPointer<Event>) = 0;
     virtual void start() = 0; // connect to server
     virtual void stop() = 0;  // disconnect from server
-    const NetCommanderState &getState() const;
 signals:
-    void stateChanged(const NetCommanderState &state);
+    void stateChanged(const NetClientState *state);
     /****************************/
 protected slots:
     virtual void receiveMsg(QByteArray data) = 0;
     void transmitMsg(QByteArray msg);
-    void setState(const NetCommanderState &state);
 signals:
     void connectToHost(const NetPoint &addr);
     void disconnectFromHost();
     /****************************/
 private:
-    QScopedPointer<NetTransport> phy;
+    QScopedPointer<NetPhy> phy;
     QScopedPointer<NetProtocol> proto;
     QThread phyThread;
-    NetCommanderState state;
+    NetClientState m_state;
 private slots:
     void recv(QByteArray data);
-    void transportStateChanged(NetState newState);
+    void NetPhyStateHandler(NetPhyState netPhyState);
 signals:
     qint32 send(QByteArray data);
 };
@@ -105,14 +107,14 @@ signals:
 #define MSG_TRANSMIT_REPEAT_SEC 5
 #define MSG_TRANSMIT_DELETE_NUM 5
 /****** NetCommanders ******/
-class BasicV1Client : public NetCommander
+class NetClientBasicV1 : public NetClient
 {
     Q_OBJECT
 public:
-    BasicV1Client(NetTransport* transport,
+    NetClientBasicV1(NetPhy* transport,
                   NetProtocol* protocol,
                   QObject *parent = nullptr);
-    virtual ~BasicV1Client()
+    virtual ~NetClientBasicV1()
     {}
     /* settings */
     virtual NetPoint getAddr() const;
@@ -134,7 +136,7 @@ public slots:
     virtual void stop();
 protected slots:
     virtual void receiveMsg(QByteArray data);
-    void stateChanged(NetCommanderState state);
+    void netClientStateChangedHelperHandler(const NetClientState *state);
 protected:
     QQueue<QSharedPointer<NetMessage>> messageQueue;
     NetPoint addr;

@@ -106,14 +106,14 @@ private:
 };
 Q_DECLARE_METATYPE(NetPoint)
 
-/******** NetState *********/
-class NetState
+/******** NetPhyState *********/
+class NetPhyState
 {
 public:
-    NetState() = default;
-    NetState(const NetState&) = default;
+    NetPhyState() = default;
+    NetPhyState(const NetPhyState&) = default;
     /**************************/
-    NetState(QAbstractSocket::SocketState state, QString message);
+    NetPhyState(QAbstractSocket::SocketState state, QString message);
     QString toString() const;
     bool operator == (QAbstractSocket::SocketState state);
     QAbstractSocket::SocketState getState() const;
@@ -122,25 +122,25 @@ private:
     QAbstractSocket::SocketState state;
     QString msg;
 };
-Q_DECLARE_METATYPE(NetState)
+Q_DECLARE_METATYPE(NetPhyState)
 
 /****** NetTransport *******/
-class NetTransport : public Eventful
+class NetPhy : public Eventful
 {
     Q_OBJECT
 public:
-    NetTransport(QObject* parent = nullptr) :
-        Eventful(parent) {qRegisterMetaType<NetState>();}
-    virtual ~NetTransport(){}
+    NetPhy(QObject* parent = nullptr) :
+        Eventful(parent) {qRegisterMetaType<NetPhyState>();}
+    virtual ~NetPhy(){}
 signals:
     void recv(QByteArray data);
-    void stateChanged(NetState newState);
+    void stateChanged(NetPhyState newState);
 public slots:
     virtual void connectToHost(const NetPoint &addr = NetPoint()) = 0;
     virtual void disconnectFromHost() = 0;
     virtual qint32 send(QByteArray data) = 0;
     /****************************/
-    virtual NetState currentState() const = 0;
+    virtual NetPhyState state() const = 0;
 };
 
 /**************** Level 2 *****************/
@@ -176,19 +176,19 @@ public slots:
 /**************** Level 1 *****************/
 
 /****** NetTransport *******/
-class TcpNetTransport : public NetTransport
+class NetPhyTcp : public NetPhy
 {
     Q_OBJECT
 public:
-    TcpNetTransport(QObject* parent = nullptr);
-    TcpNetTransport(QAbstractSocket * socket, QObject* parent = nullptr);
-    ~TcpNetTransport();
+    NetPhyTcp(QObject* parent = nullptr);
+    NetPhyTcp(QAbstractSocket * socket, QObject* parent = nullptr);
+    ~NetPhyTcp();
 public slots:
     virtual void connectToHost(const NetPoint& addr = NetPoint());
     virtual void disconnectFromHost();
     virtual qint32 send(QByteArray data);
     /****************************/
-    virtual NetState currentState() const;
+    virtual NetPhyState state() const;
 protected slots:
     void socketReadyRead();
     void run();

@@ -4,51 +4,52 @@
 /********************** Interface ************************/
 
 /**** NetCommanderState ****/
-NetCommanderState::NetCommanderState(const NetState &state){
-    fromNetState(state);
-}
-void NetCommanderState::fromNetState(const NetState &state){
-    this->state = fromSocketState(state.getState());
+//NetClientState::NetClientState(const NetPhyState &state){
+//    fromNetState(state);
+//}
+void NetClientState::fromPhyState(const NetPhyState &state){
+    QMutexLocker(&this->access);
+    this->state = fromPhyStateHelper(state.getState());
     msg = state.toString();
 }
-void NetCommanderState::fromRawState(NetCommanderState::States state, QString msg){
+void NetClientState::fromRawState(NetClientState::NetClientStateEnum state, QString msg){
+    QMutexLocker(&this->access);
     this->state = state;
     this->msg = msg;
 }
-void NetCommanderState::fromSelfState(const NetCommanderState &state){
-    this->state = state.getState();
-    this->msg = state.getMsg();
-}
-NetCommanderState::States NetCommanderState::getState() const{
+NetClientState::NetClientStateEnum NetClientState::stateEnum() const{
+    QMutexLocker(&this->access);
     return state;
 }
-QString NetCommanderState::getMsg() const{
+QString NetClientState::stateMessage() const{
+    QMutexLocker(&this->access);
     return msg;
 }
-bool NetCommanderState::operator ==(NetCommanderState::States state){
+bool NetClientState::operator ==(NetClientState::NetClientStateEnum state) const{
+    QMutexLocker(&this->access);
     return this->state == state;
 }
-NetCommanderState::States NetCommanderState::fromSocketState(QAbstractSocket::SocketState state){
+NetClientState::NetClientStateEnum NetClientState::fromPhyStateHelper(QAbstractSocket::SocketState state){
     switch (state) {
-    case QAbstractSocket::HostLookupState: return States::LOOKUPING;
-    case QAbstractSocket::ConnectingState: return States::CONNECTING;
-    case QAbstractSocket::ConnectedState: return States::CONNECTED;
-    case QAbstractSocket::ClosingState: return States::CLOSING;
+    case QAbstractSocket::HostLookupState: return NetClientStateEnum::LOOKUPING;
+    case QAbstractSocket::ConnectingState: return NetClientStateEnum::CONNECTING;
+    case QAbstractSocket::ConnectedState: return NetClientStateEnum::CONNECTED;
+    case QAbstractSocket::ClosingState: return NetClientStateEnum::CLOSING;
     case QAbstractSocket::UnconnectedState:
     case QAbstractSocket::BoundState:
     case QAbstractSocket::ListeningState:
     default:
-        return States::DISCONNECTED;
+        return NetClientStateEnum::DISCONNECTED;
     }
 }
 
 /****** NetCommander *******/
-NetCommander::NetCommander(NetTransport* transport,
+NetClient::NetClient(NetPhy* transport,
                            NetProtocol* protocol,
                            QObject *parent) :
     Eventful (parent), phy(transport), proto(protocol)
 {
-    qRegisterMetaType<NetCommanderState>();
+    qRegisterMetaType<NetClientState*>();
 
     proto->setParent(this);
     phy->setParent(nullptr);
@@ -61,8 +62,8 @@ NetCommander::NetCommander(NetTransport* transport,
             phy.data(), SLOT(send(QByteArray)));
     connect(phy.data(), SIGNAL(recv(QByteArray)),
             this,SLOT(recv(QByteArray)));
-    connect(phy.data(), SIGNAL(stateChanged(NetState)),
-            this,SLOT(transportStateChanged(NetState)));
+    connect(phy.data(), SIGNAL(stateChanged(NetPhyState)),
+            this,SLOT(NetPhyStateHandler(NetPhyState)));
     connect(this, SIGNAL(connectToHost(NetPoint)),
             phy.data(),SLOT(connectToHost(NetPoint)));
     connect(this, SIGNAL(disconnectFromHost()),
@@ -70,32 +71,29 @@ NetCommander::NetCommander(NetTransport* transport,
 
     phyThread.start();
 }
-NetCommander::~NetCommander(){
+NetClient::~NetClient(){
     phyThread.quit();
     phyThread.wait();
 }
-const NetCommanderState &NetCommander::getState() const{
-    return state;
+const NetClientState *NetClient::state() const{
+    return &m_state;
 }
-void NetCommander::transportStateChanged(NetState newState){
-    this->setState(NetCommanderState(newState));
-}
-void NetCommander::setState(const NetCommanderState &state){
-    this->state = state;
-    if(this->state == NetCommanderState::AUTHENTICATED)
+void NetClient::NetPhyStateHandler(NetPhyState netPhyState){
+    this->m_state.fromPhyState(netPhyState);
+    if(this->m_state == NetClientState::AUTHENTICATED)
         emit sysEvent(QSharedPointer<Event> (
                           new NetworkEvent(NetworkEvent::INFO,
                                            NetworkEvent::IDs::AUTHENTICATOR,
-                                           state.getMsg())));
-    emit stateChanged(this->state);
+                                           m_state.stateMessage())));
+    emit stateChanged(&this->m_state);
 }
-void NetCommander::recv(QByteArray data){
+void NetClient::recv(QByteArray data){
     NetProtocol::NetProtocolParseErr err;
     auto msg = proto->parse(data,&err);
     if(err == NetProtocol::PARSE_ERR_OK)
         receiveMsg(msg);
 }
-void NetCommander::transmitMsg(QByteArray msg){
+void NetClient::transmitMsg(QByteArray msg){
     emit send(proto->pack(msg));
 }
 
@@ -104,22 +102,22 @@ void NetCommander::transmitMsg(QByteArray msg){
 
 
 /****** BasicV1Client ******/
-BasicV1Client::BasicV1Client(NetTransport *transport,
+NetClientBasicV1::NetClientBasicV1(NetPhy *transport,
                              NetProtocol *protocol,
                              QObject *parent ):
-    NetCommander(transport,protocol,parent),
+    NetClient(transport,protocol,parent),
     mode(DISABLED), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
-    connect(this, SIGNAL(stateChanged(NetCommanderState)),
-            this, SLOT(stateChanged(NetCommanderState)));
+    connect(this, SIGNAL(stateChanged(const NetClientState*)),
+            this, SLOT(netClientStateChangedHelperHandler(const NetClientState*)));
     connect(&inspectTimer, SIGNAL(timeout()), this,SLOT(msgInspect()));
     inspectTimer.setInterval(MSG_INSPECT_PERIOD_MSEC);
 }
 
 /* control */
-void BasicV1Client::start(){
+void NetClientBasicV1::start(){
     if(addr.isNull()){
         emit sysEvent(QSharedPointer<Event> (
                           new NetworkEvent(NetworkEvent::WARNING,
@@ -132,58 +130,58 @@ void BasicV1Client::start(){
     emit connectToHost(addr);
     QMetaObject::invokeMethod(&inspectTimer, "start", Qt::QueuedConnection);
 }
-void BasicV1Client::stop(){
+void NetClientBasicV1::stop(){
     QMetaObject::invokeMethod(&inspectTimer, "stop", Qt::QueuedConnection);
     emit disconnectFromHost();
 }
 
 /* settings */
-QAuthenticator BasicV1Client::getAuth() const{
+QAuthenticator NetClientBasicV1::getAuth() const{
     return auth;
 }
-void BasicV1Client::setAuth(const QAuthenticator &value){
+void NetClientBasicV1::setAuth(const QAuthenticator &value){
     auth = value;
 }
-BasicV1Client::WorkMode BasicV1Client::getMode() const{
+NetClientBasicV1::WorkMode NetClientBasicV1::getMode() const{
     return mode;
 }
-void BasicV1Client::setMode(const WorkMode &value){
+void NetClientBasicV1::setMode(const WorkMode &value){
     mode = value;
 }
-NetPoint BasicV1Client::getAddr() const{
+NetPoint NetClientBasicV1::getAddr() const{
     return addr;
 }
-void BasicV1Client::setAddr(const NetPoint &value){
+void NetClientBasicV1::setAddr(const NetPoint &value){
     addr = value;
 }
 
 /* todo routine */
-void BasicV1Client::receiveMsg(QByteArray data){
-
+void NetClientBasicV1::receiveMsg(QByteArray data){
+    //todo
 }
-void BasicV1Client::stateChanged(NetCommanderState state){
-
+void NetClientBasicV1::netClientStateChangedHelperHandler(const NetClientState *state){
+    //todo
 }
 
 /* msg send routine */
-void BasicV1Client::netEventIn(QSharedPointer<Event> event){
+void NetClientBasicV1::netEventIn(QSharedPointer<Event> event){
     sendMsgEnqueue(QSharedPointer<NetMessage>(event->event == Event::TAG ?
                                                   static_cast<NetMessage*>(new TagEventMsg(event->toJson())) :
                                                   static_cast<NetMessage*>(new ErrEventMsg(event->toJson()))));
 }
-void BasicV1Client::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
+void NetClientBasicV1::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
     messageQueue.enqueue(msg);
     if(mode == EVENT)
         sendMsgDirect(msg);
 }
-void BasicV1Client::sendMsgDirect(QSharedPointer<NetMessage> msg){
+void NetClientBasicV1::sendMsgDirect(QSharedPointer<NetMessage> msg){
     if(mode == DISABLED)
         return;
     emit transmitMsg(msg->pack(auth));
 }
 
 /* msg repeated transmission routine */
-void BasicV1Client::msgInspect()
+void NetClientBasicV1::msgInspect()
 {
     foreach (auto msg, messageQueue) {
         if(msg->getTransmitCount() > 0){
@@ -212,22 +210,22 @@ void BasicV1Client::msgInspect()
         }
     }
 }
-int BasicV1Client::getMsgInspectPeriodMsec() const{
+int NetClientBasicV1::getMsgInspectPeriodMsec() const{
     return inspectTimer.interval();
 }
-void BasicV1Client::setMsgInspectPeriodMsec(int value){
+void NetClientBasicV1::setMsgInspectPeriodMsec(int value){
     inspectTimer.setInterval(value);
 }
-uint BasicV1Client::getMsgMaxAtemptToDelete() const{
+uint NetClientBasicV1::getMsgMaxAtemptToDelete() const{
     return msgMaxAtemptToDelete;
 }
-void BasicV1Client::setMsgMaxAtemptToDelete(uint value){
+void NetClientBasicV1::setMsgMaxAtemptToDelete(uint value){
     msgMaxAtemptToDelete = value;
 }
-uint BasicV1Client::getMsgTransmitRepeatSec() const{
+uint NetClientBasicV1::getMsgTransmitRepeatSec() const{
     return msgTransmitRepeatSec;
 }
-void BasicV1Client::setMsgTransmitRepeatSec(uint value){
+void NetClientBasicV1::setMsgTransmitRepeatSec(uint value){
     msgTransmitRepeatSec = value;
 }
 

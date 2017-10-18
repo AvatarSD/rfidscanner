@@ -42,16 +42,16 @@ void NetPoint::reset(){
 }
 
 /******** NetState *********/
-NetState::NetState(QAbstractSocket::SocketState state, QString message) :
+NetPhyState::NetPhyState(QAbstractSocket::SocketState state, QString message) :
     state(state), msg(std::move(message)){
 }
-QString NetState::toString() const{
+QString NetPhyState::toString() const{
     return msg.isEmpty() ? toRawString() : msg;
 }
-bool NetState::operator ==(QAbstractSocket::SocketState state){
+bool NetPhyState::operator ==(QAbstractSocket::SocketState state){
     return (this->state == state);
 }
-QString NetState::toRawString() const{
+QString NetPhyState::toRawString() const{
     switch (state) {
     case QAbstractSocket::UnconnectedState: return QStringLiteral("Unconnected");
     case QAbstractSocket::HostLookupState: return QStringLiteral("Host Lookuping");
@@ -62,7 +62,7 @@ QString NetState::toRawString() const{
     case QAbstractSocket::ClosingState: return QStringLiteral("Closing");
     default: return QStringLiteral("Undefined"); }
 }
-QAbstractSocket::SocketState NetState::getState() const{
+QAbstractSocket::SocketState NetPhyState::getState() const{
     return state;
 }
 
@@ -91,12 +91,12 @@ ForwardIt1 NetProtocol::search(ForwardIt1 &first, ForwardIt1 last,
 /**************** Level 1 *****************/
 
 /****** NetTransport *******/
-TcpNetTransport::TcpNetTransport(QObject* parent) :
-    TcpNetTransport(new QTcpSocket(),parent){
+NetPhyTcp::NetPhyTcp(QObject* parent) :
+    NetPhyTcp(new QTcpSocket(),parent){
     socket->setParent(this);
 }
-TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
-    NetTransport(parent), socket(socket), zerotimer(this)
+NetPhyTcp::NetPhyTcp(QAbstractSocket *socket, QObject *parent) :
+    NetPhy(parent), socket(socket), zerotimer(this)
 {
     qRegisterMetaType<QAbstractSocket::SocketState>();
     qRegisterMetaType<QAbstractSocket::SocketError>();
@@ -112,18 +112,18 @@ TcpNetTransport::TcpNetTransport(QAbstractSocket *socket, QObject *parent) :
     //    zerotimer.setSingleShot(true);
     zerotimer.start(RECONNECT_TIME);
 }
-TcpNetTransport::~TcpNetTransport(){
+NetPhyTcp::~NetPhyTcp(){
     zerotimer.stop();
     socket->disconnectFromHost();
 }
-NetState TcpNetTransport::currentState() const{
+NetPhyState NetPhyTcp::state() const{
     auto state = socket->state();
     QString stateMsg = stateToString(state, host);
     if((state == QAbstractSocket::UnconnectedState) && zerotimer.isActive())
             stateMsg += QStringLiteral(" ") + socket->errorString();
-    return NetState(state, std::move(stateMsg));
+    return NetPhyState(state, std::move(stateMsg));
 }
-QString TcpNetTransport::stateToString(QAbstractSocket::SocketState state,
+QString NetPhyTcp::stateToString(QAbstractSocket::SocketState state,
                                        const NetPoint& host)
 {
     QString msg;
@@ -154,33 +154,33 @@ QString TcpNetTransport::stateToString(QAbstractSocket::SocketState state,
     return msg;
 }
 /**** IO operations ****/
-qint32 TcpNetTransport::send(QByteArray data){
+qint32 NetPhyTcp::send(QByteArray data){
     if(socket->state() == QAbstractSocket::ConnectedState)
         return socket->write(data);
     else return -1;
 }
-void TcpNetTransport::socketReadyRead(){
+void NetPhyTcp::socketReadyRead(){
     emit recv(socket->readAll());
 }
 /**** connection estab. operations ****/
-void TcpNetTransport::connectToHost(const NetPoint &addr){
+void NetPhyTcp::connectToHost(const NetPoint &addr){
     zerotimer.start(RECONNECT_TIME);
     if(!addr.isNull())
         this->host = addr;
     socket->connectToHost(this->host.addr(), this->host.port());
 }
-void TcpNetTransport::disconnectFromHost(){
+void NetPhyTcp::disconnectFromHost(){
     zerotimer.stop();
     socket->disconnectFromHost();
 }
 /* keepalive functionality */
-void TcpNetTransport::run()
+void NetPhyTcp::run()
 {
     if(socket->state() == QAbstractSocket::UnconnectedState)
         connectToHost();
     zerotimer.start(RECONNECT_TIME);
 }
-void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
+void NetPhyTcp::socketStateChanged(QAbstractSocket::SocketState state)
 {
     QString eventMsg, stateMsg;
     eventMsg = stateMsg = stateToString(state, host);
@@ -202,9 +202,9 @@ void TcpNetTransport::socketStateChanged(QAbstractSocket::SocketState state)
                       new NetworkEvent(NetworkEvent::INFO,
                                        NetworkEvent::IDs::SOCKET_STATE,
                                        std::move(eventMsg))));
-    emit stateChanged(NetState(state, std::move(stateMsg)));
+    emit stateChanged(NetPhyState(state, std::move(stateMsg)));
 }
-void TcpNetTransport::socketError(QAbstractSocket::SocketError error)
+void NetPhyTcp::socketError(QAbstractSocket::SocketError error)
 {
     uint intv = RECONNECT_TIME;
     NetworkEvent::EventLevel lvl = NetworkEvent::ERROR;

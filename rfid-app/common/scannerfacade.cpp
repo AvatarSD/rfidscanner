@@ -35,7 +35,11 @@ ScannerFacade::~ScannerFacade()
 void ScannerFacade::connectToServer()
 {
     if(netReCreateRequire){
-
+        if(!network.isNull()){
+            network->stop();
+            while(*network->state() != NetClientStateEnum::DISCONNECTED)
+                QObject::thread()->yieldCurrentThread();
+        }
     }
 
 }
@@ -101,19 +105,19 @@ void ScannerFacade::putStatusToLog(ScannerFacade::NetFillFieldStatus isReady){
 }
 
 /* net: info */
-void ScannerFacade::netStateChangedHandler(NetCommanderState state){
-    emit netStateChanged(state.getState());
-    emit netStateMsgChanged(state.getMsg());
+void ScannerFacade::netStateChangedHandler(const NetClientState *state){
+    emit netStateChanged(state->stateEnum());
+    emit netStateMsgChanged(state->stateMessage());
 }
-ScannerFacade::NetState ScannerFacade::netState() const{
+ScannerFacade::NetClientStateEnum ScannerFacade::netState() const{
     if(network.isNull())
-        return NetState::DISCONNECTED;
-    return network->getState().getState();
+        return NetClientStateEnum::DISCONNECTED;
+    return network->state()->stateEnum();
 }
 QString ScannerFacade::netStateMsg() const{
     if(network.isNull())
         return QStringLiteral("Network object didn't create");
-    return network->getState().getMsg();
+    return network->state()->stateMessage();
 }
 
 ScannerFacade::Socket ScannerFacade::socket() const{

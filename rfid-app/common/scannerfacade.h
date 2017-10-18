@@ -14,7 +14,7 @@ class ScannerFacade : public Eventful
     Q_ENUMS(Mode)
     Q_ENUMS(Reader)
     Q_ENUMS(MsgBound)
-    Q_ENUMS(NetState)
+    Q_ENUMS(NetClientStateEnum)
     Q_ENUMS(AuthType)
     Q_ENUMS(Socket)
     Q_ENUMS(NetFillFieldStatus)
@@ -41,7 +41,7 @@ class ScannerFacade : public Eventful
     /*     */     /**** auth ****/
     /*N R  */ Q_PROPERTY(QString     username        READ username        WRITE setUsername        NOTIFY usernameChanged)
     /*N R  */ Q_PROPERTY(QString     password        READ password        WRITE setPassword        NOTIFY passwordChanged)
-    /* I   */ Q_PROPERTY(NetState    netState        READ netState                                 NOTIFY netStateChanged)
+    /* I   */ Q_PROPERTY(NetClientStateEnum    netState        READ netState                                 NOTIFY netStateChanged)
     /* I   */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
     /*O C D*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
     /*     */     /**** net commander ****/
@@ -62,8 +62,8 @@ class ScannerFacade : public Eventful
     /* I   */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
 
 public:
-    typedef BasicV1Client::WorkMode Mode;
-    typedef NetCommanderState::States NetState;
+    typedef NetClientBasicV1::WorkMode Mode;
+    typedef NetClientState::NetClientStateEnum NetClientStateEnum;
 
     enum Socket{TCP, SSL};
     enum MsgBound{SIMPLE, BOUND_V1};
@@ -95,7 +95,7 @@ public:
     /* net: is all required fields are fill */
     NetFillFieldStatus isReady();
     /* net info */
-    NetState netState() const;
+    NetClientStateEnum netState() const;
     QString netStateMsg() const;
     /* net re-create */
     Socket socket() const;
@@ -144,7 +144,7 @@ signals:
     /* net: is all required fields are fill */
     void isReadyChanged(NetFillFieldStatus isReady);
     /* net: info */
-    void netStateChanged(NetState netState);
+    void netStateChanged(NetClientStateEnum netState);
     void netStateMsgChanged(QString stateMsg);
     /* net: re-create */
     void socketChanged(Socket socket);
@@ -165,7 +165,7 @@ signals:
     void logfileChanged(QString logfile);
 
 private slots:
-    void netStateChangedHandler(NetCommanderState state);
+    void netStateChangedHandler(const NetClientState *state);
 private:
     void putStatusToLog(NetFillFieldStatus isReady);
     void setNetReCreateRequire(bool require);
@@ -180,7 +180,7 @@ private:
     /* static */
     QScopedPointer<Logger> logger;
     /* dynamic */
-    QScopedPointer<NetCommander> network;
+    QScopedPointer<NetClient> network;
 //    QScopedPointer<RFIDMamanger> reader;
 //    QScopedPointer<System> system;
 

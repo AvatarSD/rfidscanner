@@ -26,11 +26,11 @@ int main(int argc, char *argv[])
     // RFIDMamanger * mananger = new SimpleRFIDMamanger;
 //    NetTransport * socket = ;
 //    NetProtocol *proto = ;
-    auto * net = new BasicV1Client(new TcpNetTransport,
+    auto * net = new NetClientBasicV1(new NetPhyTcp,
                                            new NetProtocolV2Bound(
                                                NetProtocolFormat("$SD#", "\r\n\r\n")));
     net->setAddr(NetPoint("localhost", 5600));
-    net->setMode(BasicV1Client::EVENT);
+    net->setMode(NetClientBasicV1::EVENT);
 
     //System * sys = new System;
 
