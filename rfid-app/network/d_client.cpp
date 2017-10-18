@@ -143,7 +143,7 @@ void NetClientV1Basic::setAuth(const QAuthenticator &value){
 NetClientV1Basic::WorkMode NetClientV1Basic::getMode() const{
     return mode;
 }
-void NetClientV1Basic::setMode(const WorkMode &value){
+void NetClientV1Basic::setMode(WorkMode value){
     mode = value;
 }
 NetPoint NetClientV1Basic::getAddr() const{

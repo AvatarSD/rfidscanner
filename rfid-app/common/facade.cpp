@@ -107,7 +107,9 @@ void ScannerFacade::connectToServer()
     /* re-connect procedure */
     if(netReConectRequire){
         /* check server, port, user and pass */
-        if(!isReady())
+        auto ret = isReady();
+        putStatusToLog(ret);
+        if(ret&NO_SERV || ret&NO_PORT)
             return;
         /* set server and port */
         NetPoint np(m_server, m_port);
@@ -171,19 +173,18 @@ ScannerFacade::NetFillFieldStatus ScannerFacade::isReady() {
         stat |= NO_USER;
     if(m_password.isEmpty())
         stat |= NO_PASS;
-    putStatusToLog((NetFillFieldStatus)stat);
     emit isReadyChanged((NetFillFieldStatus)stat);
     return (NetFillFieldStatus)stat;
 }
 void ScannerFacade::putStatusToLog(ScannerFacade::NetFillFieldStatus isReady){
     if(isReady&NO_SERV)
         emit sysEvent(QSharedPointer<Event> (
-                          new SystemEvent(SystemEvent::WARNING,
+                          new SystemEvent(SystemEvent::ERROR,
                                           SystemEvent::IDs::FACADE_STATUS,
                                           QStringLiteral("Server address is not set."))));
     if(isReady&NO_PORT)
         emit sysEvent(QSharedPointer<Event> (
-                          new SystemEvent(SystemEvent::WARNING,
+                          new SystemEvent(SystemEvent::ERROR,
                                           SystemEvent::IDs::FACADE_STATUS,
                                           QStringLiteral("Server port is not set.(port==0)"))));
     if(isReady&NO_USER)
@@ -298,29 +299,29 @@ void ScannerFacade::setTailSqns(QString tailSqns){
 void ScannerFacade::setServer(QString server){
     if (m_server == server)
         return;
-    setNetReConectRequire(true);
     m_server = server;
+    setNetReConectRequire(true);
     emit serverChanged(m_server);
 }
 void ScannerFacade::setPort(quint16 port){
     if (m_port == port)
         return;
-    setNetReConectRequire(true);
     m_port = port;
+    setNetReConectRequire(true);
     emit portChanged(m_port);
 }
 void ScannerFacade::setUsername(QString username){
     if (m_username == username)
         return;
-    setNetReConectRequire(true);
     m_username = username;
+    setNetReConectRequire(true);
     emit usernameChanged(m_username);
 }
 void ScannerFacade::setPassword(QString password){
     if (m_password == password)
         return;
-    setNetReConectRequire(true);
     m_password = password;
+    setNetReConectRequire(true);
     emit passwordChanged(m_password);
 }
 

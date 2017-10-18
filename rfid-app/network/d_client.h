@@ -60,10 +60,10 @@ public slots:
     /* settings */
     virtual NetPoint getAddr() const = 0;
     virtual void setAddr(const NetPoint &value) = 0;
-    virtual WorkMode getMode() const = 0;
-    virtual void setMode(const WorkMode &value) = 0;
     virtual QAuthenticator getAuth() const = 0;
     virtual void setAuth(const QAuthenticator &value) = 0;
+    virtual WorkMode getMode() const = 0;
+    virtual void setMode(WorkMode value) = 0;
     /* timing options */
     virtual uint getMsgTransmitRepeatSec() const = 0;
     virtual void setMsgTransmitRepeatSec(uint value) = 0;
@@ -121,10 +121,10 @@ public slots:
     /* settings */
     virtual NetPoint getAddr() const;
     virtual void setAddr(const NetPoint &value);
-    virtual WorkMode getMode() const;
-    virtual void setMode(const WorkMode &value);
     virtual QAuthenticator getAuth() const;
     virtual void setAuth(const QAuthenticator &value);
+    virtual WorkMode getMode() const;
+    virtual void setMode(WorkMode value);
     /* timing optio */
     virtual uint getMsgTransmitRepeatSec() const;
     virtual void setMsgTransmitRepeatSec(uint value);
