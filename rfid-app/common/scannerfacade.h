@@ -17,7 +17,7 @@ class ScannerFacade : public Eventful
     Q_ENUMS(NetState)
     Q_ENUMS(AuthType)
     Q_ENUMS(Socket)
-    Q_ENUMS(NetStatus)
+    Q_ENUMS(NetFillFieldStatus)
 
     /*N*/ // Need
     /*O*/ // Optional
@@ -26,7 +26,7 @@ class ScannerFacade : public Eventful
     /*R*/ // Runtime motifiting
     /*C*/ // Re-Create object(s)
 
-    /* I   */ Q_PROPERTY(NetStatus   isReady         READ isReady                                  NOTIFY isReadyChanged)
+    /* I   */ Q_PROPERTY(NetFillFieldStatus   isReady         READ isReady                                  NOTIFY isReadyChanged)
     /* I   */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
     /*     */     /**** net connectio ****/
     /*N C D*/ Q_PROPERTY(Socket      socket          READ socket          WRITE setSocket          NOTIFY socketChanged)
@@ -70,7 +70,7 @@ public:
     enum AuthType{JSON, BASE64};
     enum Reader{ADS_USB, LINK_SPRITE};
 
-    enum NetStatus{
+    enum NetFillFieldStatus{
         OK = 0,
         NO_SERV = 0b0001,
         NO_PORT = 0b0010,
@@ -90,9 +90,11 @@ public slots:
     //void disconnectFromWlan();
 
 public:
-    /* net info */
+    /* net: is reconnection required */
     bool isReconRequire() const;
-    NetStatus isReady();
+    /* net: is all required fields are fill */
+    NetFillFieldStatus isReady();
+    /* net info */
     NetState netState() const;
     QString netStateMsg() const;
     /* net re-create */
@@ -105,7 +107,7 @@ public:
     quint16 port() const;
     QString username() const;
     QString password() const;
-    /* realtime */
+    /* net: realtime */
     Mode mode() const;
     uint msgTxRepeatSec() const;
     uint msgMaxTxAtempt() const;
@@ -116,17 +118,17 @@ public:
 
 
 public slots:
-    /* net re-create */
+    /* net: re-create */
     void setSocket(Socket socket);
     void setMsgBoundaries(MsgBound msgBoundaries);
     void setStartSqns(QString startSqns);
     void setTailSqns(QString tailSqns);
-    /* net re-connect */
+    /* net: re-connect */
     void setServer(QString server);
     void setPort(quint16 port);
     void setUsername(QString username);
     void setPassword(QString password);
-    /* realtime */
+    /* net: realtime */
     void setMode(Mode mode);
     void setMsgTxRepeatSec(uint msgTxRepeatSec);
     void setMsgMaxTxAtempt(uint msgMaxTxAtempt);
@@ -137,22 +139,24 @@ public slots:
 
 
 signals:
-    /* info */
+    /* net: is reconnection required */
     void isReconRequireChanged(bool isReconRequire);
-    void isReadyChanged(NetStatus isReady);
+    /* net: is all required fields are fill */
+    void isReadyChanged(NetFillFieldStatus isReady);
+    /* net: info */
     void netStateChanged(NetState netState);
     void netStateMsgChanged(QString stateMsg);
-    /* net re-create */
+    /* net: re-create */
     void socketChanged(Socket socket);
     void msgBoundariesChanged(MsgBound msgBoundaries);
     void startSqnsChanged(QString startSqns);
     void tailSqnsChanged(QString tailSqns);
-    /* net re-connect */
+    /* net: re-connect */
     void serverChanged(QString server);
     void portChanged(quint16 port);
     void usernameChanged(QString username);
     void passwordChanged(QString password);
-    /* realtime */
+    /* net: realtime */
     void modeChanged(Mode mode);
     void msgTxRepeatSecChanged(uint msgTxRepeatSec);
     void msgMaxTxAtemptChanged(uint msgMaxTxAtempt);
@@ -162,9 +166,8 @@ signals:
 
 private slots:
     void netStateChangedHandler(NetCommanderState state);
-
 private:
-    void putStatusToLog(NetStatus isReady);
+    void putStatusToLog(NetFillFieldStatus isReady);
     void setNetReCreateRequire(bool require);
     void setNetReConectRequire(bool require);
 

@@ -45,10 +45,25 @@ void ScannerFacade::disconnectFromServer()
 
 }
 
+/* net: is reconnection required */
 bool ScannerFacade::isReconRequire() const{
     return netReCreateRequire || netReConectRequire;
 }
-ScannerFacade::NetStatus ScannerFacade::isReady() {
+void ScannerFacade::setNetReCreateRequire(bool require){
+    if(netReCreateRequire != require)
+        emit isReconRequireChanged(isReconRequire());
+    isReady();
+    netReCreateRequire = require;
+}
+void ScannerFacade::setNetReConectRequire(bool require){
+    if(netReConectRequire != require)
+        emit isReconRequireChanged(isReconRequire());
+    isReady();
+    netReConectRequire = require;
+}
+
+/* net: is all required fields are fill */
+ScannerFacade::NetFillFieldStatus ScannerFacade::isReady() {
     uint8_t stat = OK;
     if(m_server.isEmpty())
         stat |= NO_SERV;
@@ -58,9 +73,37 @@ ScannerFacade::NetStatus ScannerFacade::isReady() {
         stat |= NO_USER;
     if(m_password.isEmpty())
         stat |= NO_PASS;
-    putStatusToLog((NetStatus)stat);
-    emit isReadyChanged((NetStatus)stat);
-    return (NetStatus)stat;
+    putStatusToLog((NetFillFieldStatus)stat);
+    emit isReadyChanged((NetFillFieldStatus)stat);
+    return (NetFillFieldStatus)stat;
+}
+void ScannerFacade::putStatusToLog(ScannerFacade::NetFillFieldStatus isReady){
+    if(isReady&NO_SERV)
+        emit sysEvent(QSharedPointer<Event> (
+                          new SystemEvent(SystemEvent::WARNING,
+                                          SystemEvent::IDs::FACADE_STATUS,
+                                          QStringLiteral("Server address is not set."))));
+    if(isReady&NO_PORT)
+        emit sysEvent(QSharedPointer<Event> (
+                          new SystemEvent(SystemEvent::WARNING,
+                                          SystemEvent::IDs::FACADE_STATUS,
+                                          QStringLiteral("Server port is not set.(port==0)"))));
+    if(isReady&NO_USER)
+        emit sysEvent(QSharedPointer<Event> (
+                          new SystemEvent(SystemEvent::WARNING,
+                                          SystemEvent::IDs::FACADE_STATUS,
+                                          QStringLiteral("Username is not set"))));
+    if(isReady&NO_PASS)
+        emit sysEvent(QSharedPointer<Event> (
+                          new SystemEvent(SystemEvent::WARNING,
+                                          SystemEvent::IDs::FACADE_STATUS,
+                                          QStringLiteral("Password is not set"))));
+}
+
+/* net: info */
+void ScannerFacade::netStateChangedHandler(NetCommanderState state){
+    emit netStateChanged(state.getState());
+    emit netStateMsgChanged(state.getMsg());
 }
 ScannerFacade::NetState ScannerFacade::netState() const{
     if(network.isNull())
@@ -71,40 +114,6 @@ QString ScannerFacade::netStateMsg() const{
     if(network.isNull())
         return QStringLiteral("Network object didn't create");
     return network->getState().getMsg();
-}
-void ScannerFacade::putStatusToLog(ScannerFacade::NetStatus isReady){
-    if(isReady&NO_SERV)
-        emit sysEvent(QSharedPointer<Event> (
-                          new SystemEvent(SystemEvent::WARNING,
-                                           SystemEvent::IDs::FACADE_STATUS,
-                                           QStringLiteral("Server address is not set."))));
-    if(isReady&NO_PORT)
-        emit sysEvent(QSharedPointer<Event> (
-                          new SystemEvent(SystemEvent::WARNING,
-                                           SystemEvent::IDs::FACADE_STATUS,
-                                           QStringLiteral("Server port is not set.(port==0)"))));
-    if(isReady&NO_USER)
-        emit sysEvent(QSharedPointer<Event> (
-                          new SystemEvent(SystemEvent::WARNING,
-                                           SystemEvent::IDs::FACADE_STATUS,
-                                           QStringLiteral("Username is not set"))));
-    if(isReady&NO_PASS)
-        emit sysEvent(QSharedPointer<Event> (
-                          new SystemEvent(SystemEvent::WARNING,
-                                           SystemEvent::IDs::FACADE_STATUS,
-                                           QStringLiteral("Password is not set"))));
-}
-void ScannerFacade::netStateChangedHandler(NetCommanderState state){
-    emit netStateChanged(state.getState());
-    emit netStateMsgChanged(state.getMsg());
-}
-void ScannerFacade::setNetReCreateRequire(bool require){
-    netReCreateRequire = require;
-    emit isReconRequireChanged(isReconRequire());
-}
-void ScannerFacade::setNetReConectRequire(bool require){
-    netReConectRequire = require;
-    emit isReconRequireChanged(isReconRequire());
 }
 
 ScannerFacade::Socket ScannerFacade::socket() const{
