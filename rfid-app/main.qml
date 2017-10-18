@@ -81,10 +81,12 @@ Window {
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: 14
         
-//        Connections{
-//            target: facade
-//            on
-//        }
+        Connections{
+            target: facade
+            onNetStateChanged:{
+                connectBtn.width = connectBtn.width + 10;
+            }
+        }
     }
     
     Text {
@@ -93,7 +95,7 @@ Window {
         y: 404
         width: 540
         height: 43
-        text: qsTr("")
+        text: facade.netStateMsg
         wrapMode: Text.WordWrap
         renderType: Text.QtRendering
         font.pixelSize: 10

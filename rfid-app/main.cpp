@@ -11,26 +11,16 @@ int main(int argc, char *argv[])
     
     /********************************/
     QQmlApplicationEngine engine;
+    
+    /********************************/
+    QScopedPointer<ScannerFacade> facade(new ScannerFacade(&app));
+    engine.rootContext()->setContextProperty("facade", facade.data());
+    
+    /********************************/
     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
     if (engine.rootObjects().isEmpty())
         return -1;
 
-    /********************************/
-    QScopedPointer<ScannerFacade> facade(new ScannerFacade);
-    
-    QThread facadeThread;
-    facade->moveToThread(&facadeThread);
-    facadeThread.start();
-    
-    /********************************/
-    QObject::connect(&app, &QCoreApplication::aboutToQuit, [&]{
-        facadeThread.quit();
-        facadeThread.wait();
-    });
-    
-    /********************************/
-    engine.rootContext()->setContextProperty("facade", facade.data());
-    
     /********************************/
     facade->setServer("localhost");
     facade->setPort(5600);
