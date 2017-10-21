@@ -11,14 +11,6 @@
 class ScannerFacade : public Eventful
 {
     Q_OBJECT
-    Q_ENUMS(NetModeEnum)
-    Q_ENUMS(ReaderType)
-    Q_ENUMS(MsgBound)
-    Q_ENUMS(NetStateEnum)
-    Q_ENUMS(AuthType)
-    Q_ENUMS(SocketType)
-    Q_ENUMS(NetSettStat)
-    Q_ENUMS(ClientType)
 
     /*I*/ // Informations
     /******************/
@@ -82,6 +74,13 @@ public:
     enum MsgBound{SIMPLE, BOUND_V1};
     enum AuthType{JSON, BASE64};
     enum ReaderType{ADS_USB, LINK_SPRITE};
+
+    Q_ENUM(NetSettStat)
+    Q_ENUM(ClientType)
+    Q_ENUM(SocketType)
+    Q_ENUM(MsgBound)
+    Q_ENUM(AuthType)
+    Q_ENUM(ReaderType)
 
     explicit ScannerFacade(QObject*parent=nullptr);
     ~ScannerFacade();

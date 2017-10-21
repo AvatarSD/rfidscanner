@@ -25,7 +25,7 @@ public:
         CONNECTED,
         CLOSING,
         AUTHENTICATED };
-    Q_ENUMS(NetClientStateEnum)
+    Q_ENUM(NetClientStateEnum)
 };
 
 /****** NetClientState *****/
@@ -63,7 +63,7 @@ public:
     enum NetClientModeEnum{
         DISABLED, POOL, EVENT
     };
-    Q_ENUMS(NetClientModeEnum)
+    Q_ENUM(NetClientModeEnum)
 };
 
 /******** NetClient ********/
