@@ -82,18 +82,26 @@ Window {
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: 14
+        color: "red"
         
+        function netStateChangedHandler(stat)
+        {
+            netStateEnum.text = stat; //facade.netState;
+            
+            if(stat == NetState.DISCONNECTED){
+                netStateEnum.color = "red";
+            }
+            else if(stat == NetState.CONNECTED){
+                netStateEnum.color = "green";
+            }
+            else{
+                netStateEnum.color = "yellow";
+            }
+            
+        }
         Connections{
             target: facade
-            onNetStateChanged:{
-                switch(facade.netState){
-                case NetState.DISCONNECTED : NetStateEnum.text = "disc"
-                    break
-                case NetState.CONNECTED : NetStateEnum.text = "ok"
-                    break
-                }
-                
-            }
+            onNetStateChanged: netStateEnum.netStateChangedHandler(facade.netState)
         }
     }
     
