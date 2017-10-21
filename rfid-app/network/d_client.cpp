@@ -50,7 +50,7 @@ NetClient::NetClient(NetPhy* transport,
 {
     qRegisterMetaType<NetClientState*>();
     qRegisterMetaType<QAuthenticator>();
-    qRegisterMetaType<NetClientModeEnum>("NetClientModeEnum");
+    qRegisterMetaType<NetClientModeEnum>();
 
     proto->setParent(this);
     phy->setParent(nullptr);

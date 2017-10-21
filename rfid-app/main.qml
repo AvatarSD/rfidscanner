@@ -87,9 +87,9 @@ Window {
             target: facade
             onNetStateChanged:{
                 switch(facade.netState){
-                case NetStateEnum.DISCONNECTED : NetStateEnum.text = "disc"
+                case NetState.DISCONNECTED : NetStateEnum.text = "disc"
                     break
-                case NetStateEnum.CONNECTED : NetStateEnum.text = "ok"
+                case NetState.CONNECTED : NetStateEnum.text = "ok"
                     break
                 }
                 

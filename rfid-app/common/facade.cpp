@@ -6,8 +6,8 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     //rfidManengerThread(this), sysManengerThread(this);
     logger(new Logger)
 {    
-    qRegisterMetaType<NetStateEnum>("NetClientStateEnum");
-    qRegisterMetaType<NetModeEnum>("NetClientModeEnum");
+    qRegisterMetaType<NetStateEnum>("NetStateEnum");
+    qRegisterMetaType<NetModeEnum>("NetModeEnum");
 
     /* register for qml usage */
     qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
