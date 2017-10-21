@@ -6,7 +6,9 @@
 #include <QQueue>
 #include <QAuthenticator>
 #include <QMutex>
+#include <QThread>
 #include "b_protocol.h"
+#include "c_messages.h"
 
 
 /********************** Level 4(D) ***********************/

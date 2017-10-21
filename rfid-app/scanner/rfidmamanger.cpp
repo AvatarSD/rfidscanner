@@ -38,7 +38,8 @@ void TagStatus::setRssi(int value)
 
 RFIDMamanger::RFIDMamanger()
 {
-    this->moveToThread(&thread);
+//    this->moveToThread(&thread);
+    thread.setObjectName("RFID Phy");
     thread.start();
 }
 

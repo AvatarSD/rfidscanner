@@ -5,10 +5,7 @@
 #include <QAbstractSocket>
 #include <QScopedPointer>
 #include <QTimer>
-#include <QThread>
-#include <QQueue>
-#include <iterator>
-#include "c_messages.h"
+#include "events.h"
 
 
 /********************** Level 1(A) ***********************/

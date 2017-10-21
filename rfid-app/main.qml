@@ -5,6 +5,15 @@ import QtQuick.Layouts 1.3
 
 import ScannerMainElements 1.0
 
+/********* require ******** 
+  1. ScannerFacade access by setContextProperty
+  
+*/
+
+//todo: isReady, isReconnReq, clientType, SocketType, 
+//      Server, port, msgBound, user, pass, workMode, 
+//      timings, logfile
+
 Window {
     visible: true
     width: 640
@@ -21,8 +30,7 @@ Window {
         checkable: false
         
         onClicked: facade.connectToServer();
-    }
-    
+    }  
     Button {
         id: disconnectBtn
         x: 90
@@ -33,41 +41,6 @@ Window {
         checkable: false
         
         onClicked: facade.disconnectFromServer();
-    }
-    
-    TextField {
-        id: addrField
-        x: 307
-        y: 135
-        text: "localhost"
-        placeholderText: qsTr("Host or IP")
-    }
-    
-    TextField {
-        id: userField
-        x: 274
-        y: 191
-        placeholderText: qsTr("Username")
-    }
-    
-    TextField {
-        id: passField
-        x: 307
-        y: 241
-        placeholderText: qsTr("Password")
-    }
-    
-    SpinBox {
-        id: portField
-        x: 207
-        y: 311
-        width: 79
-        height: 29
-        antialiasing: true
-        value: 5600.7
-        decimals: 0
-        minimumValue: 1
-        maximumValue: 65565
     }
     
     Text {
@@ -82,7 +55,6 @@ Window {
         verticalAlignment: Text.AlignVCenter
         horizontalAlignment: Text.AlignHCenter
         font.pixelSize: 14
-        color: "red"
         
         function netStateChangedHandler(stat)
         {
@@ -95,7 +67,7 @@ Window {
                 netStateEnum.color = "green";
             }
             else{
-                netStateEnum.color = "yellow";
+                netStateEnum.color = "#B1C220";
             }
             
         }
@@ -104,7 +76,6 @@ Window {
             onNetStateChanged: netStateEnum.netStateChangedHandler(facade.netState)
         }
     }
-    
     Text {
         id: netStatusMsg
         x: 43
@@ -116,5 +87,45 @@ Window {
         renderType: Text.QtRendering
         font.pixelSize: 10
     }
+   
+    TextField {
+        id: addrField
+        x: 307
+        y: 135
+        placeholderText: qsTr("Host or IP")
+        text: facade.server
+        onLengthChanged: facade.server = this.text
+    }
+    SpinBox {
+        id: portField
+        x: 207
+        y: 311
+        width: 79
+        height: 29
+        antialiasing: true
+        value: facade.port
+        decimals: 0
+        minimumValue: 1
+        maximumValue: 65535
+        onValueChanged: facade.port = this.value
+    }
+    
+    TextField {
+        id: userField
+        x: 274
+        y: 191
+        placeholderText: qsTr("Username")
+        text: facade.username
+        onLengthChanged: facade.username = this.text 
+    }
+    TextField {
+        id: passField
+        x: 307
+        y: 241
+        placeholderText: qsTr("Password")
+        text: facade.password
+        onLengthChanged: facade.password = this.text
+    }
     
 }
+

@@ -1,6 +1,8 @@
 #ifndef B_PROTOCOL_H
 #define B_PROTOCOL_H
 
+#include <iterator>
+#include <QQueue>
 #include "a_phy.h"
 
 

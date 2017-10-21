@@ -76,6 +76,7 @@ NetClient::NetClient(NetPhy* transport,
             phy.data(), SLOT(disconnectFromHost()),
             Qt::QueuedConnection);
 
+    phyThread.setObjectName("Network Phy");
     phyThread.start();
 }
 NetClient::~NetClient(){

@@ -1,7 +1,6 @@
 #ifndef TRANSPORT_H
 #define TRANSPORT_H
 
-#include <QThread>
 #include <QTimer>
 #include <QSharedPointer>
 #include "events.h"
@@ -30,7 +29,6 @@ protected slots:
     virtual void run()=0;
 
 private:
-    QThread thread;
     QTimer timer;
 };
 

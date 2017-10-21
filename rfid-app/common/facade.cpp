@@ -32,9 +32,13 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
             logger.data(),SLOT(sysEventIn(QSharedPointer<Event>)),
             Qt::QueuedConnection);
     
+    logManengerThread.setObjectName("Event Manenger");
     logManengerThread.start();
+    netManengerThread.setObjectName("Net Manenger");
     netManengerThread.start();
+    //rfidManengerThread.setObjectName("RFID Manenger");
     //rfidManengerThread.start();
+    //sysManengerThread.setObjectName("System Manenger");
     //sysManengerThread.start();
 }
 
