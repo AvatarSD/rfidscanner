@@ -50,7 +50,7 @@ NetClient::NetClient(NetPhy* transport,
 {
     qRegisterMetaType<NetClientState*>();
     qRegisterMetaType<QAuthenticator>();
-    qRegisterMetaType<WorkMode>("WorkMode");
+    qRegisterMetaType<NetClientModeEnum>("NetClientModeEnum");
 
     proto->setParent(this);
     phy->setParent(nullptr);
@@ -111,7 +111,7 @@ NetClientV1Basic::NetClientV1Basic(NetPhy *transport,
                              NetProtocol *protocol,
                              QObject *parent ):
     NetClient(transport,protocol,parent),
-    mode(WorkMode::DISABLED), inspectTimer(this),
+    mode(NetClientModeEnum::DISABLED), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
@@ -147,10 +147,10 @@ QAuthenticator NetClientV1Basic::getAuth() const{
 void NetClientV1Basic::setAuth(const QAuthenticator &value){
     auth = value;
 }
-NetClientV1Basic::WorkMode NetClientV1Basic::getMode() const{
+NetClientV1Basic::NetClientModeEnum NetClientV1Basic::getMode() const{
     return mode;
 }
-void NetClientV1Basic::setMode(WorkMode value){
+void NetClientV1Basic::setMode(NetClientModeEnum value){
     mode = value;
 }
 NetPoint NetClientV1Basic::getAddr() const{
@@ -176,11 +176,11 @@ void NetClientV1Basic::netEventIn(QSharedPointer<Event> event){
 }
 void NetClientV1Basic::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
     messageQueue.enqueue(msg);
-    if(mode == WorkMode::EVENT)
+    if(mode == NetClientModeEnum::EVENT)
         sendMsgDirect(msg);
 }
 void NetClientV1Basic::sendMsgDirect(QSharedPointer<NetMessage> msg){
-    if(mode == WorkMode::DISABLED)
+    if(mode == NetClientModeEnum::DISABLED)
         return;
     emit transmitMsg(msg->pack(auth));
 }

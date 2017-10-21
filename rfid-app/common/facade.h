@@ -68,7 +68,7 @@ class ScannerFacade : public Eventful
 
 public:
     typedef NetClientStateClass::NetClientStateEnum NetStateEnum;
-    typedef NetClientWorkMode::WorkMode NetModeEnum;
+    typedef NetClientModeClass::NetClientModeEnum NetModeEnum;
 
     enum NetSettStat{
         OK = 0,

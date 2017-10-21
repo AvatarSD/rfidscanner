@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
     facade->setPort(5600);
     facade->setUsername("denchick");
     facade->setPassword("qwerty88");
-    facade->setMode(NetClientWorkMode::EVENT);
+    facade->setMode(NetClientModeClass::EVENT);
 
     // testing
     facade->connectToServer();

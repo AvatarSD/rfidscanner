@@ -54,16 +54,16 @@ Q_DECLARE_METATYPE(NetClientState*)
 Q_DECLARE_METATYPE(QAuthenticator)
 
 
-/**** NetClientWorkMode ****/
-class NetClientWorkMode : public QObject
+/**** NetClientModeClass ***/
+class NetClientModeClass : public QObject
 {
 Q_OBJECT
 public:
-    NetClientWorkMode() : QObject() {}
-    enum WorkMode{
+    NetClientModeClass() : QObject() {}
+    enum NetClientModeEnum{
         DISABLED, POOL, EVENT
     };
-    Q_ENUMS(WorkMode)
+    Q_ENUMS(NetClientModeEnum)
 };
 
 /******** NetClient ********/
@@ -71,7 +71,7 @@ class NetClient : public Eventful
 {
     Q_OBJECT
 public:
-    typedef NetClientWorkMode::WorkMode WorkMode;
+    typedef NetClientModeClass::NetClientModeEnum NetClientModeEnum;
     NetClient(NetPhy *transport,
                  NetProtocol *protocol,
                  QObject *parent = nullptr);
@@ -82,8 +82,8 @@ public slots:
     virtual void setAddr(const NetPoint &value) = 0;
     virtual QAuthenticator getAuth() const = 0;
     virtual void setAuth(const QAuthenticator &value) = 0;
-    virtual WorkMode getMode() const = 0;
-    virtual void setMode(WorkMode value) = 0;
+    virtual NetClientModeEnum getMode() const = 0;
+    virtual void setMode(NetClientModeEnum value) = 0;
     /* timing options */
     virtual uint getMsgTransmitRepeatSec() const = 0;
     virtual void setMsgTransmitRepeatSec(uint value) = 0;
@@ -143,8 +143,8 @@ public slots:
     virtual void setAddr(const NetPoint &value);
     virtual QAuthenticator getAuth() const;
     virtual void setAuth(const QAuthenticator &value);
-    virtual WorkMode getMode() const;
-    virtual void setMode(WorkMode value);
+    virtual NetClientModeEnum getMode() const;
+    virtual void setMode(NetClientModeEnum value);
     /* timing optio */
     virtual uint getMsgTransmitRepeatSec() const;
     virtual void setMsgTransmitRepeatSec(uint value);
@@ -163,7 +163,7 @@ protected slots:
 protected:
     QQueue<QSharedPointer<NetMessage>> messageQueue;
     NetPoint addr;
-    WorkMode mode;
+    NetClientModeEnum mode;
     QAuthenticator auth;
 private slots:
     void sendMsgEnqueue(QSharedPointer<NetMessage> msg);
