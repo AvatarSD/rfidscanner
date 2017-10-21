@@ -13,10 +13,11 @@
 
 /*************** Interface ****************/
 
-/****** NetClientState *****/
-class NetClientState{
+/*** NetClientStateClass ***/
+class NetClientStateClass : public QObject {
+    Q_OBJECT
 public:
-    /* static */
+    NetClientStateClass() : QObject(){}
     enum NetClientStateEnum {
         DISCONNECTED,
         LOOKUPING,
@@ -24,9 +25,15 @@ public:
         CONNECTED,
         CLOSING,
         AUTHENTICATED };
-    static NetClientStateEnum fromPhyStateHelper(QAbstractSocket::SocketState state);
+    Q_ENUMS(NetClientStateEnum)
+};
+
+/****** NetClientState *****/
+class NetClientState {
+public:
+    typedef NetClientStateClass::NetClientStateEnum NetClientStateEnum;
     /* set */
-    NetClientState() : state(DISCONNECTED){}
+    NetClientState() : state(NetClientStateClass::DISCONNECTED){}
     void fromPhyState(const NetPhyState &state);
     void fromRawState(NetClientStateEnum state, QString msg);
     /* get */
@@ -36,25 +43,35 @@ public:
     bool operator ==(NetClientStateEnum state) const;
     bool operator !=(NetClientStateEnum state) const{
         return !this->operator ==(state);}
+    /* static */
+    static NetClientStateEnum fromPhyStateHelper(QAbstractSocket::SocketState state);
 private:
     NetClientStateEnum state;
     QString msg;
     mutable QMutex access;
 };
-Q_DECLARE_METATYPE(NetClientState::NetClientStateEnum)
 Q_DECLARE_METATYPE(NetClientState*)
 Q_DECLARE_METATYPE(QAuthenticator)
+
+
+/**** NetClientWorkMode ****/
+class NetClientWorkMode : public QObject
+{
+Q_OBJECT
+public:
+    NetClientWorkMode() : QObject() {}
+    enum WorkMode{
+        DISABLED, POOL, EVENT
+    };
+    Q_ENUMS(WorkMode)
+};
 
 /******** NetClient ********/
 class NetClient : public Eventful
 {
     Q_OBJECT
-
 public:
-    enum WorkMode{
-        DISABLED, POOL, EVENT
-    };
-    Q_ENUM(WorkMode)
+    typedef NetClientWorkMode::WorkMode WorkMode;
     NetClient(NetPhy *transport,
                  NetProtocol *protocol,
                  QObject *parent = nullptr);

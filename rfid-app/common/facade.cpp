@@ -6,10 +6,12 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     //rfidManengerThread(this), sysManengerThread(this);
     logger(new Logger)
 {    
-    qRegisterMetaType<NetWorkMode>("NetWorkMode");
+    qRegisterMetaType<NetModeEnum>("NetWorkMode");
+
+    /* register for qml usage */
     qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
-    qmlRegisterType<NetClientState>("ScannerMainElements",1,0,"NetClientState");
-    qmlRegisterType<NetClient>("ScannerMainElements",1,0,"NetClient");
+    qmlRegisterType<NetClientWorkMode>("ScannerMainElements",1,0,"NetModeEnum");
+    qmlRegisterType<NetClientStateClass>("ScannerMainElements",1,0,"NetStateEnum");
     
     netReCreateRequire = true;
     netReConectRequire = true;
@@ -20,7 +22,7 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     m_startSqns = QStringLiteral("$SD#");
     m_tailSqns = QStringLiteral("\r\n\r\n");
     //    m_authType = AuthType::JSON;
-    m_mode = NetWorkMode::DISABLED;
+    m_mode = NetModeEnum::DISABLED;
     m_msgTxRepeatSec = MSG_TRANSMIT_REPEAT_SEC;
     m_msgMaxTxAtempt = MSG_TRANSMIT_DELETE_NUM;
     m_msgInspectMsec = MSG_INSPECT_PERIOD_MSEC;
@@ -139,7 +141,7 @@ void ScannerFacade::connectToServer()
     
     /* set other */
     QMetaObject::invokeMethod(network.data(),"setMode", 
-                              Qt::QueuedConnection, Q_ARG(NetWorkMode, m_mode));
+                              Qt::QueuedConnection, Q_ARG(NetModeEnum, m_mode));
     QMetaObject::invokeMethod(network.data(),"setMsgTransmitRepeatSec", 
                               Qt::QueuedConnection, Q_ARG(uint, m_msgTxRepeatSec));
     QMetaObject::invokeMethod(network.data(),"setMsgMaxAtemptToDelete", 
@@ -203,12 +205,14 @@ void ScannerFacade::putStatusToLog(ScannerFacade::NetSettStat isReady){
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::WARNING,
                                           SystemEvent::IDs::FACADE_STATUS,
-                                          QStringLiteral("Username is not set"))));
+                                          QStringLiteral("Username is not set. "
+                                                         "Connection impossible."))));
     if(isReady&NO_PASS)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::WARNING,
                                           SystemEvent::IDs::FACADE_STATUS,
-                                          QStringLiteral("Password is not set"))));
+                                          QStringLiteral("Password is not set. "
+                                                         "Connection impossible."))));
 }
 
 /* net: info */
@@ -256,7 +260,7 @@ QString ScannerFacade::password() const{
     return m_password;
 }
 
-ScannerFacade::NetWorkMode ScannerFacade::mode() const{
+ScannerFacade::NetModeEnum ScannerFacade::mode() const{
     if(network.isNull())
         return m_mode;
     return network->getMode();
@@ -348,7 +352,7 @@ void ScannerFacade::setPassword(QString password){
     emit passwordChanged(m_password);
 }
 
-void ScannerFacade::setMode(ScannerFacade::NetWorkMode mode){
+void ScannerFacade::setMode(ScannerFacade::NetModeEnum mode){
     if (m_mode == mode)
         return;
     m_mode = mode;

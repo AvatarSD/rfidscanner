@@ -86,7 +86,7 @@ const NetClientState *NetClient::state() const{
 }
 void NetClient::NetPhyStateHandler(NetPhyState netPhyState){
     this->m_state.fromPhyState(netPhyState);
-    if(this->m_state == NetClientState::AUTHENTICATED)
+    if(this->m_state == NetClientStateClass::AUTHENTICATED)
         emit sysEvent(QSharedPointer<Event> (
                           new NetworkEvent(NetworkEvent::INFO,
                                            NetworkEvent::IDs::AUTHENTICATOR,
@@ -111,7 +111,7 @@ NetClientV1Basic::NetClientV1Basic(NetPhy *transport,
                              NetProtocol *protocol,
                              QObject *parent ):
     NetClient(transport,protocol,parent),
-    mode(DISABLED), inspectTimer(this),
+    mode(WorkMode::DISABLED), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
@@ -176,11 +176,11 @@ void NetClientV1Basic::netEventIn(QSharedPointer<Event> event){
 }
 void NetClientV1Basic::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
     messageQueue.enqueue(msg);
-    if(mode == EVENT)
+    if(mode == WorkMode::EVENT)
         sendMsgDirect(msg);
 }
 void NetClientV1Basic::sendMsgDirect(QSharedPointer<NetMessage> msg){
-    if(mode == DISABLED)
+    if(mode == WorkMode::DISABLED)
         return;
     emit transmitMsg(msg->pack(auth));
 }

@@ -11,7 +11,7 @@
 class ScannerFacade : public Eventful
 {
     Q_OBJECT
-    Q_ENUMS(NetWorkMode)
+    Q_ENUMS(NetModeEnum)
     Q_ENUMS(ReaderType)
     Q_ENUMS(MsgBound)
     Q_ENUMS(NetStateEnum)
@@ -50,12 +50,12 @@ class ScannerFacade : public Eventful
     /* I   */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
     /*O C D*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
     /*     */     /**** net commander ****/
-    /*N R D*/ Q_PROPERTY(NetWorkMode mode            READ mode            WRITE setMode            NOTIFY modeChanged)
+    /*N R D*/ Q_PROPERTY(NetModeEnum mode            READ mode            WRITE setMode            NOTIFY modeChanged)
     /*O R D*/ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
     /*O R D*/ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
     /*O R D*/ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
     /*     */     /**** reader ****/
-    /*N C  */ //Q_PROPERTY(Reader      readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
+    /*N C  */ //Q_PROPERTY(ReaderType  readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
     /*N C  */ //Q_PROPERTY(QString     readerAddr      READ readerAddr      /*WRITE setReaderAddr*/    /*NOTIFY readerAddrChanged*/)
     /* I   */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
     /*O R D*/ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
@@ -67,14 +67,9 @@ class ScannerFacade : public Eventful
     /* I   */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
 
 public:
-    typedef NetClient::WorkMode NetWorkMode;
-    typedef NetClientState::NetClientStateEnum NetStateEnum;
+    typedef NetClientStateClass::NetClientStateEnum NetStateEnum;
+    typedef NetClientWorkMode::WorkMode NetModeEnum;
 
-    enum ClientType{V1Basic};
-    enum SocketType{TCP, SSL};
-    enum MsgBound{SIMPLE, BOUND_V1};
-    enum AuthType{JSON, BASE64};
-    enum ReaderType{ADS_USB, LINK_SPRITE};
     enum NetSettStat{
         OK = 0,
         NO_SERV = 0b0001,
@@ -82,6 +77,11 @@ public:
         NO_USER = 0b0100,
         NO_PASS = 0b1000
     };
+    enum ClientType{V1Basic};
+    enum SocketType{TCP, SSL};
+    enum MsgBound{SIMPLE, BOUND_V1};
+    enum AuthType{JSON, BASE64};
+    enum ReaderType{ADS_USB, LINK_SPRITE};
 
     explicit ScannerFacade(QObject*parent=nullptr);
     ~ScannerFacade();
@@ -113,7 +113,7 @@ public:
     QString username() const;
     QString password() const;
     /* net: realtime */
-    NetWorkMode mode() const;
+    NetModeEnum mode() const;
     uint msgTxRepeatSec() const;
     uint msgMaxTxAtempt() const;
     qint32 msgInspectMsec() const;
@@ -137,7 +137,7 @@ public slots:
     void setUsername(QString username);
     void setPassword(QString password);
     /* net: realtime */
-    void setMode(NetWorkMode mode);
+    void setMode(NetModeEnum mode);
     void setMsgTxRepeatSec(uint msgTxRepeatSec);
     void setMsgMaxTxAtempt(uint msgMaxTxAtempt);
     void setMsgInspectMsec(qint32 msgInspectMsec);
@@ -167,7 +167,7 @@ signals:
     void usernameChanged(QString username);
     void passwordChanged(QString password);
     /* net: realtime */
-    void modeChanged(NetWorkMode mode);
+    void modeChanged(NetModeEnum mode);
     void msgTxRepeatSecChanged(uint msgTxRepeatSec);
     void msgMaxTxAtemptChanged(uint msgMaxTxAtempt);
     void msgInspectMsecChanged(qint32 msgInspectMsec);
@@ -212,7 +212,7 @@ private:
     QString m_username;
     QString m_password;
     /* realtime (save for reconnections)*/
-    NetWorkMode m_mode;
+    NetModeEnum m_mode;
     uint m_msgTxRepeatSec;
     uint m_msgMaxTxAtempt;
     qint32 m_msgInspectMsec;
