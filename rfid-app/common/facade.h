@@ -184,14 +184,14 @@ private:
 private:
     QThread logManengerThread;
     QThread netManengerThread;
-//    QThread rfidManengerThread;
+//    QThread readerManengerThread;
 //    QThread sysManengerThread;
 
     /* static */
     QScopedPointer<Logger> logger;
     /* dynamic */
     QScopedPointer<NetClient> network;
-//    QScopedPointer<RFIDMamanger> reader;
+//    QScopedPointer<ReaderManenger> reader;
 //    QScopedPointer<System> system;
 
     bool netReCreateRequire;

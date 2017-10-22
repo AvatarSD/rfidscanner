@@ -3,7 +3,7 @@
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread(this), netManengerThread(this),
-    //rfidManengerThread(this), sysManengerThread(this);
+    //readerManengerThread(this), sysManengerThread(this);
     logger(new Logger)
 {    
     qRegisterMetaType<NetStateEnum>("NetStateEnum");
@@ -36,8 +36,8 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread.start();
     netManengerThread.setObjectName("Net Manenger");
     netManengerThread.start();
-    //rfidManengerThread.setObjectName("RFID Manenger");
-    //rfidManengerThread.start();
+    //readerManengerThread.setObjectName("Reader Manenger");
+    //readerManengerThread.start();
     //sysManengerThread.setObjectName("System Manenger");
     //sysManengerThread.start();
 }
@@ -49,12 +49,12 @@ ScannerFacade::~ScannerFacade()
     //void disconnectFromWlan();
     
     netManengerThread.quit();
-    //rfidManengerThread.quit();
+    //readerManengerThread.quit();
     //sysManengerThread.quit();
     logManengerThread.quit();
     
     netManengerThread.wait();
-    //rfidManengerThread.wait();
+    //readerManengerThread.wait();
     //sysManengerThread.wait();
     logManengerThread.wait();
 }

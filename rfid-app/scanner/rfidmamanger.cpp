@@ -34,46 +34,46 @@ void TagStatus::setRssi(int value)
 }
 
 
-/*********** RFIDManamger ***********/
+/*********** ReaderManenger ***********/
 
-RFIDMamanger::RFIDMamanger()
+ReaderManenger::ReaderManenger()
 {
 //    this->moveToThread(&thread);
-    thread.setObjectName("RFID Phy");
+    thread.setObjectName("Reader Phy");
     thread.start();
 }
 
-RFIDMamanger::~RFIDMamanger()
+ReaderManenger::~ReaderManenger()
 {
     thread.quit();
     thread.wait();
 }
 
 
-/******** SimpleRFIDMamanger ********/
+/******** SimpleReaderManenger ********/
 
-SimpleRFIDMamanger::SimpleRFIDMamanger(QSharedPointer<RFIDReader> reader) :
-    RFIDMamanger(), timer(this), reader(reader)
+SimpleReaderManenger::SimpleReaderManenger(QSharedPointer<Reader> reader) :
+    ReaderManenger(), timer(this), reader(reader)
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(onTimer()));
 }
 
-SimpleRFIDMamanger::~SimpleRFIDMamanger()
+SimpleReaderManenger::~SimpleReaderManenger()
 {
 
 }
 
-void SimpleRFIDMamanger::run()
+void SimpleReaderManenger::run()
 {
     timer.start(10);
 }
 
-void SimpleRFIDMamanger::stop()
+void SimpleReaderManenger::stop()
 {
     timer.stop();
 }
 
-void SimpleRFIDMamanger::onTimer()
+void SimpleReaderManenger::onTimer()
 {
 
 }

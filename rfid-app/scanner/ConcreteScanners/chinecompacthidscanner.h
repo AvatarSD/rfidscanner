@@ -40,13 +40,13 @@ public:
     ChinaCompactHidProtocol();
 };
 
-/*************** RFIDReader ***************/
-class ChinaCompactHidScanner : public RFIDReader
+/*************** Reader ***************/
+class ChinaCompactHidScanner : public Reader
 {
     Q_OBJECT
 public:
     ChinaCompactHidScanner(QSharedPointer<UsbDevicePidVid> dev) :
-        RFIDReader(QSharedPointer<ChinaCompactHidProtocol>(new ChinaCompactHidProtocol()),
+        Reader(QSharedPointer<ChinaCompactHidProtocol>(new ChinaCompactHidProtocol()),
                    QSharedPointer<ChinaCompactHidTransport>(new ChinaCompactHidTransport(dev)))
     {}
 };

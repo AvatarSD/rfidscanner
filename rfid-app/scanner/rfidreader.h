@@ -1,5 +1,5 @@
-#ifndef RFIDREADER_H
-#define RFIDREADER_H
+#ifndef READER_H
+#define READER_H
 
 #include "types.h"
 #include "events.h"
@@ -30,7 +30,7 @@ enum Session{
 typedef uint QValue;*/
 
 /************/
-/*class RFIDReaderSettings
+/*class ReaderSettings
 {
 
 };*/
@@ -38,13 +38,13 @@ typedef uint QValue;*/
 
 
 
-/**** RFID Reader ****/
-class RFIDReader : public Eventful
+/********** Reader *********/
+class Reader : public Eventful
 {
     Q_OBJECT
 public:
-    RFIDReader(QSharedPointer<Protocol>, QSharedPointer<PhyTransport>);
-    virtual ~RFIDReader(){}
+    Reader(QSharedPointer<Protocol>, QSharedPointer<PhyTransport>);
+    virtual ~Reader(){}
 public slots:
     //virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
     virtual void execAsync(QSharedPointer<ScannerRequest>)=0;
@@ -62,4 +62,4 @@ signals:
 };
 
 
-#endif // RFIDREADER_H
+#endif // READER_H

@@ -18,7 +18,7 @@ Window {
     visible: true
     width: 640
     height: 480
-    title: qsTr("EPC Gen2 RFID Client")
+    title: qsTr("EPC Gen2 RFID Node")
     
     Button {
         id: connectBtn

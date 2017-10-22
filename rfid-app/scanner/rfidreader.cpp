@@ -1,12 +1,12 @@
 #include "rfidreader.h"
 
-RFIDReader::RFIDReader(QSharedPointer<Protocol> prot, QSharedPointer<PhyTransport> trnsp):
+Reader::Reader(QSharedPointer<Protocol> prot, QSharedPointer<PhyTransport> trnsp):
     protocol(prot), transport(trnsp)
 {
 
 }
 /*
-bool RFIDReader::getFullMem(Tag &tag)
+bool Reader::getFullMem(Tag &tag)
 {
     return (getEPCMem(tag) && getUserMem(tag) && getReserveMem(tag));
 }

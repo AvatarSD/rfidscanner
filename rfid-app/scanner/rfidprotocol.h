@@ -1,5 +1,5 @@
-#ifndef RFIDPROTOCOL_H
-#define RFIDPROTOCOL_H
+#ifndef READERPROTOCOL_H
+#define READERPROTOCOL_H
 
 #include "types.h"
 
@@ -95,4 +95,4 @@ public:
 };
 
 
-#endif // RFIDPROTOCOL_H
+#endif // READERPROTOCOL_H

@@ -1,5 +1,5 @@
-#ifndef RFIDMAMANGER_H
-#define RFIDMAMANGER_H
+#ifndef READERMANEGNER_H
+#define READERMANEGNER_H
 
 #include "rfidreader.h"
 #include "types.h"
@@ -29,15 +29,15 @@ private:
 };
 
 
-/*********** RFIDManamger ***********/
-class RFIDMamanger : public QObject
+/*********** ReaderManenger ***********/
+class ReaderManenger : public QObject
 {
     Q_OBJECT
 public:
     typedef QMap<TagID,TagStatus> TagField;
 
-    RFIDMamanger();
-    virtual ~RFIDMamanger();
+    ReaderManenger();
+    virtual ~ReaderManenger();
 
 public slots:
     virtual void run(){}
@@ -53,13 +53,13 @@ protected:
 };
 
 
-/******** SimpleRFIDMamanger ********/
-class SimpleRFIDMamanger : public RFIDMamanger
+/******** SimpleReaderManenger ********/
+class SimpleReaderManenger : public ReaderManenger
 {
     Q_OBJECT
 public:
-    SimpleRFIDMamanger(QSharedPointer<RFIDReader> reader);
-    virtual ~SimpleRFIDMamanger();
+    SimpleReaderManenger(QSharedPointer<Reader> reader);
+    virtual ~SimpleReaderManenger();
 
 public slots:
     virtual void run();
@@ -71,9 +71,9 @@ protected slots:
 private:
     QTimer timer;
     TagField field;
-    QSharedPointer<RFIDReader> reader;
+    QSharedPointer<Reader> reader;
 };
 
 
 
-#endif // RFIDMAMANGER_H
+#endif // READERMANEGNER_H
