@@ -49,6 +49,7 @@ class ScannerFacade : public Eventful
     /*     */     /**** reader ****/
     /*N C  */ //Q_PROPERTY(ReaderType  readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
     /*N C  */ //Q_PROPERTY(QString     readerAddr      READ readerAddr      /*WRITE setReaderAddr*/    /*NOTIFY readerAddrChanged*/)
+    /*     */     /**** reader mananger ****/
     /* I   */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
     /*O R D*/ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
     /*O R D*/ //Q_PROPERTY(uint        maxUnreadMsec   READ maxUnreadMsec   WRITE setMaxPeriodMsec   NOTIFY maxUnreadMsecChanged)

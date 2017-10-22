@@ -35,7 +35,10 @@ typedef uint QValue;*/
 
 };*/
 
-
+/* ReaderTagsField */
+class ReaderTagsField {
+    
+};
 
 
 /********** Reader *********/

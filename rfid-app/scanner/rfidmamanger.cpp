@@ -50,30 +50,30 @@ ReaderManenger::~ReaderManenger()
 }
 
 
-/******** SimpleReaderManenger ********/
+/******** ReaderManengerSimple ********/
 
-SimpleReaderManenger::SimpleReaderManenger(QSharedPointer<Reader> reader) :
+ReaderManengerSimple::ReaderManengerSimple(QSharedPointer<Reader> reader) :
     ReaderManenger(), timer(this), reader(reader)
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(onTimer()));
 }
 
-SimpleReaderManenger::~SimpleReaderManenger()
+ReaderManengerSimple::~ReaderManengerSimple()
 {
 
 }
 
-void SimpleReaderManenger::run()
+void ReaderManengerSimple::run()
 {
     timer.start(10);
 }
 
-void SimpleReaderManenger::stop()
+void ReaderManengerSimple::stop()
 {
     timer.stop();
 }
 
-void SimpleReaderManenger::onTimer()
+void ReaderManengerSimple::onTimer()
 {
 
 }

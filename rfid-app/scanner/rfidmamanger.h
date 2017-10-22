@@ -6,14 +6,17 @@
 
 #include <QSharedPointer>
 #include <QMap>
+#include <QMutex>
 #include <QDateTime>
 #include <QThread>
 #include <QTimer>
 
-/************* TagStatus *************/
-class TagStatus
-{
 
+/**************** Interface ***************/
+
+/******** TagStatus ********/
+class TagStatus: public QObject{
+    Q_OBJECT
 public:
     QDateTime getLastVisiableTime() const;
     void setLastVisiableTime(const QDateTime &value);
@@ -29,9 +32,36 @@ private:
 };
 
 
-/*********** ReaderManenger ***********/
+
+// ********* todo: ********
+// make TagStatus child of QObject
+// decl TagStatus properties
+// make Serializable child of QObject
+// decl Serializable child properties
+// impl access by mutex
+// impl visiable list prop
+// ****** BrainFuck *******
+// impl mananger timings.
+// rm virtual method of NetClient; 
+// Impl it dynamic by seting property by name;
+// Impl getAdditionalPropertys list.
+// ************************
+/* ReaderManengerTagsStatus */
+class ReaderManengerTagsStatus : public QObject{
+    Q_OBJECT
+public:
+    ReaderManengerTagsStatus(QObject *parent = nullptr) : 
+        QObject(parent), data(){}
+    
+    
+private:
+    QMap<TagID,TagStatus> data;
+    QMutex acces;
+};
+
+/****** ReaderManenger *****/
 class ReaderManenger : public QObject
-{
+{// readField->addProcedure->manengeProcedure
     Q_OBJECT
 public:
     typedef QMap<TagID,TagStatus> TagField;
@@ -53,13 +83,15 @@ protected:
 };
 
 
-/******** SimpleReaderManenger ********/
-class SimpleReaderManenger : public ReaderManenger
+/************* Implementation *************/
+
+/*** ReaderManengerSimple **/
+class ReaderManengerSimple : public ReaderManenger
 {
     Q_OBJECT
 public:
-    SimpleReaderManenger(QSharedPointer<Reader> reader);
-    virtual ~SimpleReaderManenger();
+    ReaderManengerSimple(QSharedPointer<Reader> reader);
+    virtual ~ReaderManengerSimple();
 
 public slots:
     virtual void run();
