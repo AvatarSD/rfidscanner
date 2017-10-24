@@ -1,61 +1,54 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <inttypes.h>
-#include <QJsonObject>
 #include <QString>
 #include <QDateTime>
-#include <QJsonParseError>
-#include <QSharedPointer>
 
 
 /************* Serialaizeable ************/
 
-class Serialaizeable
-{
-public:
-    Serialaizeable(){}
-    virtual ~Serialaizeable(){}
-    /*** interface: ***/
-    virtual QString toString() const {return QStringLiteral("");}
-    virtual QJsonObject toJson() const {return QJsonObject();}
-    virtual QJsonParseError fromJson(const QJsonObject&) {return QJsonParseError();}
-};
+//class Serialaizeable
+//{
+//public:
+//    virtual ~Serialaizeable(){}
+//    /*** interface: ***/
+//    virtual QString toString() const = 0;
+//    virtual QJsonObject toJson() const = 0;
+//    virtual QJsonParseError fromJson(const QJsonObject&) = 0;
+//};
 
 
 /************** Tag Memory **************/
 
-#define TID_LENGHT 12
+//#define TID_LENGHT 12
 
-class TagMemory : public Serialaizeable
-{
-public:
-    enum TagMemoryBank{
-        NONE = 0,
-        RESERVE = 0b0001,
-        EPC = 0b0010,
-        TID = 0b0100,
-        USER = 0b1000
-    };
-    TagMemory(TagMemoryBank typ = NONE) : memoryBankType(typ){}
-    virtual ~TagMemory(){}
-    virtual QString toString() const {return QStringLiteral("nulltag");}
-    const TagMemoryBank memoryBankType;
-};
+//class TagMemory : public Serialaizeable
+//{
+//public:
+//    enum TagMemoryBank{
+//        NONE = 0,
+//        RESERVE = 0b0001,
+//        EPC = 0b0010,
+//        TID = 0b0100,
+//        USER = 0b1000
+//    };
+//    virtual ~TagMemory(){}
+//    virtual TagMemoryBank memoryBankType() const ;
+//};
 
-class TagID : public TagMemory
-{
-public:
-    TagID();
-    TagID(const TagID & val);
-    const TagID &operator =(const TagID & val);
-    bool operator ==(const TagID & val);
-    virtual ~TagID(){}
-    virtual QString toString() const;
-    int fromString(const QString& tag);
-private:
-    uint8_t id[TID_LENGHT];
-};
+//class TagID : public TagMemory
+//{
+//public:
+//    virtual ~TagID(){}
+//    virtual QString toString() const;
+//    virtual TagMemoryBank memoryBankType() const;
+//    int fromString(const QString& tag);
+//    bool operator ==(const TagID & val);
+//private:
+//    uint8_t id[TID_LENGHT];
+//};
+
+
 /*
 class EPCMem : public TagMemory
 {

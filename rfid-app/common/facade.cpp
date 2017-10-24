@@ -3,7 +3,7 @@
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread(this), netManengerThread(this),
-    //readerManengerThread(this), sysManengerThread(this);
+    readerManengerThread(this),// sysManengerThread(this);
     logger(new Logger)
 {    
     qRegisterMetaType<NetStateEnum>("NetStateEnum");
@@ -13,6 +13,9 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
     qmlRegisterType<NetClientModeClass>("ScannerMainElements",1,0,"NetMode");
     qmlRegisterType<NetClientStateClass>("ScannerMainElements",1,0,"NetState");
+    
+    // todo: register qml for rfid manamger
+    // quened connections of rfid manamger
     
     netReCreateRequire = true;
     netReConectRequire = true;
@@ -36,25 +39,25 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread.start();
     netManengerThread.setObjectName("Net Manenger");
     netManengerThread.start();
-    //readerManengerThread.setObjectName("Reader Manenger");
-    //readerManengerThread.start();
+    readerManengerThread.setObjectName("Reader Manenger");
+    readerManengerThread.start();
     //sysManengerThread.setObjectName("System Manenger");
     //sysManengerThread.start();
 }
 
 ScannerFacade::~ScannerFacade()
 {
-    //void disconnectFromReader();
+    void disconnectFromReader();
     disconnectFromServer();
     //void disconnectFromWlan();
     
     netManengerThread.quit();
-    //readerManengerThread.quit();
+    readerManengerThread.quit();
     //sysManengerThread.quit();
     logManengerThread.quit();
     
     netManengerThread.wait();
-    //readerManengerThread.wait();
+    readerManengerThread.wait();
     //sysManengerThread.wait();
     logManengerThread.wait();
 }
@@ -157,11 +160,19 @@ void ScannerFacade::connectToServer()
     /* call connectToHost */
     QMetaObject::invokeMethod(network.data(), "start", Qt::QueuedConnection);
 }
-
 void ScannerFacade::disconnectFromServer()
 {
     if(!network.isNull())
         QMetaObject::invokeMethod(network.data(), "stop", Qt::QueuedConnection);
+}
+
+void ScannerFacade::connectToReader()
+{
+    
+}
+void ScannerFacade::disconnectFromReader()
+{
+    
 }
 
 /* net: is reconnection required */

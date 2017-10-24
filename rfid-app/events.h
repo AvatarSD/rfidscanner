@@ -4,18 +4,24 @@
 #include "types.h"
 #include <QString>
 #include <QDateTime>
+#include <QJsonObject>
+#include <QJsonParseError>
+//#include <inttypes.h>
+#include <QSharedPointer>
+
 
 
 /***************** Event ******************/
-class Event : public Serialaizeable
+class Event
 {
 public:
     enum EventType{INF, TAG};
-    Event() : Event(INF) {}
     Event(EventType event) : event(event),
         time(QDateTime::currentDateTimeUtc()) {}
     virtual ~Event(){}
     virtual QString toString() const;
+    virtual QJsonObject toJson() const = 0;
+    /*******************************/
     const EventType event;
     const QDateTime time;
 };
@@ -30,23 +36,23 @@ public:
     enum TagEventType{
         LEAVE = 1,
         ENTER = 2};
-    TagEvent(QSharedPointer<TagID> tag, TagEventType evtype) :
+    TagEvent(QString tag, TagEventType evtype) :
         Event(TAG), tagevent(evtype), tag(tag) {}
     virtual ~TagEvent(){}
-    const TagID & getTag() const {return *tag;}
+//    QString getTag() const {return tag;}
     const TagEventType tagevent;
     // Serialaizeable interface
     virtual QString toString() const;
     virtual QJsonObject toJson() const;
 private:
-    QSharedPointer<TagID> tag;
+    QString tag;
 };
 
 /* extended */
 class TagEnterEvent : public TagEvent
 {
 public:
-    TagEnterEvent(QSharedPointer<TagID> tag) :
+    TagEnterEvent(QString tag) :
         TagEvent(tag, TagEventType::ENTER){}
     virtual ~TagEnterEvent(){}
 };
@@ -54,7 +60,7 @@ public:
 class TagLeaveEvent : public TagEvent
 {
 public:
-    TagLeaveEvent(QSharedPointer<TagID> tag) :
+    TagLeaveEvent(QString tag) :
         TagEvent(tag, TagEventType::LEAVE){}
     virtual ~TagLeaveEvent(){}
 };
@@ -99,8 +105,11 @@ class ScannerEvent : public InfoEvent
 {
 public:
     enum IDs{
-        OK = 0,
-        ConnectionBreak = 1
+        PHY,
+        PARSER,
+        READER,
+        COMMANDER,
+        MANENGER
     };
     ScannerEvent(EventLevel level, IDs eventid, QString dscr) :
         InfoEvent(level, EventPlace::SCANNER, dscr, eventid) {}

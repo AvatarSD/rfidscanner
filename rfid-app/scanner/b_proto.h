@@ -1,12 +1,13 @@
 #ifndef READERPROTOCOL_H
 #define READERPROTOCOL_H
 
-#include "types.h"
+#include <QJsonObject>
+#include <QJsonParseError>
 
-class Protocol
+class ReaderProtocol
 {
 public:
-    Protocol();
+    ReaderProtocol();
 
     /* bool getFullMem(Tag& tag);
      const std::list<ReaderError> & getReaderErrors();
@@ -69,13 +70,13 @@ public:
 
 };
 
-class ScannerRequest : public Serialaizeable
+class ScannerRequest //: public Serialaizeable
 {
 public:
     ScannerRequest(){}
     virtual ~ScannerRequest(){}
 
-    virtual QByteArray execute(const Protocol & prot);
+    virtual QByteArray execute(const ReaderProtocol & prot);
 
     // Serialaizeable interface
     virtual QString toString() const;
@@ -83,7 +84,7 @@ public:
     virtual QJsonParseError fromJson(const QJsonObject &);
 };
 
-class ScannerReply : public Serialaizeable
+class ScannerReply //: public Serialaizeable
 {
 public:
     ScannerReply(){}
@@ -93,6 +94,9 @@ public:
     virtual QString toString() const;
     virtual QJsonObject toJson() const;
 };
+
+
+
 
 
 #endif // READERPROTOCOL_H

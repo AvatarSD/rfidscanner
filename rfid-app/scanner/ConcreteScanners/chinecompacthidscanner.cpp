@@ -1,34 +1,34 @@
 #include "chinecompacthidscanner.h"
 
 
-ChinaCompactHidTransport::ChinaCompactHidTransport(QSharedPointer<UsbDevicePidVid>)
-{
+//ChinaCompactHidTransport::ChinaCompactHidTransport(QSharedPointer<UsbDevicePidVid>)
+//{
 
-}
+//}
 
-void ChinaCompactHidTransport::outData(QByteArray data)
-{
+//void ChinaCompactHidTransport::outData(QByteArray data)
+//{
 
-}
+//}
 
-int ChinaCompactHidTransport::open()
-{
-    autoopenRequired = true;
+//int ChinaCompactHidTransport::open()
+//{
+//    autoopenRequired = true;
 
-}
+//}
 
-void ChinaCompactHidTransport::close()
-{
-    autoopenRequired = false;
+//void ChinaCompactHidTransport::close()
+//{
+//    autoopenRequired = false;
 
-}
+//}
 
-bool ChinaCompactHidTransport::isOpen()
-{
+//bool ChinaCompactHidTransport::isOpen()
+//{
 
-}
+//}
 
-void ChinaCompactHidTransport::run()
-{
+//void ChinaCompactHidTransport::run()
+//{
 
-}
+//}

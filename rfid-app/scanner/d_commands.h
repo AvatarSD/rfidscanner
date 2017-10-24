@@ -1,7 +1,8 @@
-#ifndef COMMANDS_H
-#define COMMANDS_H
+#ifndef D_COMMANDS_H
+#define D_COMMANDS_H
 
-#include "rfidprotocol.h"
+#include "c_reader.h"
+
 
 /*********************** Commands ************************/
 
@@ -15,4 +16,4 @@ class InventoryRp : public ScannerReply
 
 };
 
-#endif // COMMANDS_H
+#endif // D_COMMANDS_H

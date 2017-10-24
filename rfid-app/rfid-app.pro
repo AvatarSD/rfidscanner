@@ -4,21 +4,21 @@ QT += qml quick
 CONFIG += c++14
 
 SOURCES += main.cpp \
-    scanner/rfidmamanger.cpp \
-    scanner/rfidreader.cpp \
     types.cpp \
     events.cpp \
-    scanner/transport.cpp \
-    scanner/rfidprotocol.cpp \
     scanner/ConcreteScanners/chinecompacthidscanner.cpp \
-    scanner/commands.cpp \
     common/logger.cpp \
     common/system.cpp \
-    network/b_protocol.cpp \
     network/c_messages.cpp \
     network/a_phy.cpp \
     network/d_client.cpp \
-    common/facade.cpp
+    common/facade.cpp \
+    scanner/a_transport.cpp \
+    scanner/d_commands.cpp \
+    scanner/c_reader.cpp \
+    scanner/e_mamanger.cpp \
+    network/b_protocol.cpp \
+    scanner/b_proto.cpp
 
 RESOURCES += qml.qrc
 
@@ -44,21 +44,21 @@ target.path = /home/pi/scanner
 !isEmpty(target.path): INSTALLS += target
 
 HEADERS += \
-    scanner/rfidmamanger.h \
-    scanner/rfidreader.h \
     types.h \
     events.h \
-    scanner/transport.h \
-    scanner/rfidprotocol.h \
     scanner/ConcreteScanners/chinecompacthidscanner.h \
-    scanner/commands.h \
     common/logger.h \
     common/system.h \
     network/b_protocol.h \
     network/c_messages.h \
     network/d_client.h \
     network/a_phy.h \
-    common/facade.h
+    common/facade.h \
+    scanner/a_transport.h \
+    scanner/d_commands.h \
+    scanner/e_mamanger.h \
+    scanner/c_reader.h \
+    scanner/b_proto.h
 
 #INCLUDEPATH += ../QUSB/src
 #LIBS += -L../../build-meta-rfid-Desktop_Qt_5_9_1_GCC_64bit-Release/QUSB/lib -lqusb

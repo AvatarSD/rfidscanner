@@ -20,7 +20,7 @@ QString TagEvent::toString() const
     case LEAVE: eventName = "leave from zone"; break;
     default: eventName = "undefined tag event"; break;
     }
-    return Event::toString() + "Tag " + tag->toString() + " " + eventName;
+    return Event::toString() + "Tag " + tag + " " + eventName;
 }
 
 QJsonObject TagEvent::toJson() const
@@ -28,7 +28,7 @@ QJsonObject TagEvent::toJson() const
     QJsonObject json;
     json["event"] = tagevent;
     json["time"] = time.toString(Qt::ISODate);
-    json["tagid"] = tag->toString();
+    json["tagid"] = tag;
     return json;
 }
 

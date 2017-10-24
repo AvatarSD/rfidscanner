@@ -5,7 +5,7 @@
 
 #include "common/system.h"
 #include "common/logger.h"
-#include "scanner/rfidmamanger.h"
+#include "scanner/e_mamanger.h"
 #include "network/d_client.h"
 
 class ScannerFacade : public Eventful
@@ -89,8 +89,8 @@ public:
 public slots:
     void connectToServer();
     void disconnectFromServer();
-    //void connectToReader();
-    //void disconnectFromReader();
+    void connectToReader();
+    void disconnectFromReader();
     //void connectToWlan(QString ssid, QString psswd);
     //void disconnectFromWlan();
 
@@ -103,6 +103,7 @@ public:
     NetStateEnum netState() const;
     QString netStateMsg() const;
     /* net re-create */
+    ClientType clientType() const;
     SocketType socket() const;
     MsgBound msgBoundaries() const;
     QString startSqns() const;
@@ -122,7 +123,6 @@ public:
 
 
     
-    ClientType clientType() const;
     
 public slots:
     /* net: re-create */
@@ -185,15 +185,15 @@ private:
 private:
     QThread logManengerThread;
     QThread netManengerThread;
-//    QThread readerManengerThread;
+    QThread readerManengerThread;
 //    QThread sysManengerThread;
 
     /* static */
     QScopedPointer<Logger> logger;
+//    QScopedPointer<System> system;
     /* dynamic */
     QScopedPointer<NetClient> network;
-//    QScopedPointer<ReaderManenger> reader;
-//    QScopedPointer<System> system;
+    QScopedPointer<ReaderManenger> reader;
 
     bool netReCreateRequire;
     bool netReConectRequire;

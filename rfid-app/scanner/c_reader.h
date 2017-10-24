@@ -1,13 +1,13 @@
 #ifndef READER_H
 #define READER_H
 
-#include "types.h"
-#include "events.h"
-#include "transport.h"
-#include "rfidprotocol.h"
-
 #include <QObject>
-#include <QSharedPointer>
+#include <QScopedPointer>
+#include <QThread>
+
+#include "a_transport.h"
+#include "b_proto.h"
+
 
 
 /**** General Reader Settings ****/
@@ -35,10 +35,7 @@ typedef uint QValue;*/
 
 };*/
 
-/* ReaderTagsField */
-class ReaderTagsField {
-    
-};
+
 
 
 /********** Reader *********/
@@ -46,22 +43,23 @@ class Reader : public Eventful
 {
     Q_OBJECT
 public:
-    Reader(QSharedPointer<Protocol>, QSharedPointer<PhyTransport>);
-    virtual ~Reader(){}
+    Reader(ReaderProtocol * protocol, PhyTransport * transport, QObject*parent=nullptr);
+    virtual ~Reader();
 public slots:
+    virtual void execute(QSharedPointer<ScannerRequest>)=0;
     //virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
-    virtual void execAsync(QSharedPointer<ScannerRequest>)=0;
 signals:
     void executed(QSharedPointer<ScannerReply>);
-//    void otherEvent(QSharedPointer<InfoEvent>);
 protected:
-    QSharedPointer<Protocol> protocol;
-    QSharedPointer<PhyTransport> transport;
-//    QQueue<QSharedPointer<ScannerRequest>> msgQueue;
+    QScopedPointer<ReaderProtocol> protocol;
+    QScopedPointer<PhyTransport> transport;
+    //    QQueue<QSharedPointer<ScannerRequest>> msgQueue;
 protected slots:
     virtual void inData(QByteArray)=0;
 signals:
     void outData(QByteArray);
+private:
+    QThread thread;
 };
 
 
