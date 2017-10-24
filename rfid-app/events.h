@@ -17,7 +17,7 @@ class Event
 public:
     enum EventType{INF, TAG};
     Event(EventType event) : event(event),
-        time(QDateTime::currentDateTimeUtc()) {}
+        time(QDateTime::currentDateTime()) {}
     virtual ~Event(){}
     virtual QString toString() const;
     virtual QJsonObject toJson() const = 0;

@@ -3,10 +3,10 @@
 
 #include "d_commands.h"
 
-//#include <QSharedPointer>
+#include <QSharedPointer>
 #include <QScopedPointer>
 #include <QDateTime>
-#include <QVariantMap>
+#include <QList>
 #include <QMutex>
 
 //#include <QTimer>
@@ -33,63 +33,116 @@
 /******** TagStatus ********/
 class TagStatus: public QObject{
     Q_OBJECT
-    
-    Q_PROPERTY(QDateTime firstReadTime READ firstReadTime WRITE setFirstReadTime NOTIFY firstReadTimeChanged)
-    Q_PROPERTY(QDateTime lastReadTime READ lastReadTime WRITE setLastReadTime NOTIFY lastReadTimeChanged)
-    Q_PROPERTY(quint32 readCount READ readCount WRITE setReadCount NOTIFY readCountChanged)
-    Q_PROPERTY(qint32 rssi READ rssi WRITE setRssi NOTIFY rssiChanged)
-    
+    Q_PROPERTY(QString       tag           READ tag)
+    Q_PROPERTY(TagStatusEnum status        READ status         NOTIFY statusChanged)
+    Q_PROPERTY(QDateTime     firstReadTime READ firstReadTime  NOTIFY firstReadTimeChanged)
+    Q_PROPERTY(QDateTime     lastReadTime  READ lastReadTime   NOTIFY lastReadTimeChanged)
+    Q_PROPERTY(quint32       readCount     READ readCount      NOTIFY readCountChanged)
+    Q_PROPERTY(quint32       unreadCount   READ unreadCount    NOTIFY unreadCountChanged)
+//    Q_PROPERTY(qint32 rssi READ rssi WRITE setRssi NOTIFY rssiChanged)
 public:
-    TagStatus(QObject*parent=nullptr):QObject(parent){}
+    enum TagStatusEnum{
+        ONLINE,
+        OFFLINE
+    };
+    Q_ENUM(TagStatusEnum)
+    TagStatus(QString tag, QObject*parent=nullptr):
+        QObject(parent), m_tag(tag), m_status(ONLINE),
+        m_firstReadTime(QDateTime::currentDateTime()),
+        m_lastReadTime(QDateTime::currentDateTime()),
+        m_readCount(1), m_unreadCount(0)  {}
     virtual  ~TagStatus(){}
+    TagStatusEnum status() const;
     
 public slots:
+    QString tag() const;
     QDateTime firstReadTime() const;
     QDateTime lastReadTime() const;
     quint32 readCount() const;
-    qint32 rssi() const;
+    quint32 unreadCount() const;
+//    qint32 rssi() const;
     
+    void wasRead();
+    void wasUnread();
+    
+private:
+    void setStatus(TagStatusEnum status);
     void setFirstReadTime(QDateTime firstReadTime);
     void setLastReadTime(QDateTime lastReadTime);
     void setReadCount(quint32 readCount);
-    void setRssi(qint32 rssi);
-    
+    void setUnreadCount(quint32 unreadCount);
+//    void setRssi(qint32 rssi);
 signals:
     void firstReadTimeChanged(QDateTime firstReadTime);
     void lastReadTimeChanged(QDateTime lastReadTime);
     void readCountChanged(quint32 readCount);
-    void rssiChanged(qint32 rssi);
-
+    void unreadCountChanged(quint32 unreadCount);
+    //    void rssiChanged(qint32 rssi);    
+    void statusChanged(TagStatusEnum status);
+    
 private:
+    const QString m_tag;
+    TagStatusEnum m_status;
     QDateTime m_firstReadTime;
     QDateTime m_lastReadTime;
     quint32 m_readCount;
-    qint32 m_rssi;
+    quint32 m_unreadCount;
+    //    qint32 m_rssi;
 };
 
+/* TagFieldLeftRules */
+class TagFieldLeftRule : QObject{
+    Q_OBJECT
+public:
+    enum TagFieldLeftRuleEnum {
+        TIME,
+        PERCENT,
+        TIME_AND_PERCENT,
+        TIME_OR_PERCENT
+    };
+    Q_ENUM(TagFieldLeftRuleEnum)
+};
+
+/****** Default value ******/
+#define DEFAULT_TAG_LEFT_MSEC 30000
+#define DEFAULT_TAG_LEFT_PCNT 20
+#define DEFAULT_TAG_LEFT_RULE TagFieldLeftRule::TIME
+#define DEFAULT_TAG_DEL_SEC   300
+
 /******* FieldTimings ******/
-class FieldTimings {
-    
+class TagFieldTimings {
+public:
+    TagFieldTimings();
+    uint maxUnreadToLeftMsec;
+    uint maxUnreadToLeftPcnt;
+    uint maxUnreadToDeleteSec;
+    TagFieldLeftRule::TagFieldLeftRuleEnum leftRule;
 };
 
 /*** ReaderManengerField ***/
-class ReaderManengerField : public QObject{
+class ReaderManengerTagField : public QObject{
     Q_OBJECT
 public:
-//    typedef QMap<QString,QVariant> TagsStatusMap;
+    typedef QList<QSharedPointer<TagStatus>> TagFieldList; //ok!!
     
-    ReaderManengerField(QObject *parent = nullptr) : QObject(parent){}
+    ReaderManengerTagField(QObject *parent = nullptr) : 
+        QObject(parent){}
+    virtual ~ReaderManengerTagField(){}
     
+    TagFieldList field() const;
+    TagFieldTimings * timings();
+
 public slots:
     void updateField(QStringList readedTags);
     
 signals:
     void tagEvent(QSharedPointer<TagEvent> event);
-    void fieldEvent(QVariantMap field);
+    void fieldChanged(TagFieldList field);
     
 private:
-    QVariantMap data;
-    QMutex acces;
+    TagFieldList m_field;
+    TagFieldTimings m_timings;
+    mutable QMutex access;
 };
 
 /****** ReaderManenger *****/
@@ -97,8 +150,6 @@ class ReaderManenger : public Eventful
 {
     Q_OBJECT
 public:
-    //typedef QMap<TagID,TagStatus> ReaderManengerField;
-
     ReaderManenger(Reader * reader, QObject*parent=nullptr);
     virtual ~ReaderManenger();
     
@@ -108,17 +159,16 @@ public slots:
     virtual void start()=0;
     virtual void stop()=0;
     
-    const ReaderManengerField &getField() const
-    {
+    const ReaderManengerTagField &getField() const{
         return this->field;
     }
     
 signals:
-    void fieldChanged(const ReaderManengerField& field);
+    void fieldChanged(const ReaderManengerTagField& field);
     
 protected:
     QScopedPointer<Reader> reader;
-    ReaderManengerField field;
+    ReaderManengerTagField field;
 };
 
 
