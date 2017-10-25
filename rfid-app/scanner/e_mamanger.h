@@ -82,10 +82,7 @@ public:
         m_lastReadTime(QDateTime::currentDateTime()),
         m_readCount(1), m_unreadCount(0)  {}
     virtual  ~TagStatus(){}
-    float readPercent() const
-    {
-        
-    }
+    float readPercent() const;
     
 public slots:
     QString tag() const;
@@ -94,7 +91,7 @@ public slots:
     QDateTime lastReadTime() const;
     quint32 readCount() const;
     quint32 unreadCount() const;
-    void wasRead(const TagFieldTimings &timings);
+    void wasRead();
     void wasUnread(const TagFieldTimings &timings);
 private:
     void setStatus(TagStatusEnum status);

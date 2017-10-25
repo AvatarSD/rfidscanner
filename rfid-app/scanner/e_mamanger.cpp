@@ -4,7 +4,6 @@
 #define MAX_PERCENT 100.0
 
 /************* TagStatus *************/
-
 QString TagStatus::tag() const{
     return m_tag;
 }
@@ -63,15 +62,15 @@ void TagStatus::setUnreadCount(quint32 unreadCount){
     emit unreadCountChanged(m_unreadCount);
     emit readPercentChanged(readPercent());
 }
-void TagStatus::wasRead(const TagFieldTimings &timings){
-    setReadCount(readCount()++);
+void TagStatus::wasRead(){
+    setReadCount(readCount()+1);
     if(status() == LEFT) 
         setFirstReadTime(QDateTime::currentDateTime());
     setLastReadTime(QDateTime::currentDateTime());
     setStatus(ONLINE);
 }
 void TagStatus::wasUnread(const TagFieldTimings &timings){
-    setUnreadCount(unreadCount()++);
+    setUnreadCount(unreadCount()+1);
     if(status() == ONLINE)
         setStatus(OFFLINE);
     else if(status() == OFFLINE){
