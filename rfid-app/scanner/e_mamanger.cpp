@@ -1,6 +1,7 @@
 #include "e_mamanger.h"
 #include <algorithm>
 
+#define MAX_PERCENT 100.0
 
 /************* TagStatus *************/
 
@@ -22,9 +23,9 @@ quint32 TagStatus::readCount() const{
 quint32 TagStatus::unreadCount() const{
     return m_unreadCount;
 }
-/*qint32 TagStatus::rssi() const{
-    return m_rssi;
-}*/
+float TagStatus::readPercent() const{
+    return (((float)readCount())/((float)(readCount()+unreadCount())))*MAX_PERCENT;
+}
 void TagStatus::setStatus(TagStatus::TagStatusEnum status){
     if (m_status == status)
         return;
@@ -52,6 +53,7 @@ void TagStatus::setReadCount(quint32 readCount){
     
     m_readCount = readCount;
     emit readCountChanged(m_readCount);
+    emit readPercentChanged(readPercent());
 }
 void TagStatus::setUnreadCount(quint32 unreadCount){
     if (m_unreadCount == unreadCount)
@@ -59,19 +61,33 @@ void TagStatus::setUnreadCount(quint32 unreadCount){
     
     m_unreadCount = unreadCount;
     emit unreadCountChanged(m_unreadCount);
+    emit readPercentChanged(readPercent());
 }
-/*void TagStatus::setRssi(qint32 rssi){
-    if (m_rssi == rssi)
-        return;
-        
-    m_rssi = rssi;
-    emit rssiChanged(m_rssi);
-}*/
-void TagStatus::wasRead(){
-    
+void TagStatus::wasRead(const TagFieldTimings &timings){
+    setReadCount(readCount()++);
+    if(status() == LEFT) 
+        setFirstReadTime(QDateTime::currentDateTime());
+    setLastReadTime(QDateTime::currentDateTime());
+    setStatus(ONLINE);
 }
-void TagStatus::wasUnread(){
-    
+void TagStatus::wasUnread(const TagFieldTimings &timings){
+    setUnreadCount(unreadCount()++);
+    if(status() == ONLINE)
+        setStatus(OFFLINE);
+    else if(status() == OFFLINE){
+        bool isTimeOut = (lastReadTime().msecsTo(QDateTime::currentDateTime()) 
+                          >= timings.maxUnreadToLeftMsec);
+        bool isPcntLow = (readPercent() < timings.maxUnreadToLeftPcnt);
+        bool isLeft = false;
+        switch (timings.leftRule) {
+        case TagFieldLeftRule::TIME:             isLeft = isTimeOut; break;
+        case TagFieldLeftRule::PERCENT:          isLeft = isPcntLow; break;
+        case TagFieldLeftRule::TIME_AND_PERCENT: isLeft = isTimeOut && isPcntLow; break;
+        case TagFieldLeftRule::TIME_OR_PERCENT:  isLeft = isTimeOut || isPcntLow; break;
+        }
+        if(isLeft)
+            setStatus(LEFT);
+    }
 }
 
 /******* FieldTimings ******/

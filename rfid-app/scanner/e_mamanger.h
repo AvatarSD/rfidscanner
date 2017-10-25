@@ -30,67 +30,13 @@
 
 /**************** Interface ***************/
 
-/******** TagStatus ********/
-class TagStatus: public QObject{
-    Q_OBJECT
-    Q_PROPERTY(QString       tag           READ tag)
-    Q_PROPERTY(TagStatusEnum status        READ status         NOTIFY statusChanged)
-    Q_PROPERTY(QDateTime     firstReadTime READ firstReadTime  NOTIFY firstReadTimeChanged)
-    Q_PROPERTY(QDateTime     lastReadTime  READ lastReadTime   NOTIFY lastReadTimeChanged)
-    Q_PROPERTY(quint32       readCount     READ readCount      NOTIFY readCountChanged)
-    Q_PROPERTY(quint32       unreadCount   READ unreadCount    NOTIFY unreadCountChanged)
-//    Q_PROPERTY(qint32 rssi READ rssi WRITE setRssi NOTIFY rssiChanged)
-public:
-    enum TagStatusEnum{
-        ONLINE,
-        OFFLINE
-    };
-    Q_ENUM(TagStatusEnum)
-    TagStatus(QString tag, QObject*parent=nullptr):
-        QObject(parent), m_tag(tag), m_status(ONLINE),
-        m_firstReadTime(QDateTime::currentDateTime()),
-        m_lastReadTime(QDateTime::currentDateTime()),
-        m_readCount(1), m_unreadCount(0)  {}
-    virtual  ~TagStatus(){}
-    TagStatusEnum status() const;
-    
-public slots:
-    QString tag() const;
-    QDateTime firstReadTime() const;
-    QDateTime lastReadTime() const;
-    quint32 readCount() const;
-    quint32 unreadCount() const;
-//    qint32 rssi() const;
-    
-    void wasRead();
-    void wasUnread();
-    
-private:
-    void setStatus(TagStatusEnum status);
-    void setFirstReadTime(QDateTime firstReadTime);
-    void setLastReadTime(QDateTime lastReadTime);
-    void setReadCount(quint32 readCount);
-    void setUnreadCount(quint32 unreadCount);
-//    void setRssi(qint32 rssi);
-signals:
-    void firstReadTimeChanged(QDateTime firstReadTime);
-    void lastReadTimeChanged(QDateTime lastReadTime);
-    void readCountChanged(quint32 readCount);
-    void unreadCountChanged(quint32 unreadCount);
-    //    void rssiChanged(qint32 rssi);    
-    void statusChanged(TagStatusEnum status);
-    
-private:
-    const QString m_tag;
-    TagStatusEnum m_status;
-    QDateTime m_firstReadTime;
-    QDateTime m_lastReadTime;
-    quint32 m_readCount;
-    quint32 m_unreadCount;
-    //    qint32 m_rssi;
-};
+/****** Default value ******/
+#define DEFAULT_TAG_LEFT_MSEC 30000
+#define DEFAULT_TAG_LEFT_PCNT 20
+#define DEFAULT_TAG_LEFT_RULE TagFieldLeftRule::TIME
+#define DEFAULT_TAG_DEL_SEC   300
 
-/* TagFieldLeftRules */
+/**** TagFieldLeftRules ****/
 class TagFieldLeftRule : QObject{
     Q_OBJECT
 public:
@@ -103,12 +49,6 @@ public:
     Q_ENUM(TagFieldLeftRuleEnum)
 };
 
-/****** Default value ******/
-#define DEFAULT_TAG_LEFT_MSEC 30000
-#define DEFAULT_TAG_LEFT_PCNT 20
-#define DEFAULT_TAG_LEFT_RULE TagFieldLeftRule::TIME
-#define DEFAULT_TAG_DEL_SEC   300
-
 /******* FieldTimings ******/
 class TagFieldTimings {
 public:
@@ -117,6 +57,66 @@ public:
     uint maxUnreadToLeftPcnt;
     uint maxUnreadToDeleteSec;
     TagFieldLeftRule::TagFieldLeftRuleEnum leftRule;
+};
+
+/******** TagStatus ********/
+class TagStatus: public QObject{
+    Q_OBJECT
+    Q_PROPERTY(QString       tag           READ tag)
+    Q_PROPERTY(TagStatusEnum status        READ status         NOTIFY statusChanged)
+    Q_PROPERTY(QDateTime     firstReadTime READ firstReadTime  NOTIFY firstReadTimeChanged)
+    Q_PROPERTY(QDateTime     lastReadTime  READ lastReadTime   NOTIFY lastReadTimeChanged)
+    Q_PROPERTY(quint32       readCount     READ readCount      NOTIFY readCountChanged)
+    Q_PROPERTY(quint32       unreadCount   READ unreadCount    NOTIFY unreadCountChanged)
+    Q_PROPERTY(float         readPercent   READ readPercent    NOTIFY readPercentChanged)
+public:
+    enum TagStatusEnum{
+        ONLINE,
+        OFFLINE,
+        LEFT
+    };
+    Q_ENUM(TagStatusEnum)
+    TagStatus(QString tag, QObject*parent=nullptr):
+        QObject(parent), m_tag(tag), m_status(ONLINE),
+        m_firstReadTime(QDateTime::currentDateTime()),
+        m_lastReadTime(QDateTime::currentDateTime()),
+        m_readCount(1), m_unreadCount(0)  {}
+    virtual  ~TagStatus(){}
+    float readPercent() const
+    {
+        
+    }
+    
+public slots:
+    QString tag() const;
+    TagStatusEnum status() const;
+    QDateTime firstReadTime() const;
+    QDateTime lastReadTime() const;
+    quint32 readCount() const;
+    quint32 unreadCount() const;
+    void wasRead(const TagFieldTimings &timings);
+    void wasUnread(const TagFieldTimings &timings);
+private:
+    void setStatus(TagStatusEnum status);
+    void setFirstReadTime(QDateTime firstReadTime);
+    void setLastReadTime(QDateTime lastReadTime);
+    void setReadCount(quint32 readCount);
+    void setUnreadCount(quint32 unreadCount);
+signals:
+    void firstReadTimeChanged(QDateTime firstReadTime);
+    void lastReadTimeChanged(QDateTime lastReadTime);
+    void readCountChanged(quint32 readCount);
+    void unreadCountChanged(quint32 unreadCount);   
+    void statusChanged(TagStatusEnum status);
+    void readPercentChanged(float readPercent);
+    
+private:
+    const QString m_tag;
+    TagStatusEnum m_status;
+    QDateTime m_firstReadTime;
+    QDateTime m_lastReadTime;
+    quint32 m_readCount;
+    quint32 m_unreadCount;
 };
 
 /*** ReaderManengerField ***/
