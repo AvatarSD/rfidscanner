@@ -1,37 +1,22 @@
 #ifndef READERMANEGNER_H
 #define READERMANEGNER_H
 
-#include "d_commands.h"
-
 #include <QSharedPointer>
 #include <QScopedPointer>
 #include <QDateTime>
 #include <QList>
 #include <QMutex>
-
 //#include <QTimer>
 
+#include "d_commands.h"
 
-// ********* todo: ********
-// make TagStatus child of QObject
-// decl TagStatus properties
-// make Serializable child of QObject
-// decl Serializable child properties
-// impl access by mutex
-// impl visiable list prop
-// ************************
-// impl mananger timings.
-// ****** BrainFuck *******
-// rm virtual method of mananger child; 
-// Impl it dynamic by seting property by name;
-// Impl getAdditionalPropertys list.
-// ************************
+
 
 
 /**************** Interface ***************/
 
 /****** Default value ******/
-#define DEFAULT_TAG_LEFT_MSEC 30000
+#define DEFAULT_TAG_LEFT_MSEC 5000
 #define DEFAULT_TAG_LEFT_PCNT 20
 #define DEFAULT_TAG_LEFT_RULE TagFieldLeftRule::TIME
 #define DEFAULT_TAG_DEL_SEC   300
@@ -40,6 +25,7 @@
 class TagFieldLeftRule : QObject{
     Q_OBJECT
 public:
+    virtual ~TagFieldLeftRule(){}
     enum TagFieldLeftRuleEnum {
         TIME,
         PERCENT,
@@ -71,18 +57,17 @@ class TagStatus: public QObject{
     Q_PROPERTY(float         readPercent   READ readPercent    NOTIFY readPercentChanged)
 public:
     enum TagStatusEnum{
-        ONLINE,
-        OFFLINE,
-        LEFT
+        ENTER,
+        UNREAD,
+        LEAVE
     };
     Q_ENUM(TagStatusEnum)
     TagStatus(QString tag, QObject*parent=nullptr):
-        QObject(parent), m_tag(tag), m_status(ONLINE),
+        QObject(parent), m_tag(tag), m_status(ENTER),
         m_firstReadTime(QDateTime::currentDateTime()),
         m_lastReadTime(QDateTime::currentDateTime()),
         m_readCount(1), m_unreadCount(0)  {}
     virtual  ~TagStatus(){}
-    float readPercent() const;
     
 public slots:
     QString tag() const;
@@ -91,6 +76,7 @@ public slots:
     QDateTime lastReadTime() const;
     quint32 readCount() const;
     quint32 unreadCount() const;
+    float readPercent() const;
     void wasRead();
     void wasUnread(const TagFieldTimings &timings);
 private:
@@ -100,6 +86,7 @@ private:
     void setReadCount(quint32 readCount);
     void setUnreadCount(quint32 unreadCount);
 signals:
+    void statusEvent(const TagStatus * obj);
     void firstReadTimeChanged(QDateTime firstReadTime);
     void lastReadTimeChanged(QDateTime lastReadTime);
     void readCountChanged(quint32 readCount);
@@ -117,29 +104,25 @@ private:
 };
 
 /*** ReaderManengerField ***/
-class ReaderManengerTagField : public QObject{
+class ReaderManengerTagField : public Eventful{
     Q_OBJECT
 public:
     typedef QList<QSharedPointer<TagStatus>> TagFieldList; //ok!!
-    
     ReaderManengerTagField(QObject *parent = nullptr) : 
-        QObject(parent){}
+        Eventful(parent){}
     virtual ~ReaderManengerTagField(){}
-    
-    TagFieldList field() const;
-    TagFieldTimings * timings();
-
 public slots:
-    void updateField(QStringList readedTags);
-    
+    void update(QStringList readedTags);
+    void clear();
+    TagFieldTimings & timings();
+    TagFieldList field() const;
 signals:
-    void tagEvent(QSharedPointer<TagEvent> event);
     void fieldChanged(TagFieldList field);
-    
+private slots:
+    void tagStatusHandler(const TagStatus * obj);
 private:
     TagFieldList m_field;
     TagFieldTimings m_timings;
-    mutable QMutex access;
 };
 
 /****** ReaderManenger *****/
@@ -154,18 +137,16 @@ public:
     
 public slots:
     virtual void start()=0;
-    virtual void stop()=0;
+    virtual void stop();
     
-    const ReaderManengerTagField &getField() const{
-        return this->field;
-    }
+    ReaderManengerTagField::TagFieldList getField() const;
     
 signals:
-    void fieldChanged(const ReaderManengerTagField& field);
+    void fieldChanged(ReaderManengerTagField::TagFieldList field);
     
 protected:
     QScopedPointer<Reader> reader;
-    ReaderManengerTagField field;
+    ReaderManengerTagField tagsfield;
 };
 
 
@@ -180,7 +161,7 @@ public:
     virtual ~ReaderManengerBasicV1();
     
 public slots:
-    virtual void run();
+    virtual void start();
     virtual void stop();
     
 protected slots:

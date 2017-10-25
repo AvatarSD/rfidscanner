@@ -16,8 +16,8 @@ class Event
 {
 public:
     enum EventType{INF, TAG};
-    Event(EventType event) : event(event),
-        time(QDateTime::currentDateTime()) {}
+    Event(EventType event, QDateTime time = QDateTime::currentDateTime()):
+        event(event), time(time) {}
     virtual ~Event(){}
     virtual QString toString() const;
     virtual QJsonObject toJson() const = 0;
@@ -36,14 +36,13 @@ public:
     enum TagEventType{
         LEAVE = 1,
         ENTER = 2};
-    TagEvent(QString tag, TagEventType evtype) :
-        Event(TAG), tagevent(evtype), tag(tag) {}
+    TagEvent(QString tag, TagEventType evtype, 
+             QDateTime time = QDateTime::currentDateTime()) :
+        Event(TAG, time), tagevent(evtype), tag(tag) {}
     virtual ~TagEvent(){}
-//    QString getTag() const {return tag;}
-    const TagEventType tagevent;
-    // Serialaizeable interface
     virtual QString toString() const;
     virtual QJsonObject toJson() const;
+    const TagEventType tagevent;
 private:
     QString tag;
 };
@@ -52,16 +51,16 @@ private:
 class TagEnterEvent : public TagEvent
 {
 public:
-    TagEnterEvent(QString tag) :
-        TagEvent(tag, TagEventType::ENTER){}
+    TagEnterEvent(QString tag, QDateTime time = QDateTime::currentDateTime()) :
+        TagEvent(tag, TagEventType::ENTER, time){}
     virtual ~TagEnterEvent(){}
 };
 
 class TagLeaveEvent : public TagEvent
 {
 public:
-    TagLeaveEvent(QString tag) :
-        TagEvent(tag, TagEventType::LEAVE){}
+    TagLeaveEvent(QString tag, QDateTime time = QDateTime::currentDateTime()) :
+        TagEvent(tag, TagEventType::LEAVE, time){}
     virtual ~TagLeaveEvent(){}
 };
 

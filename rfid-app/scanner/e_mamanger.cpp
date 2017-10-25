@@ -28,9 +28,11 @@ float TagStatus::readPercent() const{
 void TagStatus::setStatus(TagStatus::TagStatusEnum status){
     if (m_status == status)
         return;
-    
+    bool isEvent = status == LEAVE || (status == ENTER && m_status == LEAVE);
     m_status = status;
     emit statusChanged(m_status);
+    if(isEvent)
+        emit statusEvent(this);
 }
 void TagStatus::setFirstReadTime(QDateTime firstReadTime){
     if (m_firstReadTime == firstReadTime)
@@ -64,16 +66,17 @@ void TagStatus::setUnreadCount(quint32 unreadCount){
 }
 void TagStatus::wasRead(){
     setReadCount(readCount()+1);
-    if(status() == LEFT) 
+    if(status() == LEAVE) 
         setFirstReadTime(QDateTime::currentDateTime());
     setLastReadTime(QDateTime::currentDateTime());
-    setStatus(ONLINE);
+    setStatus(ENTER);
 }
 void TagStatus::wasUnread(const TagFieldTimings &timings){
-    setUnreadCount(unreadCount()+1);
-    if(status() == ONLINE)
-        setStatus(OFFLINE);
-    else if(status() == OFFLINE){
+    if(status() != LEAVE)
+        setUnreadCount(unreadCount()+1);
+    if(status() == ENTER)
+        setStatus(UNREAD);
+    else if(status() == UNREAD){
         bool isTimeOut = (lastReadTime().msecsTo(QDateTime::currentDateTime()) 
                           >= timings.maxUnreadToLeftMsec);
         bool isPcntLow = (readPercent() < timings.maxUnreadToLeftPcnt);
@@ -85,7 +88,7 @@ void TagStatus::wasUnread(const TagFieldTimings &timings){
         case TagFieldLeftRule::TIME_OR_PERCENT:  isLeft = isTimeOut || isPcntLow; break;
         }
         if(isLeft)
-            setStatus(LEFT);
+            setStatus(LEAVE);
     }
 }
 
@@ -95,43 +98,73 @@ TagFieldTimings::TagFieldTimings() : maxUnreadToLeftMsec(DEFAULT_TAG_LEFT_MSEC),
     leftRule(DEFAULT_TAG_LEFT_RULE){}
 
 /*** ReaderManengerField ***/
-void ReaderManengerTagField::updateField(QStringList readedTags)
-{
-    QMutexLocker lock(&access);
-    
-    /* iterate m_field{
- * 
- *     iterate readedTags
- * 
- * }
- * 
-*/
-    
-    foreach (auto tags, readedTags) {
-        
-        
+void ReaderManengerTagField::update(QStringList readedTags){
+    QMutableListIterator<QSharedPointer<TagStatus>> fieldIt(m_field);
+    while(fieldIt.hasNext()){
+        int readedTadIndex = readedTags.indexOf(fieldIt.peekNext()->tag());
+        if(readedTadIndex >= 0){
+            fieldIt.peekNext()->wasRead();
+            readedTags.removeAt(readedTadIndex);
+        }
+        else{
+            fieldIt.peekNext()->wasUnread(m_timings);
+            if(fieldIt.peekNext()->lastReadTime().secsTo(QDateTime::currentDateTime())
+                    >= m_timings.maxUnreadToDeleteSec){
+                fieldIt.remove();
+                emit fieldChanged(m_field);
+            }
+        }
+        fieldIt.next();
     }
-    
-    
-    
+    if(readedTags.size() > 0){
+        foreach (auto tag, readedTags) {
+            QSharedPointer<TagStatus> newTagStatus(new TagStatus(tag, this));
+            connect(newTagStatus.data(), &TagStatus::statusEvent,
+                    this, &ReaderManengerTagField::tagStatusHandler);
+            m_field.append(newTagStatus);
+        }
+        emit fieldChanged(m_field);
+    }
 }
-TagFieldTimings *ReaderManengerTagField::timings(){
-    return &m_timings;
+void ReaderManengerTagField::tagStatusHandler(const TagStatus *obj){
+    if(obj->status() == TagStatus::LEAVE)
+        emit sysEvent(QSharedPointer<Event>(
+                          new TagLeaveEvent(obj->tag(),obj->lastReadTime())));
+    else if (obj->status() == TagStatus::ENTER)
+        emit sysEvent(QSharedPointer<Event>(
+                          new TagEnterEvent(obj->tag(),obj->firstReadTime())));
+}
+void ReaderManengerTagField::clear(){
+    m_field.clear();
+    emit fieldChanged(m_field);
+}
+TagFieldTimings &ReaderManengerTagField::timings(){
+    return m_timings;
 }
 ReaderManengerTagField::TagFieldList ReaderManengerTagField::field() const{
-    QMutexLocker lock(&access);
     return m_field;
 }
 
 /*********** ReaderManenger ***********/
 ReaderManenger::ReaderManenger(Reader *reader, QObject *parent) :
-    Eventful(parent), reader(reader)
+    Eventful(parent), reader(reader),tagsfield(this)
 {
+    this->reader->setParent(this);
     
+    connect(&tagsfield, &ReaderManengerTagField::fieldChanged,
+            this, &ReaderManenger::fieldChanged);
+    
+    reader->connectAsEventDrain(this);
+    tagsfield.connectAsEventDrain(this);
 }
-ReaderManenger::~ReaderManenger()
-{
-    
+ReaderManenger::~ReaderManenger(){
+    stop();
+}
+void ReaderManenger::stop(){
+    tagsfield.clear();
+}
+ReaderManengerTagField::TagFieldList ReaderManenger::getField() const{
+    return this->tagsfield.field();
 }
 
 /******** ReaderManengerSimple ********/
@@ -144,7 +177,7 @@ ReaderManengerBasicV1::~ReaderManengerBasicV1()
 {
     
 }
-void ReaderManengerBasicV1::run()
+void ReaderManengerBasicV1::start()
 {
     //    timer.start(10);
 }
