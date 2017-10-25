@@ -47,7 +47,6 @@ public:
     virtual ~Reader();
 public slots:
     virtual void execute(QSharedPointer<ScannerRequest>)=0;
-    //virtual QSharedPointer<ScannerReply> execBlock(QSharedPointer<ScannerRequest>)=0;
 signals:
     void executed(QSharedPointer<ScannerReply>);
 protected:

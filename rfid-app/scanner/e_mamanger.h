@@ -10,8 +10,7 @@
 
 #include "d_commands.h"
 
-
-
+#define MAX_PERCENT 100.0
 
 /**************** Interface ***************/
 
@@ -132,18 +131,17 @@ class ReaderManenger : public Eventful
 public:
     ReaderManenger(Reader * reader, QObject*parent=nullptr);
     virtual ~ReaderManenger();
-    
-    // readField->addProcedure->manengeProcedure
-    
 public slots:
-    virtual void start()=0;
+    virtual void start() = 0;
     virtual void stop();
-    
-    ReaderManengerTagField::TagFieldList getField() const;
-    
+    ReaderManengerTagField::TagFieldList field() const;
 signals:
     void fieldChanged(ReaderManengerTagField::TagFieldList field);
-    
+    /********************/
+protected slots:
+    virtual void executed(QSharedPointer<ScannerReply>) = 0;
+signals:
+    void execute(QSharedPointer<ScannerRequest>);
 protected:
     QScopedPointer<Reader> reader;
     ReaderManengerTagField tagsfield;
@@ -165,10 +163,8 @@ public slots:
     virtual void stop();
     
 protected slots:
-    //    virtual void onTimer();
+    virtual void executed(QSharedPointer<ScannerReply>);
     
-private:
-    //    QTimer timer;
     
 };
 

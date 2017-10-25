@@ -1,7 +1,6 @@
 #include "e_mamanger.h"
 #include <algorithm>
 
-#define MAX_PERCENT 100.0
 
 /************* TagStatus *************/
 QString TagStatus::tag() const{
@@ -163,7 +162,7 @@ ReaderManenger::~ReaderManenger(){
 void ReaderManenger::stop(){
     tagsfield.clear();
 }
-ReaderManengerTagField::TagFieldList ReaderManenger::getField() const{
+ReaderManengerTagField::TagFieldList ReaderManenger::field() const{
     return this->tagsfield.field();
 }
 
