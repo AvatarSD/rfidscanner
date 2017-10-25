@@ -46,7 +46,7 @@ void TagStatus::setFirstReadTime(QDateTime firstReadTime)
 {
     if(m_firstReadTime == firstReadTime)
         return;
-
+        
     m_firstReadTime = firstReadTime;
     emit firstReadTimeChanged(m_firstReadTime);
 }
@@ -54,7 +54,7 @@ void TagStatus::setLastReadTime(QDateTime lastReadTime)
 {
     if(m_lastReadTime == lastReadTime)
         return;
-
+        
     m_lastReadTime = lastReadTime;
     emit lastReadTimeChanged(m_lastReadTime);
 }
@@ -62,7 +62,7 @@ void TagStatus::setReadCount(quint32 readCount)
 {
     if(m_readCount == readCount)
         return;
-
+        
     m_readCount = readCount;
     emit readCountChanged(m_readCount);
     emit readPercentChanged(readPercent());
@@ -71,7 +71,7 @@ void TagStatus::setUnreadCount(quint32 unreadCount)
 {
     if(m_unreadCount == unreadCount)
         return;
-
+        
     m_unreadCount = unreadCount;
     emit unreadCountChanged(m_unreadCount);
     emit readPercentChanged(readPercent());
@@ -125,6 +125,14 @@ void ReaderManengerTagField::update(QStringList readedTags)
             fieldIt.peekNext()->wasUnread(m_timings);
             if(fieldIt.peekNext()->lastReadTime().secsTo(QDateTime::currentDateTime())
                     >= m_timings.maxUnreadToDeleteSec) {
+                emit sysEvent(QSharedPointer<Event>(
+                                  new ScannerEvent(ScannerEvent::INFO,
+                                                   ScannerEvent::MANENGER,
+                                                   QStringLiteral("Tag ") +
+                                                   fieldIt.peekNext()->tag() +
+                                                   " lost(timeout). Last seen: " +
+                                                   fieldIt.peekNext()->
+                                                   lastReadTime().toString())));
                 fieldIt.remove();
                 emit fieldChanged(m_field);
             }
@@ -143,10 +151,35 @@ void ReaderManengerTagField::update(QStringList readedTags)
 }
 void ReaderManengerTagField::tagStatusHandler(const TagStatus * obj)
 {
-    if(obj->status() == TagStatus::LEAVE)
+#define SEC_IN_MIN 60
+#define SEC_IN_HOUR (60*SEC_IN_MIN)
+#define SEC_IN_DAY (24*SEC_IN_HOUR)
+
+    if(obj->status() == TagStatus::LEAVE) {
         emit sysEvent(QSharedPointer<Event>(
                           new TagLeaveEvent(obj->tag(), obj->lastReadTime())));
-    else if(obj->status() == TagStatus::ENTER)
+                          
+        auto sec = obj->firstReadTime().secsTo(obj->lastReadTime());
+        uint32_t dd = sec / SEC_IN_DAY;
+        sec -= dd * SEC_IN_DAY;
+        uint32_t hh = sec / SEC_IN_HOUR;
+        sec -= hh * SEC_IN_HOUR;
+        uint32_t mm = sec / SEC_IN_MIN;
+        sec -= mm * SEC_IN_MIN;
+        
+        QString elps = QString::number(dd) + "d " + QString::number(hh) + "." +
+                       QString::number(mm) + "." + QString::number(sec);
+                       
+        QString str = QStringLiteral("Tag ") + obj->tag() +
+                      " leave. Enter time: " + obj->firstReadTime().toString() +
+                      ", last time in zone: " + elps +
+                      ", total read count: " + QString::number(obj->readCount()) +
+                      " times, percent: " + QString::number(obj->readPercent()) + "%";
+        emit sysEvent(QSharedPointer<Event>(
+                          new ScannerEvent(ScannerEvent::INFO,
+                                           ScannerEvent::MANENGER,
+                                           str)));
+    } else if(obj->status() == TagStatus::ENTER)
         emit sysEvent(QSharedPointer<Event>(
                           new TagEnterEvent(obj->tag(), obj->firstReadTime())));
 }
@@ -171,12 +204,21 @@ ReaderManenger::ReaderManenger(Reader * reader, QObject * parent) :
     connect(&tagsfield, &ReaderManengerTagField::fieldChanged,
             this, &ReaderManenger::fieldChanged);
     tagsfield.connectAsEventDrain(this);
-
-
+    
+    
     this->reader->setParent(this);
     reader->connectAsEventDrain(this);
-
-    connect()
+    
+    connect(this->reader.data(), &Reader::statusChanged,
+            this, &ReaderManenger::readerStatusHandler);
+    connect(this, &ReaderManenger::attach,
+            this->reader.data(), &Reader::attach);
+    connect(this, &ReaderManenger::detach,
+            this->reader.data(), &Reader::detach);
+    connect(this, &ReaderManenger::execute,
+            this->reader.data(), &Reader::execute);
+    connect(this->reader.data(), &Reader::executed,
+            this, &ReaderManenger::executed);
 }
 ReaderManenger::~ReaderManenger()
 {

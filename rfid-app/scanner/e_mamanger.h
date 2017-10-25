@@ -75,7 +75,7 @@ public:
         m_lastReadTime(QDateTime::currentDateTime()),
         m_readCount(1), m_unreadCount(0)  {}
     virtual  ~TagStatus() {}
-
+    
 public slots:
     QString tag() const;
     TagStatusEnum status() const;
@@ -100,7 +100,7 @@ signals:
     void unreadCountChanged(quint32 unreadCount);
     void statusChanged(TagStatusEnum status);
     void readPercentChanged(float readPercent);
-
+    
 private:
     const QString m_tag;
     TagStatusEnum m_status;
@@ -149,8 +149,11 @@ signals:
     /********************/
 protected slots:
     virtual void executed(QSharedPointer<ScannerReply>) = 0;
+    virtual void readerStatusHandler(Reader::ReaderStatus) = 0;
 signals:
     void execute(QSharedPointer<ScannerRequest>);
+    void attach(QString addr);
+    void detach();
 protected:
     QScopedPointer<Reader> reader;
     ReaderManengerTagField tagsfield;
@@ -166,11 +169,11 @@ class ReaderManengerBasicV1 : public ReaderManenger
 public:
     ReaderManengerBasicV1(Reader * reader, QObject * parent = nullptr);
     virtual ~ReaderManengerBasicV1();
-
+    
 public slots:
     virtual void start();
     virtual void stop();
-
+    /*******************/
 protected slots:
     virtual void executed(QSharedPointer<ScannerReply>);
     void onTimer();
