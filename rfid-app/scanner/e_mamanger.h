@@ -21,10 +21,11 @@
 #define DEFAULT_TAG_DEL_SEC   300
 
 /**** TagFieldLeftRules ****/
-class TagFieldLeftRule : QObject{
+class TagFieldLeftRule : QObject
+{
     Q_OBJECT
 public:
-    virtual ~TagFieldLeftRule(){}
+    virtual ~TagFieldLeftRule() {}
     enum TagFieldLeftRuleEnum {
         TIME,
         PERCENT,
@@ -35,7 +36,8 @@ public:
 };
 
 /******* FieldTimings ******/
-class TagFieldTimings {
+class TagFieldTimings
+{
 public:
     TagFieldTimings();
     uint maxUnreadToLeftMsec;
@@ -45,29 +47,35 @@ public:
 };
 
 /******** TagStatus ********/
-class TagStatus: public QObject{
+class TagStatus: public QObject
+{
     Q_OBJECT
     Q_PROPERTY(QString       tag           READ tag)
     Q_PROPERTY(TagStatusEnum status        READ status         NOTIFY statusChanged)
-    Q_PROPERTY(QDateTime     firstReadTime READ firstReadTime  NOTIFY firstReadTimeChanged)
-    Q_PROPERTY(QDateTime     lastReadTime  READ lastReadTime   NOTIFY lastReadTimeChanged)
-    Q_PROPERTY(quint32       readCount     READ readCount      NOTIFY readCountChanged)
-    Q_PROPERTY(quint32       unreadCount   READ unreadCount    NOTIFY unreadCountChanged)
-    Q_PROPERTY(float         readPercent   READ readPercent    NOTIFY readPercentChanged)
+    Q_PROPERTY(QDateTime     firstReadTime READ firstReadTime  NOTIFY
+               firstReadTimeChanged)
+    Q_PROPERTY(QDateTime     lastReadTime  READ lastReadTime   NOTIFY
+               lastReadTimeChanged)
+    Q_PROPERTY(quint32       readCount     READ readCount      NOTIFY
+               readCountChanged)
+    Q_PROPERTY(quint32       unreadCount   READ unreadCount    NOTIFY
+               unreadCountChanged)
+    Q_PROPERTY(float         readPercent   READ readPercent    NOTIFY
+               readPercentChanged)
 public:
-    enum TagStatusEnum{
+    enum TagStatusEnum {
         ENTER,
         UNREAD,
         LEAVE
     };
     Q_ENUM(TagStatusEnum)
-    TagStatus(QString tag, QObject*parent=nullptr):
+    TagStatus(QString tag, QObject * parent = nullptr):
         QObject(parent), m_tag(tag), m_status(ENTER),
         m_firstReadTime(QDateTime::currentDateTime()),
         m_lastReadTime(QDateTime::currentDateTime()),
         m_readCount(1), m_unreadCount(0)  {}
-    virtual  ~TagStatus(){}
-    
+    virtual  ~TagStatus() {}
+
 public slots:
     QString tag() const;
     TagStatusEnum status() const;
@@ -77,7 +85,7 @@ public slots:
     quint32 unreadCount() const;
     float readPercent() const;
     void wasRead();
-    void wasUnread(const TagFieldTimings &timings);
+    void wasUnread(const TagFieldTimings & timings);
 private:
     void setStatus(TagStatusEnum status);
     void setFirstReadTime(QDateTime firstReadTime);
@@ -89,10 +97,10 @@ signals:
     void firstReadTimeChanged(QDateTime firstReadTime);
     void lastReadTimeChanged(QDateTime lastReadTime);
     void readCountChanged(quint32 readCount);
-    void unreadCountChanged(quint32 unreadCount);   
+    void unreadCountChanged(quint32 unreadCount);
     void statusChanged(TagStatusEnum status);
     void readPercentChanged(float readPercent);
-    
+
 private:
     const QString m_tag;
     TagStatusEnum m_status;
@@ -103,13 +111,14 @@ private:
 };
 
 /*** ReaderManengerField ***/
-class ReaderManengerTagField : public Eventful{
+class ReaderManengerTagField : public Eventful
+{
     Q_OBJECT
 public:
     typedef QList<QSharedPointer<TagStatus>> TagFieldList; //ok!!
-    ReaderManengerTagField(QObject *parent = nullptr) : 
-        Eventful(parent){}
-    virtual ~ReaderManengerTagField(){}
+    ReaderManengerTagField(QObject * parent = nullptr) :
+        Eventful(parent) {}
+    virtual ~ReaderManengerTagField() {}
 public slots:
     void update(QStringList readedTags);
     void clear();
@@ -129,7 +138,7 @@ class ReaderManenger : public Eventful
 {
     Q_OBJECT
 public:
-    ReaderManenger(Reader * reader, QObject*parent=nullptr);
+    ReaderManenger(Reader * reader, QObject * parent = nullptr);
     virtual ~ReaderManenger();
 public slots:
     virtual void start() = 0;
@@ -155,17 +164,18 @@ class ReaderManengerBasicV1 : public ReaderManenger
 {
     Q_OBJECT
 public:
-    ReaderManengerBasicV1(Reader * reader, QObject *parent=nullptr);
+    ReaderManengerBasicV1(Reader * reader, QObject * parent = nullptr);
     virtual ~ReaderManengerBasicV1();
-    
+
 public slots:
     virtual void start();
     virtual void stop();
-    
+
 protected slots:
     virtual void executed(QSharedPointer<ScannerReply>);
-    
-    
+    void onTimer();
+private:
+    QTimer timer;
 };
 
 

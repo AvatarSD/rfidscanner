@@ -43,22 +43,34 @@ class Reader : public Eventful
 {
     Q_OBJECT
 public:
-    Reader(ReaderProtocol * protocol, PhyTransport * transport, QObject*parent=nullptr);
+    enum ReaderStatus {
+        DETHACHED,
+        ATTACHED,
+        READY
+    };
+    Q_ENUM(ReaderStatus)
+    Reader(ReaderProtocol * protocol, PhyTransport * transport,
+           QObject * parent = nullptr);
     virtual ~Reader();
 public slots:
-    virtual void execute(QSharedPointer<ScannerRequest>)=0;
+    ReaderStatus status() const;
+    virtual void attach(QString addr) = 0;
+    virtual void detach() = 0;
+    virtual void execute(QSharedPointer<ScannerRequest>) = 0;
 signals:
     void executed(QSharedPointer<ScannerReply>);
+    void statusChanged(ReaderStatus status);
 protected:
     QScopedPointer<ReaderProtocol> protocol;
     QScopedPointer<PhyTransport> transport;
-    //    QQueue<QSharedPointer<ScannerRequest>> msgQueue;
 protected slots:
-    virtual void inData(QByteArray)=0;
+    void setStatus(ReaderStatus status);
+    virtual void inData(QByteArray) = 0;
 signals:
     void outData(QByteArray);
 private:
     QThread thread;
+    ReaderStatus m_status;
 };
 
 
