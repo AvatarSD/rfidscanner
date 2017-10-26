@@ -1,5 +1,5 @@
-#ifndef READERMANEGNER_H
-#define READERMANEGNER_H
+#ifndef SCANNERMANEGNER_H
+#define SCANNERMANEGNER_H
 
 #include <QSharedPointer>
 #include <QScopedPointer>
@@ -110,15 +110,15 @@ private:
     quint32 m_unreadCount;
 };
 
-/*** ReaderManengerField ***/
-class ReaderManengerTagField : public Eventful
+/*** ScannerManengerField ***/
+class ScannerManengerTagField : public Eventful
 {
     Q_OBJECT
 public:
     typedef QList<QSharedPointer<TagStatus>> TagFieldList; //ok!!
-    ReaderManengerTagField(QObject * parent = nullptr) :
+    ScannerManengerTagField(QObject * parent = nullptr) :
         Eventful(parent) {}
-    virtual ~ReaderManengerTagField() {}
+    virtual ~ScannerManengerTagField() {}
 public slots:
     void update(QStringList readedTags);
     void clear();
@@ -133,42 +133,42 @@ private:
     TagFieldTimings m_timings;
 };
 
-/****** ReaderManenger *****/
-class ReaderManenger : public Eventful
+/****** ScannerManenger *****/
+class ScannerManenger : public Eventful
 {
     Q_OBJECT
 public:
-    ReaderManenger(Reader * reader, QObject * parent = nullptr);
-    virtual ~ReaderManenger();
+    ScannerManenger(Scanner * scanner, QObject * parent = nullptr);
+    virtual ~ScannerManenger();
 public slots:
     virtual void start() = 0;
     virtual void stop();
-    ReaderManengerTagField::TagFieldList field() const;
+    ScannerManengerTagField::TagFieldList field() const;
 signals:
-    void fieldChanged(ReaderManengerTagField::TagFieldList field);
+    void fieldChanged(ScannerManengerTagField::TagFieldList field);
     /********************/
 protected slots:
     virtual void executed(QSharedPointer<ScannerReply>) = 0;
-    virtual void readerStatusHandler(Reader::ReaderStateEnum) = 0;
+    virtual void scannerStatusHandler(Scanner::ScannerStateEnum) = 0;
 signals:
     void execute(QSharedPointer<ScannerRequest>);
     void attach(QString addr);
     void detach();
 protected:
-    QScopedPointer<Reader> reader;
-    ReaderManengerTagField tagsfield;
+    QScopedPointer<Scanner> scanner;
+    ScannerManengerTagField tagsfield;
 };
 
 
 /************* Implementation *************/
 
-/*** ReaderManengerSimple **/
-class ReaderManengerBasicV1 : public ReaderManenger
+/*** ScannerManengerSimple **/
+class ScannerManengerBasicV1 : public ScannerManenger
 {
     Q_OBJECT
 public:
-    ReaderManengerBasicV1(Reader * reader, QObject * parent = nullptr);
-    virtual ~ReaderManengerBasicV1();
+    ScannerManengerBasicV1(Scanner * scanner, QObject * parent = nullptr);
+    virtual ~ScannerManengerBasicV1();
     
 public slots:
     virtual void start();
@@ -183,4 +183,4 @@ private:
 
 
 
-#endif // READERMANEGNER_H
+#endif // SCANNERMANEGNER_H

@@ -1,7 +1,7 @@
 #ifndef CHINECOMPACTHIDSCANNER_H
 #define CHINECOMPACTHIDSCANNER_H
 
-#include "../c_reader.h"
+#include "../c_scanner.h"
 
 
 /*********************** Basic ************************/
@@ -33,19 +33,19 @@
 //};
 
 ///**************** Protocol ****************/
-//class ChinaCompactHidProtocol : public ReaderProtocol
+//class ChinaCompactHidProtocol : public ScannerProtocol
 //{
 //public:
 //    ChinaCompactHidProtocol();
 //};
 
-///*************** Reader ***************/
-//class ChinaCompactHidScanner : public Reader
+///*************** Scanner ***************/
+//class ChinaCompactHidScanner : public Scanner
 //{
 //    Q_OBJECT
 //public:
 //    ChinaCompactHidScanner(QSharedPointer<UsbDevicePidVid> dev) :
-//        Reader(QSharedPointer<ChinaCompactHidProtocol>(new ChinaCompactHidProtocol()),
+//        Scanner(QSharedPointer<ChinaCompactHidProtocol>(new ChinaCompactHidProtocol()),
 //                   QSharedPointer<ChinaCompactHidTransport>(new ChinaCompactHidTransport(dev)))
 //    {}
 //};

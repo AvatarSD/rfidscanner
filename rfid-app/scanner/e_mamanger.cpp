@@ -112,8 +112,8 @@ TagFieldTimings::TagFieldTimings() : maxUnreadToLeftMsec(DEFAULT_TAG_LEFT_MSEC),
     maxUnreadToDeleteSec(DEFAULT_TAG_DEL_SEC),
     leftRule(DEFAULT_TAG_LEFT_RULE) {}
 
-/*** ReaderManengerField ***/
-void ReaderManengerTagField::update(QStringList readedTags)
+/*** ScannerManengerField ***/
+void ScannerManengerTagField::update(QStringList readedTags)
 {
     QMutableListIterator<QSharedPointer<TagStatus>> fieldIt(m_field);
     while(fieldIt.hasNext()) {
@@ -143,13 +143,13 @@ void ReaderManengerTagField::update(QStringList readedTags)
         foreach(auto tag, readedTags) {
             QSharedPointer<TagStatus> newTagStatus(new TagStatus(tag, this));
             connect(newTagStatus.data(), &TagStatus::statusEvent,
-                    this, &ReaderManengerTagField::tagStatusHandler);
+                    this, &ScannerManengerTagField::tagStatusHandler);
             m_field.append(newTagStatus);
         }
         emit fieldChanged(m_field);
     }
 }
-void ReaderManengerTagField::tagStatusHandler(const TagStatus * obj)
+void ScannerManengerTagField::tagStatusHandler(const TagStatus * obj)
 {
 #define SEC_IN_MIN 60
 #define SEC_IN_HOUR (60*SEC_IN_MIN)
@@ -183,81 +183,81 @@ void ReaderManengerTagField::tagStatusHandler(const TagStatus * obj)
         emit sysEvent(QSharedPointer<Event>(
                           new TagEnterEvent(obj->tag(), obj->firstReadTime())));
 }
-void ReaderManengerTagField::clear()
+void ScannerManengerTagField::clear()
 {
     m_field.clear();
     emit fieldChanged(m_field);
 }
-TagFieldTimings & ReaderManengerTagField::timings()
+TagFieldTimings & ScannerManengerTagField::timings()
 {
     return m_timings;
 }
-ReaderManengerTagField::TagFieldList ReaderManengerTagField::field() const
+ScannerManengerTagField::TagFieldList ScannerManengerTagField::field() const
 {
     return m_field;
 }
 
-/*********** ReaderManenger ***********/
-ReaderManenger::ReaderManenger(Reader * reader, QObject * parent) :
-    Eventful(parent), reader(reader), tagsfield(this)
+/*********** ScannerManenger ***********/
+ScannerManenger::ScannerManenger(Scanner * scanner, QObject * parent) :
+    Eventful(parent), scanner(scanner), tagsfield(this)
 {
-    connect(&tagsfield, &ReaderManengerTagField::fieldChanged,
-            this, &ReaderManenger::fieldChanged);
+    connect(&tagsfield, &ScannerManengerTagField::fieldChanged,
+            this, &ScannerManenger::fieldChanged);
     tagsfield.connectAsEventDrain(this);
     
     
-    this->reader->setParent(this);
-    reader->connectAsEventDrain(this);
+    this->scanner->setParent(this);
+    scanner->connectAsEventDrain(this);
     
-    connect(this->reader.data(), &Reader::statusChanged,
-            this, &ReaderManenger::readerStatusHandler);
-    connect(this, &ReaderManenger::attach,
-            this->reader.data(), &Reader::attach);
-    connect(this, &ReaderManenger::detach,
-            this->reader.data(), &Reader::detach);
-    connect(this, &ReaderManenger::execute,
-            this->reader.data(), &Reader::execute);
-    connect(this->reader.data(), &Reader::executed,
-            this, &ReaderManenger::executed);
+    connect(this->scanner.data(), &Scanner::statusChanged,
+            this, &ScannerManenger::scannerStatusHandler);
+    connect(this, &ScannerManenger::attach,
+            this->scanner.data(), &Scanner::attach);
+    connect(this, &ScannerManenger::detach,
+            this->scanner.data(), &Scanner::detach);
+    connect(this, &ScannerManenger::execute,
+            this->scanner.data(), &Scanner::execute);
+    connect(this->scanner.data(), &Scanner::executed,
+            this, &ScannerManenger::executed);
 }
-ReaderManenger::~ReaderManenger()
+ScannerManenger::~ScannerManenger()
 {
     stop();
 }
-void ReaderManenger::stop()
+void ScannerManenger::stop()
 {
     tagsfield.clear();
 }
-ReaderManengerTagField::TagFieldList ReaderManenger::field() const
+ScannerManengerTagField::TagFieldList ScannerManenger::field() const
 {
     return this->tagsfield.field();
 }
 
-/******** ReaderManengerSimple ********/
-ReaderManengerBasicV1::ReaderManengerBasicV1(Reader * reader,
+/******** ScannerManengerSimple ********/
+ScannerManengerBasicV1::ScannerManengerBasicV1(Scanner * scanner,
                                              QObject * parent) :
-    ReaderManenger(reader, parent) //, timer(this), reader(reader)
+    ScannerManenger(scanner, parent) //, timer(this), scanner(scanner)
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(onTimer()));
 }
-ReaderManengerBasicV1::~ReaderManengerBasicV1()
+ScannerManengerBasicV1::~ScannerManengerBasicV1()
 {
 
 }
-void ReaderManengerBasicV1::start()
+void ScannerManengerBasicV1::start()
 {
     //    timer.start(10);
 }
-void ReaderManengerBasicV1::stop()
+void ScannerManengerBasicV1::stop()
 {
     //    timer.stop();
 }
 
-void ReaderManengerBasicV1::executed(QSharedPointer<ScannerReply>)
+void ScannerManengerBasicV1::executed(QSharedPointer<ScannerReply>)
 {
 
 }
-void ReaderManengerBasicV1::onTimer()
+void ScannerManengerBasicV1::onTimer()
 {
 
 }

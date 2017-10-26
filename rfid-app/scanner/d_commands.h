@@ -1,7 +1,7 @@
 #ifndef D_COMMANDS_H
 #define D_COMMANDS_H
 
-#include "c_reader.h"
+#include "c_scanner.h"
 
 
 /*********************** Commands ************************/

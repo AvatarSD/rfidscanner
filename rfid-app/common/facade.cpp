@@ -3,7 +3,7 @@
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread(this), netManengerThread(this),
-    readerManengerThread(this),// sysManengerThread(this);
+    scannerManengerThread(this),// sysManengerThread(this);
     logger(new Logger)
 {    
     /************** Logger ****************/
@@ -47,25 +47,25 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     /************** Scanner ***************/
     // todo: register qml for rfid manamger
     // quened connections of rfid manamger
-    readerManengerThread.setObjectName("Reader Manenger");
-    readerManengerThread.start();
+    scannerManengerThread.setObjectName("Scanner Manenger");
+    scannerManengerThread.start();
     
     
 }
 
 ScannerFacade::~ScannerFacade()
 {
-    void disconnectFromReader();
+    void disconnectFromScanner();
     disconnectFromServer();
     //void disconnectFromWlan();
     
     //sysManengerThread.quit();
-    readerManengerThread.quit();
+    scannerManengerThread.quit();
     netManengerThread.quit();
     logManengerThread.quit();
     
     //sysManengerThread.wait();
-    readerManengerThread.wait();
+    scannerManengerThread.wait();
     netManengerThread.wait();
     logManengerThread.wait();
 }
@@ -174,11 +174,11 @@ void ScannerFacade::disconnectFromServer()
         QMetaObject::invokeMethod(network.data(), "stop", Qt::QueuedConnection);
 }
 
-void ScannerFacade::connectToReader()
+void ScannerFacade::connectToScanner()
 {
     
 }
-void ScannerFacade::disconnectFromReader()
+void ScannerFacade::disconnectFromScanner()
 {
     
 }

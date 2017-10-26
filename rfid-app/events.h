@@ -106,7 +106,7 @@ public:
     enum IDs{
         PHY,
         PARSER,
-        READER,
+        SCANNER,
         COMMANDER,
         MANENGER
     };

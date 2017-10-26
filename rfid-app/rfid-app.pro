@@ -15,7 +15,7 @@ SOURCES += main.cpp \
     common/facade.cpp \
     scanner/a_transport.cpp \
     scanner/d_commands.cpp \
-    scanner/c_reader.cpp \
+    scanner/c_scanner.cpp \
     scanner/e_mamanger.cpp \
     network/b_protocol.cpp \
     scanner/b_proto.cpp
@@ -57,7 +57,7 @@ HEADERS += \
     scanner/a_transport.h \
     scanner/d_commands.h \
     scanner/e_mamanger.h \
-    scanner/c_reader.h \
+    scanner/c_scanner.h \
     scanner/b_proto.h
 
 #INCLUDEPATH += ../QUSB/src

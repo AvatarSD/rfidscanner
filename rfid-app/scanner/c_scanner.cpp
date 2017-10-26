@@ -1,26 +1,26 @@
-#include "c_reader.h"
+#include "c_scanner.h"
 
-Reader::Reader(ReaderProtocol * protocol, PhyTransport * transport,
+Scanner::Scanner(ScannerProtocol * protocol, PhyTransport * transport,
                QObject * parent):
     Eventful(parent), protocol(protocol), transport(transport)
 {
     transport->moveToThread(&thread);
-    thread.setObjectName("Reader Phy");
+    thread.setObjectName("Scanner Phy");
     thread.start();
 }
 
-Reader::~Reader()
+Scanner::~Scanner()
 {
     thread.quit();
     thread.wait();
 }
 
-Reader::ReaderStateEnum Reader::status() const
+Scanner::ScannerStateEnum Scanner::status() const
 {
     return m_status;
 }
 
-void Reader::setStatus(Reader::ReaderStateEnum status)
+void Scanner::setStatus(Scanner::ScannerStateEnum status)
 {
     if(m_status == status)
         return;
@@ -30,7 +30,7 @@ void Reader::setStatus(Reader::ReaderStateEnum status)
 }
 
 /*
-bool Reader::getFullMem(Tag &tag)
+bool Scanner::getFullMem(Tag &tag)
 {
     return (getEPCMem(tag) && getUserMem(tag) && getReserveMem(tag));
 }

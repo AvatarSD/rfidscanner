@@ -10,7 +10,7 @@
 
 
 
-/**** General Reader Settings ****/
+/**** General Scanner Settings ****/
 /*typedef int dBm;
 typedef int Frequency;
 typedef std::list<Frequency> WorkingFrequencies;
@@ -30,7 +30,7 @@ enum Session{
 typedef uint QValue;*/
 
 /************/
-/*class ReaderSettings
+/*class ScannerSettings
 {
 
 };*/
@@ -38,39 +38,39 @@ typedef uint QValue;*/
 
 
 
-/********** Reader *********/
-class Reader : public Eventful
+/********** Scanner *********/
+class Scanner : public Eventful
 {
     Q_OBJECT
 public:
-    enum ReaderStateEnum {
+    enum ScannerStateEnum {
         DETHACHED,
         ATTACHED,
         READY
     };
-    Q_ENUM(ReaderStateEnum)
-    Reader(ReaderProtocol * protocol, PhyTransport * transport,
+    Q_ENUM(ScannerStateEnum)
+    Scanner(ScannerProtocol * protocol, PhyTransport * transport,
            QObject * parent = nullptr);
-    virtual ~Reader();
+    virtual ~Scanner();
 public slots:
-    ReaderStateEnum status() const;
+    ScannerStateEnum status() const;
     virtual void attach(QString addr) = 0;
     virtual void detach() = 0;
     virtual void execute(QSharedPointer<ScannerRequest>) = 0;
 signals:
     void executed(QSharedPointer<ScannerReply>);
-    void statusChanged(ReaderStateEnum status);
+    void statusChanged(ScannerStateEnum status);
 protected:
-    QScopedPointer<ReaderProtocol> protocol;
+    QScopedPointer<ScannerProtocol> protocol;
     QScopedPointer<PhyTransport> transport;
 protected slots:
-    void setStatus(ReaderStateEnum status);
+    void setStatus(ScannerStateEnum status);
     virtual void inData(QByteArray) = 0;
 signals:
     void outData(QByteArray);
 private:
     QThread thread;
-    ReaderStateEnum m_status;
+    ScannerStateEnum m_status;
 };
 
 

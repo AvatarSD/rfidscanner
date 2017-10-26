@@ -51,13 +51,13 @@ class ScannerFacade : public Eventful
     /*   */ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
     /*   */ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
     /*   */ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
-    /***** READER ****/
-    /* I */ //Q_PROPERTY(bool isReaderReady READ isReaderReady WRITE setIsReaderReady NOTIFY isReaderReadyChanged)
-    /* I */ //Q_PROPERTY(bool isReaderReconReq READ isReaderReconReq WRITE setIsReaderReconReq NOTIFY isReaderReconReqChanged)
+    /***** SCANNER ****/
+    /* I */ //Q_PROPERTY(bool isScannerReady READ isScannerReady WRITE setIsScannerReady NOTIFY isScannerReadyChanged)
+    /* I */ //Q_PROPERTY(bool isScannerReconReq READ isScannerReconReq WRITE setIsScannerReconReq NOTIFY isScannerReconReqChanged)
     /*   */     /* phy */
-    /*N C*/ //Q_PROPERTY(ReaderType  readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
-    /*N C*/ //Q_PROPERTY(QString     readerAddr      READ readerAddr      /*WRITE setReaderAddr*/    /*NOTIFY readerAddrChanged*/)
-    /* I */ //Q_PROPERTY(ReaderStateEnum readerState READ readerState WRITE setReaderState NOTIFY readerStateChanged)
+    /*N C*/ //Q_PROPERTY(ScannerType  scannerType      READ scannerType      /*WRITE setScannerType*/    /*NOTIFY scannerTypeChanged*/)
+    /*N C*/ //Q_PROPERTY(QString     scannerAddr      READ scannerAddr      /*WRITE setScannerAddr*/    /*NOTIFY scannerAddrChanged*/)
+    /* I */ //Q_PROPERTY(ScannerStateEnum scannerState READ scannerState WRITE setScannerState NOTIFY scannerStateChanged)
     /*   */     /* mananger */
     /* I */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
     /*   */ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
@@ -82,18 +82,18 @@ public:
     enum SocketType{TCP, SSL};
     enum MsgBound{SIMPLE, BOUND_V1};
     enum AuthType{JSON, BASE64};
-    enum ReaderType{ADS_USB, LINK_SPRITE};
+    enum ScannerType{ADS_USB, LINK_SPRITE};
 
     Q_ENUM(NetSettStat)
     Q_ENUM(ClientType)
     Q_ENUM(SocketType)
     Q_ENUM(MsgBound)
     Q_ENUM(AuthType)
-    Q_ENUM(ReaderType)
+    Q_ENUM(ScannerType)
     
     /*************/
     
-    typedef Reader::ReaderStateEnum ReaderStateEnum;
+    typedef Scanner::ScannerStateEnum ScannerStateEnum;
 
     explicit ScannerFacade(QObject*parent=nullptr);
     ~ScannerFacade();
@@ -101,8 +101,8 @@ public:
 public slots:
     void connectToServer();
     void disconnectFromServer();
-    void connectToReader();
-    void disconnectFromReader();
+    void connectToScanner();
+    void disconnectFromScanner();
     //void connectToWlan(QString ssid, QString psswd);
     //void disconnectFromWlan();
 
@@ -197,7 +197,7 @@ private:
 private:
     QThread logManengerThread;
     QThread netManengerThread;
-    QThread readerManengerThread;
+    QThread scannerManengerThread;
 //    QThread sysManengerThread;
 
     /* static */
@@ -205,7 +205,7 @@ private:
 //    QScopedPointer<System> system;
     /* dynamic */
     QScopedPointer<NetClient> network;
-    QScopedPointer<ReaderManenger> reader;
+    QScopedPointer<ScannerManenger> scanner;
 
     bool netReCreateRequire;
     bool netReConectRequire;
