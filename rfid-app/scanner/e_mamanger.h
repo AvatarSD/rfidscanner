@@ -149,7 +149,7 @@ signals:
     /********************/
 protected slots:
     virtual void executed(QSharedPointer<ScannerReply>) = 0;
-    virtual void readerStatusHandler(Reader::ReaderStatus) = 0;
+    virtual void readerStatusHandler(Reader::ReaderStateEnum) = 0;
 signals:
     void execute(QSharedPointer<ScannerRequest>);
     void attach(QString addr);

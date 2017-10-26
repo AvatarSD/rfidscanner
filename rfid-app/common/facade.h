@@ -49,6 +49,7 @@ class ScannerFacade : public Eventful
     /*     */     /**** reader ****/
     /*N C  */ //Q_PROPERTY(ReaderType  readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
     /*N C  */ //Q_PROPERTY(QString     readerAddr      READ readerAddr      /*WRITE setReaderAddr*/    /*NOTIFY readerAddrChanged*/)
+    /* I   */ Q_PROPERTY(ReaderStateEnum readerState READ readerState WRITE setReaderState NOTIFY readerStateChanged)
     /*     */     /**** reader mananger ****/
     /* I   */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
     /*O R D*/ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
@@ -82,6 +83,10 @@ public:
     Q_ENUM(MsgBound)
     Q_ENUM(AuthType)
     Q_ENUM(ReaderType)
+    
+    /*************/
+    
+    typedef Reader::ReaderStateEnum ReaderStateEnum;
 
     explicit ScannerFacade(QObject*parent=nullptr);
     ~ScannerFacade();

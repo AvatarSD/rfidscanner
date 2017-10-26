@@ -15,12 +15,12 @@ Reader::~Reader()
     thread.wait();
 }
 
-Reader::ReaderStatus Reader::status() const
+Reader::ReaderStateEnum Reader::status() const
 {
     return m_status;
 }
 
-void Reader::setStatus(Reader::ReaderStatus status)
+void Reader::setStatus(Reader::ReaderStateEnum status)
 {
     if(m_status == status)
         return;
