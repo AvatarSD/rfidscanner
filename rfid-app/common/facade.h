@@ -12,53 +12,60 @@ class ScannerFacade : public Eventful
 {
     Q_OBJECT
 
-    /*I*/ // Informations
+    /*I*/ // Informations property, cannot be set
     /******************/
-    /*N*/ // Need
-    /*O*/ // Optional
+    /*N*/ // Need to set, otherwise value have a default value
     /******************/
-    /*R*/ // Runtime motifiting
-    /*C*/ // Re-Create object(s)
+    /*C*/ // Require re-create object(s)
+    /*R*/ // Require re-connect.
     /******************/
-    /*D*/ // Default value
+    // All 'C' properties is 'R'. All 'C' or 'R' properties
+    // is hold by ScannerFacade internal. It's require for 
+    // saving it for next creation/connection procedure.
+    // Otherwise it will r/w from appropriate object.
 
-    /* I   */ Q_PROPERTY(NetSettStat isReady         READ isReady                                  NOTIFY isReadyChanged)
-    /* I   */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
-    /*     */     /**** net connectio ****/
-    /*N C D*/ Q_PROPERTY(ClientType  clientType      READ clientType      WRITE setClientType      NOTIFY clientTypeChanged)
-    /*N C D*/ Q_PROPERTY(SocketType  socket          READ socket          WRITE setSocket          NOTIFY socketChanged)
-    /*N R  */ Q_PROPERTY(QString     server          READ server          WRITE setServer          NOTIFY serverChanged)
-    /*N R  */ Q_PROPERTY(quint16     port            READ port            WRITE setPort            NOTIFY portChanged)
-    /*O R D*/ //Q_PROPERTY(QString     sslKey          READ sslKey          WRITE setSslKey          NOTIFY sslKeyChanged)
-    /*O R D*/ //Q_PROPERTY(QString     sslCert         READ sslCert         WRITE setSslCert         NOTIFY sslCertChanged)
-    /*     */     /**** net proto ****/
-    /*N C D*/ Q_PROPERTY(MsgBound    msgBoundaries   READ msgBoundaries   WRITE setMsgBoundaries   NOTIFY msgBoundariesChanged)
-    /*N C D*/ Q_PROPERTY(QString     startSqns       READ startSqns       WRITE setStartSqns       NOTIFY startSqnsChanged)
-    /*N C D*/ Q_PROPERTY(QString     tailSqns        READ tailSqns        WRITE setTailSqns        NOTIFY tailSqnsChanged)
-    /*     */     /**** auth ****/
-    /*N R  */ Q_PROPERTY(QString     username        READ username        WRITE setUsername        NOTIFY usernameChanged)
-    /*N R  */ Q_PROPERTY(QString     password        READ password        WRITE setPassword        NOTIFY passwordChanged)
-    /* I   */ Q_PROPERTY(NetStateEnum netState       READ netState                                 NOTIFY netStateChanged)
-    /* I   */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
-    /*O C D*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
-    /*     */     /**** net commander ****/
-    /*N R D*/ Q_PROPERTY(NetModeEnum mode            READ mode            WRITE setMode            NOTIFY modeChanged)
-    /*O R D*/ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
-    /*O R D*/ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
-    /*O R D*/ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
-    /*     */     /**** reader ****/
-    /*N C  */ //Q_PROPERTY(ReaderType  readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
-    /*N C  */ //Q_PROPERTY(QString     readerAddr      READ readerAddr      /*WRITE setReaderAddr*/    /*NOTIFY readerAddrChanged*/)
-    /* I   */ Q_PROPERTY(ReaderStateEnum readerState READ readerState WRITE setReaderState NOTIFY readerStateChanged)
-    /*     */     /**** reader mananger ****/
-    /* I   */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
-    /*O R D*/ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
-    /*O R D*/ //Q_PROPERTY(uint        maxUnreadMsec   READ maxUnreadMsec   WRITE setMaxPeriodMsec   NOTIFY maxUnreadMsecChanged)
-    /*O R D*/ //Q_PROPERTY(uint        maxUnreadPcnt   READ maxUnreadPcnt   WRITE setMaxUnreadPcnt   NOTIFY maxUnreadPcntChanged)
-    /*     */     /**** system ****/
-    /*O R D*/ Q_PROPERTY(QString     logfile         READ logfile         WRITE setLogfile         NOTIFY logfileChanged)
-    /* I   */ //Q_PROPERTY(QVariantMap wlanStatus      READ wlanStatus                               NOTIFY wlanStatusChanged)
-    /* I   */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
+    /***** LOGGER ****/
+    /*   */ Q_PROPERTY(QString     logfile         READ logfile         WRITE setLogfile         NOTIFY logfileChanged)
+    /***** NETWORK ****/
+    /* I */ Q_PROPERTY(NetSettStat isReady         READ isReady                                  NOTIFY isReadyChanged)
+    /* I */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
+    /*   */     /* socket */
+    /*  C*/ Q_PROPERTY(ClientType  clientType      READ clientType      WRITE setClientType      NOTIFY clientTypeChanged)
+    /*  C*/ Q_PROPERTY(SocketType  socket          READ socket          WRITE setSocket          NOTIFY socketChanged)
+    /*N R*/ Q_PROPERTY(QString     server          READ server          WRITE setServer          NOTIFY serverChanged)
+    /*N R*/ Q_PROPERTY(quint16     port            READ port            WRITE setPort            NOTIFY portChanged)
+    /*  R*/ //Q_PROPERTY(QString     sslKey          READ sslKey          WRITE setSslKey          NOTIFY sslKeyChanged)
+    /*  R*/ //Q_PROPERTY(QString     sslCert         READ sslCert         WRITE setSslCert         NOTIFY sslCertChanged)
+    /*   */     /* proto */
+    /*  C*/ Q_PROPERTY(MsgBound    msgBoundaries   READ msgBoundaries   WRITE setMsgBoundaries   NOTIFY msgBoundariesChanged)
+    /*  C*/ Q_PROPERTY(QString     startSqns       READ startSqns       WRITE setStartSqns       NOTIFY startSqnsChanged)
+    /*  C*/ Q_PROPERTY(QString     tailSqns        READ tailSqns        WRITE setTailSqns        NOTIFY tailSqnsChanged)
+    /*   */     /* auth */
+    /*N R*/ Q_PROPERTY(QString     username        READ username        WRITE setUsername        NOTIFY usernameChanged)
+    /*N R*/ Q_PROPERTY(QString     password        READ password        WRITE setPassword        NOTIFY passwordChanged)
+    /* I */ Q_PROPERTY(NetStateEnum netState       READ netState                                 NOTIFY netStateChanged)
+    /* I */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
+    /*  C*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
+    /*   */     /* commander */
+    /*   */ Q_PROPERTY(NetModeEnum mode            READ mode            WRITE setMode            NOTIFY modeChanged)
+    /*   */ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
+    /*   */ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
+    /*   */ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
+    /***** READER ****/
+    /* I */ //Q_PROPERTY(bool isReaderReady READ isReaderReady WRITE setIsReaderReady NOTIFY isReaderReadyChanged)
+    /* I */ //Q_PROPERTY(bool isReaderReconReq READ isReaderReconReq WRITE setIsReaderReconReq NOTIFY isReaderReconReqChanged)
+    /*   */     /* phy */
+    /*N C*/ //Q_PROPERTY(ReaderType  readerType      READ readerType      /*WRITE setReaderType*/    /*NOTIFY readerTypeChanged*/)
+    /*N C*/ //Q_PROPERTY(QString     readerAddr      READ readerAddr      /*WRITE setReaderAddr*/    /*NOTIFY readerAddrChanged*/)
+    /* I */ //Q_PROPERTY(ReaderStateEnum readerState READ readerState WRITE setReaderState NOTIFY readerStateChanged)
+    /*   */     /* mananger */
+    /* I */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
+    /*   */ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
+    /*   */ //Q_PROPERTY(uint        maxUnreadMsec   READ maxUnreadMsec   WRITE setMaxPeriodMsec   NOTIFY maxUnreadMsecChanged)
+    /*   */ //Q_PROPERTY(uint        maxUnreadPcnt   READ maxUnreadPcnt   WRITE setMaxUnreadPcnt   NOTIFY maxUnreadPcntChanged)
+    /***** SYSTEM ****/
+    /* I */ //Q_PROPERTY(QVariantMap wlanStatus      READ wlanStatus                               NOTIFY wlanStatusChanged)
+    /* I */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
 
 public:
     typedef NetClientStateClass::NetClientStateEnum NetStateEnum;

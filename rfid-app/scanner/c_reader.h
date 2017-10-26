@@ -48,7 +48,7 @@ public:
         ATTACHED,
         READY
     };
-    Q_ENUM(ReaderStatus)
+    Q_ENUM(ReaderStateEnum)
     Reader(ReaderProtocol * protocol, PhyTransport * transport,
            QObject * parent = nullptr);
     virtual ~Reader();

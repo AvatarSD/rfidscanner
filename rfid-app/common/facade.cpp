@@ -6,43 +6,51 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     readerManengerThread(this),// sysManengerThread(this);
     logger(new Logger)
 {    
+    /************** Logger ****************/
+    logManengerThread.setObjectName("Event Manenger");
+    logger->moveToThread(&logManengerThread);
+    connect(this, &ScannerFacade::sysEvent,
+            logger.data(), &Logger::sysEventIn,
+            Qt::QueuedConnection);
+    logManengerThread.start();
+    
+    /************** Network ***************/
+    /* register meta-types */
     qRegisterMetaType<NetStateEnum>("NetStateEnum");
     qRegisterMetaType<NetModeEnum>("NetModeEnum");
-
     /* register for qml usage */
     qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
     qmlRegisterType<NetClientModeClass>("ScannerMainElements",1,0,"NetMode");
     qmlRegisterType<NetClientStateClass>("ScannerMainElements",1,0,"NetState");
-    
-    // todo: register qml for rfid manamger
-    // quened connections of rfid manamger
-    
+    /* todo: test without this */
     netReCreateRequire = true;
     netReConectRequire = true;
-    
+    /* default values */
     m_clientType = ClientType::V1Basic;
     m_socket = SocketType::TCP;
     m_msgBoundaries = MsgBound::BOUND_V1;
     m_startSqns = QStringLiteral("$SD#");
     m_tailSqns = QStringLiteral("\r\n\r\n");
-    //    m_authType = AuthType::JSON;
+    //m_authType = AuthType::JSON;
     m_mode = NetModeEnum::DISABLED;
     m_msgTxRepeatSec = MSG_TRANSMIT_REPEAT_SEC;
     m_msgMaxTxAtempt = MSG_TRANSMIT_DELETE_NUM;
     m_msgInspectMsec = MSG_INSPECT_PERIOD_MSEC;
-    
-    connect(this, SIGNAL(sysEvent(QSharedPointer<Event>)),
-            logger.data(),SLOT(sysEventIn(QSharedPointer<Event>)),
-            Qt::QueuedConnection);
-    
-    logManengerThread.setObjectName("Event Manenger");
-    logManengerThread.start();
+    /* setup net thread(call moveToThread from creating procedure) */
     netManengerThread.setObjectName("Net Manenger");
     netManengerThread.start();
-    readerManengerThread.setObjectName("Reader Manenger");
-    readerManengerThread.start();
+    
+    /************** System ****************/
     //sysManengerThread.setObjectName("System Manenger");
     //sysManengerThread.start();
+    
+    /************** Scanner ***************/
+    // todo: register qml for rfid manamger
+    // quened connections of rfid manamger
+    readerManengerThread.setObjectName("Reader Manenger");
+    readerManengerThread.start();
+    
+    
 }
 
 ScannerFacade::~ScannerFacade()
@@ -51,14 +59,14 @@ ScannerFacade::~ScannerFacade()
     disconnectFromServer();
     //void disconnectFromWlan();
     
-    netManengerThread.quit();
-    readerManengerThread.quit();
     //sysManengerThread.quit();
+    readerManengerThread.quit();
+    netManengerThread.quit();
     logManengerThread.quit();
     
-    netManengerThread.wait();
-    readerManengerThread.wait();
     //sysManengerThread.wait();
+    readerManengerThread.wait();
+    netManengerThread.wait();
     logManengerThread.wait();
 }
 
