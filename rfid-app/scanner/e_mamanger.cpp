@@ -224,6 +224,10 @@ ScannerManenger::~ScannerManenger()
 {
     stop();
 }
+Scanner *ScannerManenger::scanner() const
+{
+    return scanner.data();
+}
 void ScannerManenger::stop()
 {
     tagsfield.clear();

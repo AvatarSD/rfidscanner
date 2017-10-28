@@ -140,6 +140,7 @@ class ScannerManenger : public Eventful
 public:
     ScannerManenger(Scanner * scanner, QObject * parent = nullptr);
     virtual ~ScannerManenger();
+    Scanner * scanner() const;
 public slots:
     virtual void start() = 0;
     virtual void stop();
