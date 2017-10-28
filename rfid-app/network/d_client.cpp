@@ -113,7 +113,7 @@ NetClientV1Basic::NetClientV1Basic(NetPhy *transport,
                              NetProtocol *protocol,
                              QObject *parent ):
     NetClient(transport,protocol,parent),
-    mode(NetClientModeEnum::DISABLED), inspectTimer(this),
+    mode(NetClientModeEnum::POOL), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
     msgMaxAtemptToDelete(MSG_TRANSMIT_DELETE_NUM)
 {
@@ -182,8 +182,6 @@ void NetClientV1Basic::sendMsgEnqueue(QSharedPointer<NetMessage> msg){
         sendMsgDirect(msg);
 }
 void NetClientV1Basic::sendMsgDirect(QSharedPointer<NetMessage> msg){
-    if(mode == NetClientModeEnum::DISABLED)
-        return;
     emit transmitMsg(msg->pack(auth));
 }
 

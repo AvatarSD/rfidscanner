@@ -190,9 +190,11 @@ signals:
 private slots:
     void netStateChangedHandler(const NetClientState *state);
 private:
-    void putStatusToLog(NetSettStat isReady);
+    void putNetStatusToLog(NetSettStat isReady);
     void setNetReCreateRequire(bool require);
     void setNetReConectRequire(bool require);
+    bool netCreareProcedure();
+    bool netConnectProcedure();
 
 private:
     QThread logManengerThread;

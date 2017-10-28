@@ -63,7 +63,7 @@ Q_OBJECT
 public:
     NetClientModeClass() : QObject() {}
     enum NetClientModeEnum{
-        DISABLED, POOL, EVENT
+        POOL, EVENT
     };
     Q_ENUM(NetClientModeEnum)
 };

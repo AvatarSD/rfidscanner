@@ -32,13 +32,15 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     m_startSqns = QStringLiteral("$SD#");
     m_tailSqns = QStringLiteral("\r\n\r\n");
     //m_authType = AuthType::JSON;
-    m_mode = NetModeEnum::DISABLED;
+    m_mode = NetModeEnum::EVENT;
     m_msgTxRepeatSec = MSG_TRANSMIT_REPEAT_SEC;
     m_msgMaxTxAtempt = MSG_TRANSMIT_DELETE_NUM;
     m_msgInspectMsec = MSG_INSPECT_PERIOD_MSEC;
     /* setup net thread(call moveToThread from creating procedure) */
     netManengerThread.setObjectName("Net Manenger");
     netManengerThread.start();
+    /* create req obj*/
+    netCreareProcedure();
     
     /************** System ****************/
     //sysManengerThread.setObjectName("System Manenger");
@@ -78,93 +80,14 @@ void ScannerFacade::connectToServer()
         while(*network->state() != NetStateEnum::DISCONNECTED)
             QObject::thread()->yieldCurrentThread();
     }
-    
     /* re-create procedure */
-    if(netReCreateRequire || network.isNull()){
-        /* create new phy */
-        NetPhy * phy = nullptr;
-        switch (m_socket) { /*//todo
-        case Socket::TCP:
-            phy = new NetPhyTcp;
-            break;
-        case Socket::SSL:
-            phy = new NetPhySsl;
-            break;*/
-        default:
-            phy = new NetPhyTcp;
-            break; }
-        /* create new protocol */
-        NetProtocol * proto = nullptr;
-        switch (m_msgBoundaries) {/* //todo
-        case MsgBound::BOUND_V1:
-            proto = new NetProtocolV1Format(NetProtocolBound(m_startSqns, m_tailSqns));
-            break;
-        case MsgBound::SIMPLE:
-            proto = new NetProtocolSimple(NetProtocolBound(m_startSqns, m_tailSqns));
-            break;*/
-        default:
-            proto = new NetProtocolV1Format(
-                        NetProtocolBound(
-                            m_startSqns.toUtf8(),
-                            m_tailSqns.toUtf8()));
-            break; }
-        /* create new client */
-        NetClient * client = nullptr;
-        switch (m_clientType) {
-        case ClientType::V1Basic:
-        default:
-            client = new NetClientV1Basic(phy, proto);
-            break;
-        }
-        network.reset(client);
-        /* move to net thread */
-        network->moveToThread(&this->netManengerThread);
-        /* connections */
-        QObject::connect(network.data(), SIGNAL(sysEvent(QSharedPointer<Event>)),
-                         logger.data(), SLOT(sysEventIn(QSharedPointer<Event>)),
-                         Qt::QueuedConnection);
-        QObject::connect(logger.data(), SIGNAL(netEventOut(QSharedPointer<Event>)),
-                         network.data(),SLOT(netEventIn(QSharedPointer<Event>)),
-                         Qt::QueuedConnection);
-        QObject::connect(network.data(), SIGNAL(stateChanged(const NetClientState*)),
-                         this, SLOT(netStateChangedHandler(const NetClientState*)),
-                         Qt::QueuedConnection);
-        /* reset re-create flag */
-        setNetReConectRequire(true);
-        setNetReCreateRequire(false);
-    }
-    
-    /* re-connect procedure */
-    if(netReConectRequire){
-        /* check server, port, user and pass */
-        auto ret = isReady();
-        putStatusToLog(ret);
-        if(ret&NO_SERV || ret&NO_PORT)
+    if(netReCreateRequire || network.isNull())
+        if(!netCreareProcedure())
             return;
-        /* set server and port */
-        NetPoint np(m_server, m_port);
-        QMetaObject::invokeMethod(network.data(),"setAddr", Qt::QueuedConnection,
-                                  Q_ARG(NetPoint, np));
-        /* set user and pass */
-        QAuthenticator auth;
-        auth.setUser(m_username);
-        auth.setPassword(m_password);
-        QMetaObject::invokeMethod(network.data(),"setAuth", Qt::QueuedConnection,
-                                  Q_ARG(QAuthenticator, auth));
-        /* reset re-connect flag */
-        setNetReConectRequire(false);
-    }
-    
-    /* set other */
-    QMetaObject::invokeMethod(network.data(),"setMode", 
-                              Qt::QueuedConnection, Q_ARG(NetModeEnum, m_mode));
-    QMetaObject::invokeMethod(network.data(),"setMsgTransmitRepeatSec", 
-                              Qt::QueuedConnection, Q_ARG(uint, m_msgTxRepeatSec));
-    QMetaObject::invokeMethod(network.data(),"setMsgMaxAtemptToDelete", 
-                              Qt::QueuedConnection, Q_ARG(uint, m_msgMaxTxAtempt));
-    QMetaObject::invokeMethod(network.data(),"setMsgInspectPeriodMsec", 
-                              Qt::QueuedConnection, Q_ARG(int, m_msgInspectMsec));
-    
+    /* re-connect procedure */
+    if(netReConectRequire)
+        if(!netConnectProcedure())
+            return;
     /* call connectToHost */
     QMetaObject::invokeMethod(network.data(), "start", Qt::QueuedConnection);
 }
@@ -172,15 +95,6 @@ void ScannerFacade::disconnectFromServer()
 {
     if(!network.isNull())
         QMetaObject::invokeMethod(network.data(), "stop", Qt::QueuedConnection);
-}
-
-void ScannerFacade::connectToScanner()
-{
-    
-}
-void ScannerFacade::disconnectFromScanner()
-{
-    
 }
 
 /* net: is reconnection required */
@@ -199,6 +113,82 @@ void ScannerFacade::setNetReConectRequire(bool require){
     isReady();
     netReConectRequire = require;
 }
+bool ScannerFacade::netCreareProcedure()
+{
+    /* create new phy */
+    NetPhy * phy = nullptr;
+    switch (m_socket) { /*//todo
+    case Socket::TCP:
+        phy = new NetPhyTcp;
+        break;
+    case Socket::SSL:
+        phy = new NetPhySsl;
+        break;*/
+    default:
+        phy = new NetPhyTcp;
+        break; }
+    /* create new protocol */
+    NetProtocol * proto = nullptr;
+    switch (m_msgBoundaries) {/* //todo
+    case MsgBound::BOUND_V1:
+        proto = new NetProtocolV1Format(NetProtocolBound(m_startSqns, m_tailSqns));
+        break;
+    case MsgBound::SIMPLE:
+        proto = new NetProtocolSimple(NetProtocolBound(m_startSqns, m_tailSqns));
+        break;*/
+    default:
+        proto = new NetProtocolV1Format(
+                    NetProtocolBound(
+                        m_startSqns.toUtf8(),
+                        m_tailSqns.toUtf8()));
+        break; }
+    /* create new client */
+    NetClient * client = nullptr;
+    switch (m_clientType) {
+    case ClientType::V1Basic:
+    default:
+        client = new NetClientV1Basic(phy, proto);
+        break;
+    }
+    network.reset(client);
+    /* move to net thread */
+    network->moveToThread(&this->netManengerThread);
+    /* connections */
+    QObject::connect(network.data(), SIGNAL(sysEvent(QSharedPointer<Event>)),
+                     logger.data(), SLOT(sysEventIn(QSharedPointer<Event>)),
+                     Qt::QueuedConnection);
+    QObject::connect(logger.data(), SIGNAL(netEventOut(QSharedPointer<Event>)),
+                     network.data(),SLOT(netEventIn(QSharedPointer<Event>)),
+                     Qt::QueuedConnection);
+    QObject::connect(network.data(), SIGNAL(stateChanged(const NetClientState*)),
+                     this, SLOT(netStateChangedHandler(const NetClientState*)),
+                     Qt::QueuedConnection);
+    /* reset re-create flag */
+    setNetReConectRequire(true);
+    setNetReCreateRequire(false);
+    return true;
+}
+bool ScannerFacade::netConnectProcedure()
+{
+    /* check server, port, user and pass */
+    auto ret = isReady();
+    putNetStatusToLog(ret);
+    if(ret&NO_SERV || ret&NO_PORT)
+        return false;
+    /* set server and port */
+    NetPoint np(m_server, m_port);
+    QMetaObject::invokeMethod(network.data(),"setAddr", Qt::QueuedConnection,
+                              Q_ARG(NetPoint, np));
+    /* set user and pass */
+    QAuthenticator auth;
+    auth.setUser(m_username);
+    auth.setPassword(m_password);
+    QMetaObject::invokeMethod(network.data(),"setAuth", Qt::QueuedConnection,
+                              Q_ARG(QAuthenticator, auth));
+    /* reset re-connect flag */
+    setNetReConectRequire(false);
+    return true;
+}
 
 /* net: is all required fields are fill */
 ScannerFacade::NetSettStat ScannerFacade::isReady() {
@@ -214,7 +204,7 @@ ScannerFacade::NetSettStat ScannerFacade::isReady() {
     emit isReadyChanged((NetSettStat)stat);
     return (NetSettStat)stat;
 }
-void ScannerFacade::putStatusToLog(ScannerFacade::NetSettStat isReady){
+void ScannerFacade::putNetStatusToLog(ScannerFacade::NetSettStat isReady){
     if(isReady&NO_SERV)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::ERROR,
@@ -285,31 +275,21 @@ QString ScannerFacade::password() const{
 }
 
 ScannerFacade::NetModeEnum ScannerFacade::mode() const{
-    if(network.isNull())
-        return m_mode;
     return network->getMode();
 }
 uint ScannerFacade::msgTxRepeatSec() const{
-    if(network.isNull())
-        return m_msgTxRepeatSec;
     return network->getMsgTransmitRepeatSec();
 }
 uint ScannerFacade::msgMaxTxAtempt() const{
-    if(network.isNull())
-        return m_msgMaxTxAtempt;
     return network->getMsgMaxAtemptToDelete();
 }
 qint32 ScannerFacade::msgInspectMsec() const{
-    if(network.isNull())
-        return m_msgInspectMsec;
     return network->getMsgInspectPeriodMsec();
 }
 
 QString ScannerFacade::logfile() const{
     return logger->getLogfilePath();
 }
-
-
 
 void ScannerFacade::setClientType(ScannerFacade::ClientType clientType){
     if (m_clientType == clientType)
@@ -377,40 +357,36 @@ void ScannerFacade::setPassword(QString password){
 }
 
 void ScannerFacade::setMode(ScannerFacade::NetModeEnum mode){
-    if (m_mode == mode)
+    if (this->mode() == mode)
         return;
     m_mode = mode;
+    QMetaObject::invokeMethod(network.data(),"setMode", 
+                              Qt::QueuedConnection, Q_ARG(NetModeEnum, m_mode));
     emit modeChanged(m_mode);
-    if(network.isNull())
-        return;
-    network->setMode(mode);
 }
 void ScannerFacade::setMsgTxRepeatSec(uint msgTxRepeatSec){
-    if (m_msgTxRepeatSec == msgTxRepeatSec)
+    if (this->msgTxRepeatSec() == msgTxRepeatSec)
         return;
     m_msgTxRepeatSec = msgTxRepeatSec;
+    QMetaObject::invokeMethod(network.data(),"setMsgTransmitRepeatSec", 
+                              Qt::QueuedConnection, Q_ARG(uint, m_msgTxRepeatSec));
     emit msgTxRepeatSecChanged(m_msgTxRepeatSec);
-    if(network.isNull())
-        return;
-    network->setMsgTransmitRepeatSec(msgTxRepeatSec);
 }
 void ScannerFacade::setMsgMaxTxAtempt(uint msgMaxTxAtempt){
-    if (m_msgMaxTxAtempt == msgMaxTxAtempt)
+    if (this->msgMaxTxAtempt() == msgMaxTxAtempt)
         return;
     m_msgMaxTxAtempt = msgMaxTxAtempt;
+    QMetaObject::invokeMethod(network.data(),"setMsgMaxAtemptToDelete", 
+                              Qt::QueuedConnection, Q_ARG(uint, m_msgMaxTxAtempt));
     emit msgMaxTxAtemptChanged(m_msgMaxTxAtempt);
-    if(network.isNull())
-        return;
-    network->setMsgMaxAtemptToDelete(msgMaxTxAtempt);
 }
 void ScannerFacade::setMsgInspectMsec(qint32 msgInspectMsec){
-    if (m_msgInspectMsec == msgInspectMsec)
+    if (this->msgInspectMsec() == msgInspectMsec)
         return;
     m_msgInspectMsec = msgInspectMsec;
+    QMetaObject::invokeMethod(network.data(),"setMsgInspectPeriodMsec", 
+                              Qt::QueuedConnection, Q_ARG(int, m_msgInspectMsec));
     emit msgInspectMsecChanged(m_msgInspectMsec);
-    if(network.isNull())
-        return;
-    network->setMsgInspectPeriodMsec(msgInspectMsec);
 }
 
 void ScannerFacade::setLogfile(QString logfile){
@@ -418,4 +394,15 @@ void ScannerFacade::setLogfile(QString logfile){
         return;
     logger->setLogfilePath(logfile);
     emit logfileChanged(logfile);
+}
+
+
+/* scanner*/
+void ScannerFacade::connectToScanner()
+{
+    
+}
+void ScannerFacade::disconnectFromScanner()
+{
+    
 }
