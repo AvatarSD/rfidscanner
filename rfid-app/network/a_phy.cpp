@@ -85,8 +85,6 @@ NetPhyTcp::NetPhyTcp(QAbstractSocket *socket, QObject *parent) :
     connect(&zerotimer, SIGNAL(timeout()),
             this, SLOT(run()));
     zerotimer.setTimerType(Qt::CoarseTimer);
-    //    zerotimer.setSingleShot(true);
-    zerotimer.start(RECONNECT_TIME);
 }
 NetPhyTcp::~NetPhyTcp(){
     zerotimer.stop();
@@ -140,10 +138,10 @@ void NetPhyTcp::socketReadyRead(){
 }
 /**** connection estab. operations ****/
 void NetPhyTcp::connectToHost(const NetPoint &addr){
-    zerotimer.start(RECONNECT_TIME);
     if(!addr.isNull())
         this->host = addr;
     socket->connectToHost(this->host.addr(), this->host.port());
+    zerotimer.start(RECONNECT_TIME);
 }
 void NetPhyTcp::disconnectFromHost(){
     zerotimer.stop();
