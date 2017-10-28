@@ -10,7 +10,7 @@ import ScannerMainElements 1.0
   
 */
 
-//todo: isReady, isReconnReq, clientType, SocketType, 
+//todo: netSettStat, isReconnReq, clientType, SocketType, 
 //      Server, port, msgBound, user, pass, workMode, 
 //      timings, logfile
 
