@@ -3,9 +3,8 @@
 
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
-    logManengerThread(this), netManengerThread(this),
-    scannerManengerThread(this),// sysManengerThread(this);
-    logger(new Logger)
+    logManengerThread(this), logger(new Logger),
+    netManengerThread(this), scannerManengerThread(this)// sysManengerThread(this);
 {    
     /************** Logger ****************/
     logManengerThread.setObjectName("Event Manenger");
