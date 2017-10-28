@@ -205,8 +205,14 @@ bool ScannerFacade::netCreareProcedure()
         break;
     }    
     /* save settings */
-    // todo: 
-    
+    NetModeEnum mod; uint mtr, mta; qint32 mip = -666;
+    if(!network.isNull()){
+        mod = mode();
+        mtr = msgTxRepeatSec();
+        mta = msgMaxTxAtempt();
+        mip = msgInspectMsec();
+    }
+    /* pun created object in member poiner */
     network.reset(client);
     /* move to net thread */
     network->moveToThread(&this->netManengerThread);
@@ -220,8 +226,13 @@ bool ScannerFacade::netCreareProcedure()
     QObject::connect(network.data(), SIGNAL(stateChanged(const NetClientState*)),
                      this, SLOT(netStateChangedHandler(const NetClientState*)),
                      Qt::QueuedConnection);
-    /* re-set settings */
-    // todo
+    /* load settings */
+    if(mip != -666){
+        network->setMode(mod);
+        network->setMsgTransmitRepeatSec(mtr);
+        network->setMsgMaxAtemptToDelete(mta);
+        network->setMsgInspectPeriodMsec(mip);
+    }
     
     /* reset re-create flag */
     setNetReConectRequire(true);
