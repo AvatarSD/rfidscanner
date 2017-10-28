@@ -44,8 +44,8 @@ NetClientState::NetClientStateEnum NetClientState::fromPhyStateHelper(QAbstractS
 
 /******** NetClient ********/
 NetClient::NetClient(NetPhy* transport,
-                           NetProtocol* protocol,
-                           QObject *parent) :
+                     NetProtocol* protocol,
+                     QObject *parent) :
     Eventful (parent), phy(transport), proto(protocol)
 {
     qRegisterMetaType<NetClientState*>();
@@ -110,8 +110,8 @@ void NetClient::transmitMsg(QByteArray msg){
 
 /***** NetClientV1Basic ****/
 NetClientV1Basic::NetClientV1Basic(NetPhy *transport,
-                             NetProtocol *protocol,
-                             QObject *parent ):
+                                   NetProtocol *protocol,
+                                   QObject *parent ):
     NetClient(transport,protocol,parent),
     mode(NetClientModeEnum::POOL), inspectTimer(this),
     msgTransmitRepeatSec(MSG_TRANSMIT_REPEAT_SEC),
@@ -190,28 +190,29 @@ void NetClientV1Basic::msgInspect()
 {
     foreach (auto msg, messageQueue) {
         if(msg->getTransmitCount() > 0){
-            if(msg->getTransmitCount() >= msgMaxAtemptToDelete){
-                emit sysEvent(QSharedPointer<Event> (
-                                  new NetworkEvent(NetworkEvent::INFO,
-                                                   NetworkEvent::IDs::COMMANDER,
-                                                   QStringLiteral("Message ") +
-                                                   msg->uuid.toString() +
-                                                   QStringLiteral(" lost. It was have ") +
-                                                   QString::number(msg->getTransmitCount()) +
-                                                   QStringLiteral(" transmission repeat attempt."))));
-                messageQueue.removeOne(msg);
-            }
-            else if(msg->getLastTransmit().secsTo(QDateTime::currentDateTime())
-                    >= msgTransmitRepeatSec){
-                emit sysEvent(QSharedPointer<Event> (
-                                  new NetworkEvent(NetworkEvent::WARNING,
-                                                   NetworkEvent::IDs::COMMANDER,
-                                                   QStringLiteral("Message ") +
-                                                   msg->uuid.toString() +
-                                                   QStringLiteral(" transmission repeat #")+
-                                                   QString::number(msg->getTransmitCount()))));
-                sendMsgDirect(msg);
-            }
+            if(msg->getLastTransmit().secsTo(QDateTime::currentDateTime())
+                    >= msgTransmitRepeatSec)
+                if(msg->getTransmitCount() > msgMaxAtemptToDelete){
+                    emit sysEvent(QSharedPointer<Event> (
+                                      new NetworkEvent(NetworkEvent::INFO,
+                                                       NetworkEvent::IDs::COMMANDER,
+                                                       QStringLiteral("Message ") +
+                                                       msg->uuid.toString() +
+                                                       QStringLiteral(" lost. It was have ") +
+                                                       QString::number(msg->getTransmitCount()) +
+                                                       QStringLiteral(" transfer attempt(s)."))));
+                    messageQueue.removeOne(msg);
+                }
+                else {
+                    emit sysEvent(QSharedPointer<Event> (
+                                      new NetworkEvent(NetworkEvent::WARNING,
+                                                       NetworkEvent::IDs::COMMANDER,
+                                                       QStringLiteral("Message ") +
+                                                       msg->uuid.toString() +
+                                                       QStringLiteral(" additional transfer repeat #")+
+                                                       QString::number(msg->getTransmitCount()))));
+                    sendMsgDirect(msg);
+                }
         }
     }
 }
