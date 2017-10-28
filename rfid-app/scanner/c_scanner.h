@@ -54,12 +54,16 @@ public:
     virtual ~Scanner();
 public slots:
     ScannerStateEnum status() const;
+    //return null-string if yes, otherwise return err string
+    virtual QString isAddrValid(QString addr); 
+    virtual QStringList validAddrList();
     virtual void attach(QString addr) = 0;
     virtual void detach() = 0;
     virtual void execute(QSharedPointer<ScannerRequest>) = 0;
 signals:
     void executed(QSharedPointer<ScannerReply>);
     void statusChanged(ScannerStateEnum status);
+    void validAddrListChanged(QStringList addrList);
 protected:
     QScopedPointer<ScannerProtocol> protocol;
     QScopedPointer<PhyTransport> transport;

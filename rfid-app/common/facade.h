@@ -27,7 +27,7 @@ class ScannerFacade : public Eventful
     /*** LOGGER ***/
     /*   */ Q_PROPERTY(QString     logfile         READ logfile         WRITE setLogfile         NOTIFY logfileChanged)
     /*** NETWORK ***/
-    /* I */ Q_PROPERTY(NetSettStat netSettStat     READ netSettStat                           NOTIFY netSettStatChanged)
+    /* I */ Q_PROPERTY(NetSettStat netSettStat     READ netSettStat                              NOTIFY netSettStatChanged)
     /* I */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
     /*   */     /* socket */
     /*  C*/ Q_PROPERTY(ClientType  clientType      READ clientType      WRITE setClientType      NOTIFY clientTypeChanged)
@@ -52,17 +52,16 @@ class ScannerFacade : public Eventful
     /*   */ Q_PROPERTY(uint        msgMaxTxAtempt  READ msgMaxTxAtempt  WRITE setMsgMaxTxAtempt  NOTIFY msgMaxTxAtemptChanged)
     /*   */ Q_PROPERTY(qint32      msgInspectMsec  READ msgInspectMsec  WRITE setMsgInspectMsec  NOTIFY msgInspectMsecChanged)
     /*** SCANNER ***/
-    /* I */ //Q_PROPERTY(bool isScannerReady READ isScannerReady WRITE setIsScannerReady NOTIFY isScannerReadyChanged)
-    /* I */ //Q_PROPERTY(bool isScannerReconReq READ isScannerReconReq WRITE setIsScannerReconReq NOTIFY isScannerReconReqChanged)
-    /*   */     /* phy */
-    /*N C*/ //Q_PROPERTY(ScannerType  scannerType      READ scannerType      /*WRITE setScannerType*/    /*NOTIFY scannerTypeChanged*/)
-    /*N C*/ //Q_PROPERTY(QString     scannerAddr      READ scannerAddr      /*WRITE setScannerAddr*/    /*NOTIFY scannerAddrChanged*/)
-    /* I */ //Q_PROPERTY(ScannerStateEnum scannerState READ scannerState WRITE setScannerState NOTIFY scannerStateChanged)
+    /* I */ Q_PROPERTY(bool      isScannerReconReq READ isScannerReconReq                        NOTIFY scannerReconReqChanged)
+    /* I */ Q_PROPERTY(QString    scannerAddrValid READ scannerAddrValid                         NOTIFY scannerAddrValidChanged)
+    /* I */ Q_PROPERTY(ScannerStateEnum scannerState READ scannerState                           NOTIFY scannerStateChanged)
+    /*  C*/ Q_PROPERTY(ScannerType scannerType     READ scannerType     WRITE setScannerType     NOTIFY scannerTypeChanged)
+    /*  C*/ Q_PROPERTY(QString     scannerAddr     READ scannerAddr     WRITE setScannerAddr     NOTIFY scannerAddrChanged)
     /*   */     /* mananger */
-    /* I */ //Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
-    /*   */ //Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
-    /*   */ //Q_PROPERTY(uint        maxUnreadMsec   READ maxUnreadMsec   WRITE setMaxPeriodMsec   NOTIFY maxUnreadMsecChanged)
-    /*   */ //Q_PROPERTY(uint        maxUnreadPcnt   READ maxUnreadPcnt   WRITE setMaxUnreadPcnt   NOTIFY maxUnreadPcntChanged)
+    /* I */ Q_PROPERTY(QVariant    field           READ field                                    NOTIFY fieldChanged)
+    /*   */ Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
+    /*   */ Q_PROPERTY(uint        maxUnreadMsec   READ maxUnreadMsec   WRITE setMaxPeriodMsec   NOTIFY maxUnreadMsecChanged)
+    /*   */ Q_PROPERTY(uint        maxUnreadPcnt   READ maxUnreadPcnt   WRITE setMaxUnreadPcnt   NOTIFY maxUnreadPcntChanged)
     /*** SYSTEM ***/
     /* I */ //Q_PROPERTY(QVariantMap wlanStatus      READ wlanStatus                               NOTIFY wlanStatusChanged)
     /* I */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
@@ -86,16 +85,17 @@ public:
     enum SocketType{TCP, SSL};
     enum MsgBound{SIMPLE, BOUND_V1};
     enum AuthType{JSON, BASE64};
-    enum ScannerType{ADS_USB, LINK_SPRITE};
     Q_ENUM(NetSettStat)
     Q_ENUM(ClientType)
     Q_ENUM(SocketType)
     Q_ENUM(MsgBound)
     Q_ENUM(AuthType)
-    Q_ENUM(ScannerType)
     
     /*** SCANNER ***/
     typedef Scanner::ScannerStateEnum ScannerStateEnum;
+    typedef TagFieldLeftRule::TagFieldLeftRuleEnum TagFieldLeftRuleEnum;
+    enum ScannerType{SIMULATOR, ADS_USB, LINK_SPRITE};
+    Q_ENUM(ScannerType)
 
 public:
     /*** LOGGER ***/
@@ -125,6 +125,19 @@ public:
     qint32 msgInspectMsec() const;
 
     /*** SCANNER ***/
+    /* info */
+    bool isScannerReconReq() const;
+    QString scannerAddrValid() const;
+    ScannerStateEnum scannerState() const;
+    QVariant field() const;
+    /* settings: re-create */
+    ScannerType scannerType() const;
+    QString scannerAddr() const;
+    /* settings: realtime */
+    uint scanPeriodMsec() const;
+    uint maxUnreadMsec() const;
+    uint maxUnreadPcnt() const;    
+    
     
     
 public slots:
@@ -156,10 +169,17 @@ public slots:
     /* control */
     void connectToScanner();
     void disconnectFromScanner();
-
+    /* settings: re-create */
+    void setScannerType(ScannerType scannerType);
+    void setScannerAddr(QString scannerAddr);
+    /* settings: realtime */
+    void setScanPeriodMsec(uint scanPeriodMsec);
+    void setMaxPeriodMsec(uint maxUnreadMsec);
+    void setMaxUnreadPcnt(uint maxUnreadPcnt);
+    
     /*** SYSTEM ***/
     //void connectToWlan(QString ssid, QString psswd);
-    //void disconnectFromWlan();
+    //void disconnectFromWlan();    
     
 signals:
     /*** LOGGER ***/
@@ -189,20 +209,39 @@ signals:
     void msgInspectMsecChanged(qint32 msgInspectMsec);
     
     /*** SCANNER ***/
+    /* info */
+    void scannerReconReqChanged(bool isScannerReconReq);
+    void scannerAddrValidChanged(QString scannerAddrValid);
+    void scannerStateChanged(ScannerStateEnum scannerState);
+    void fieldChanged(QVariant field);
+    /* scanner: re-create */
+    void scannerTypeChanged(ScannerType scannerType);
+    void scannerAddrChanged(QString scannerAddr);
+    /* scanner: realtime */
+    void scanPeriodMsecChanged(uint scanPeriodMsec);
+    void maxUnreadMsecChanged(uint maxUnreadMsec);
+    void maxUnreadPcntChanged(uint maxUnreadPcnt);
     
     
     /**** private ************************************************************/
 private slots:
      /*** NETWORK ***/
     void netStateChangedHandler(const NetClientState *state);
+    
+    /*** SCANNER ***/
+    void fieldChangedHandler(ScannerManengerTagField::TagFieldList field);   
+    
 private:
      /*** NETWORK ***/
-    void chkNetSettStat(NetSettStat netSettStat);
-    void putNetSettStatToLog(NetSettStat netSettStat);
+    void chkNetSettStat(NetSettStat stat);
+    void putNetSettStatToLog(NetSettStat stat);
     void setNetReCreateRequire(bool require);
     void setNetReConectRequire(bool require);
     bool netCreareProcedure();
     bool netConnectProcedure();
+    
+    /*** SCANNER ***/
+    void setScnrReconReq(bool scannerReconReq); 
 
 private:
     /*** LOGGER ***/
@@ -214,30 +253,29 @@ private:
     QScopedPointer<NetClient> network;
     bool netReCreateRequire;
     bool netReConectRequire;
-
-    /*** SCANNER ***/
-    QThread scannerManengerThread;
-    QScopedPointer<ScannerManenger> scanner;
-    
-    /*** SYSTEM ***/
-    //QThread sysManengerThread;
-    //QScopedPointer<System> system;
-
-private:
-    /*** NETWORK ***/
-    /* net re-create */
+    /* settings re-create */
     ClientType m_clientType;
     SocketType m_socket;
     MsgBound m_msgBoundaries;
     QString m_startSqns;
     QString m_tailSqns;
-    /* net re-connect */
+    /* settings re-connect */
     QString m_server;
     quint16 m_port;
     QString m_username;
     QString m_password;
     
     /*** SCANNER ***/
+    QThread scannerManengerThread;
+    QScopedPointer<ScannerManenger> scanner;
+    bool scannerReconReq;
+    /* settings re-create */
+    ScannerType m_scannerType;
+    QString m_scannerAddr;
+    
+    /*** SYSTEM ***/
+    //QThread sysManengerThread;
+    //QScopedPointer<System> system;
     
 };
 

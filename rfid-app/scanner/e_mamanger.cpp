@@ -110,7 +110,7 @@ void TagStatus::wasUnread(const TagFieldTimings & timings)
 TagFieldTimings::TagFieldTimings() : maxUnreadToLeftMsec(DEFAULT_TAG_LEFT_MSEC),
     maxUnreadToLeftPcnt(DEFAULT_TAG_LEFT_PCNT),
     maxUnreadToDeleteSec(DEFAULT_TAG_DEL_SEC),
-    leftRule(DEFAULT_TAG_LEFT_RULE) {}
+    leftRule(DEFAULT_TAG_LEFT_RULE), scanPerionMsec(DEFAULT_SCAN_PERIOD_MSEC) {}
 
 /*** ScannerManengerField ***/
 void ScannerManengerTagField::update(QStringList readedTags)
@@ -199,25 +199,25 @@ ScannerManengerTagField::TagFieldList ScannerManengerTagField::field() const
 
 /*********** ScannerManenger ***********/
 ScannerManenger::ScannerManenger(Scanner * scanner, QObject * parent) :
-    Eventful(parent), scanner(scanner), tagsfield(this)
+    Eventful(parent), device(scanner), tagsfield(this)
 {
     connect(&tagsfield, &ScannerManengerTagField::fieldChanged,
             this, &ScannerManenger::fieldChanged);
     tagsfield.connectAsEventDrain(this);
     
     
-    this->scanner->setParent(this);
+    this->device->setParent(this);
     scanner->connectAsEventDrain(this);
     
-    connect(this->scanner.data(), &Scanner::statusChanged,
+    connect(this->device.data(), &Scanner::statusChanged,
             this, &ScannerManenger::scannerStatusHandler);
     connect(this, &ScannerManenger::attach,
-            this->scanner.data(), &Scanner::attach);
+            this->device.data(), &Scanner::attach);
     connect(this, &ScannerManenger::detach,
-            this->scanner.data(), &Scanner::detach);
+            this->device.data(), &Scanner::detach);
     connect(this, &ScannerManenger::execute,
-            this->scanner.data(), &Scanner::execute);
-    connect(this->scanner.data(), &Scanner::executed,
+            this->device.data(), &Scanner::execute);
+    connect(this->device.data(), &Scanner::executed,
             this, &ScannerManenger::executed);
 }
 ScannerManenger::~ScannerManenger()
@@ -226,7 +226,7 @@ ScannerManenger::~ScannerManenger()
 }
 Scanner *ScannerManenger::scanner() const
 {
-    return scanner.data();
+    return device.data();
 }
 void ScannerManenger::stop()
 {

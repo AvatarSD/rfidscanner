@@ -19,6 +19,7 @@
 #define DEFAULT_TAG_LEFT_PCNT 20
 #define DEFAULT_TAG_LEFT_RULE TagFieldLeftRule::TIME
 #define DEFAULT_TAG_DEL_SEC   300
+#define DEFAULT_SCAN_PERIOD_MSEC 100
 
 /**** TagFieldLeftRules ****/
 class TagFieldLeftRule : QObject
@@ -44,6 +45,7 @@ public:
     uint maxUnreadToLeftPcnt;
     uint maxUnreadToDeleteSec;
     TagFieldLeftRule::TagFieldLeftRuleEnum leftRule;
+    uint scanPerionMsec;
 };
 
 /******** TagStatus ********/
@@ -138,10 +140,10 @@ class ScannerManenger : public Eventful
 {
     Q_OBJECT
 public:
-    ScannerManenger(Scanner * scanner, QObject * parent = nullptr);
+    ScannerManenger(Scanner * device, QObject * parent = nullptr);
     virtual ~ScannerManenger();
-    Scanner * scanner() const;
 public slots:
+    Scanner * scanner() const;
     virtual void start() = 0;
     virtual void stop();
     ScannerManengerTagField::TagFieldList field() const;
@@ -156,7 +158,7 @@ signals:
     void attach(QString addr);
     void detach();
 protected:
-    QScopedPointer<Scanner> scanner;
+    QScopedPointer<Scanner> device;
     ScannerManengerTagField tagsfield;
 };
 
@@ -168,7 +170,7 @@ class ScannerManengerBasicV1 : public ScannerManenger
 {
     Q_OBJECT
 public:
-    ScannerManengerBasicV1(Scanner * scanner, QObject * parent = nullptr);
+    ScannerManengerBasicV1(Scanner * device, QObject * parent = nullptr);
     virtual ~ScannerManengerBasicV1();
     
 public slots:

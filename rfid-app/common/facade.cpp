@@ -6,6 +6,9 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     logManengerThread(this), logger(new Logger),
     netManengerThread(this), scannerManengerThread(this)// sysManengerThread(this);
 {    
+    /*** register for qml usage ***/
+    qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
+    
     /************** Logger ****************/
     logManengerThread.setObjectName("Event Manenger");
     logger->moveToThread(&logManengerThread);
@@ -19,12 +22,11 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     qRegisterMetaType<NetStateEnum>("NetStateEnum");
     qRegisterMetaType<NetModeEnum>("NetModeEnum");
     /* register for qml usage */
-    qmlRegisterType<ScannerFacade>("ScannerMainElements",1,0,"Facade");
     qmlRegisterType<NetClientModeClass>("ScannerMainElements",1,0,"NetMode");
     qmlRegisterType<NetClientStateClass>("ScannerMainElements",1,0,"NetState");
     /* todo: test without this */
-    netReCreateRequire = true;
-    netReConectRequire = true;
+//    netReCreateRequire = true;
+//    netReConectRequire = true;
     /* default values */
     m_clientType = ClientType::V1Basic;
     m_socket = SocketType::TCP;
@@ -43,10 +45,17 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     //sysManengerThread.start();
     
     /************** Scanner ***************/
-    // todo: register qml for rfid manamger
-    // quened connections of rfid manamger
+    /* register meta-types */
+    
+    /* register for qml usage */
+
+    /* default values */
+    m_scannerType = ScannerType::SIMULATOR;
+    m_scannerAddr = QStringLiteral("Simulator");
+    /* setup net thread(call moveToThread from creating procedure) */
     scannerManengerThread.setObjectName("Scanner Manenger");
     scannerManengerThread.start();
+    /* create req obj*/
     
     
 }
@@ -127,28 +136,28 @@ void ScannerFacade::netStateChangedHandler(const NetClientState *state){
     emit netStateChanged(state->stateEnum());
     emit netStateMsgChanged(state->stateMessage());
 }
-void ScannerFacade::chkNetSettStat(ScannerFacade::NetSettStat netSettStat){
-    emit netSettStatChanged(netSettStat);
-    putNetSettStatToLog(netSettStat);
+void ScannerFacade::chkNetSettStat(NetSettStat stat){
+    putNetSettStatToLog(stat);
+    emit netSettStatChanged(stat);
 }
-void ScannerFacade::putNetSettStatToLog(ScannerFacade::NetSettStat netSettStat){
-    if(netSettStat&NO_SERV)
+void ScannerFacade::putNetSettStatToLog(ScannerFacade::NetSettStat stat){
+    if(stat&NO_SERV)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::ERROR,
                                           SystemEvent::IDs::FACADE_STATUS,
                                           QStringLiteral("Server address is not set."))));
-    if(netSettStat&NO_PORT)
+    if(stat&NO_PORT)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::ERROR,
                                           SystemEvent::IDs::FACADE_STATUS,
                                           QStringLiteral("Server port is 0."))));
-    if(netSettStat&NO_USER)
+    if(stat&NO_USER)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::WARNING,
                                           SystemEvent::IDs::FACADE_STATUS,
                                           QStringLiteral("Username is not set. "
                                                          "Connection without login."))));
-    if(netSettStat&NO_PASS)
+    if(stat&NO_PASS)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::WARNING,
                                           SystemEvent::IDs::FACADE_STATUS,
@@ -162,6 +171,7 @@ void ScannerFacade::setNetReCreateRequire(bool require){
     emit isReconRequireChanged(isReconRequire());
 }
 void ScannerFacade::setNetReConectRequire(bool require){
+    emit netSettStatChanged(netSettStat());
     if(netReConectRequire == require)
         return;
     netReConectRequire = require;
@@ -261,7 +271,7 @@ bool ScannerFacade::netConnectProcedure()
     return true;
 }
 /**** Network: Settings ****/
-/* info(internal) */
+/* internal info */
 ScannerFacade::NetStateEnum ScannerFacade::netState() const{
     return network->state()->stateEnum();
 }
@@ -337,8 +347,7 @@ void ScannerFacade::setServer(QString server){
         return;
     m_server = server;
     setNetReConectRequire(true);
-    emit serverChanged(m_server);
-    emit netSettStatChanged(netSettStat());
+    emit serverChanged(m_server); 
 }
 void ScannerFacade::setPort(quint16 port){
     if (m_port == port)
@@ -346,7 +355,6 @@ void ScannerFacade::setPort(quint16 port){
     m_port = port;
     setNetReConectRequire(true);
     emit portChanged(m_port);
-    emit netSettStatChanged(netSettStat());
 }
 void ScannerFacade::setUsername(QString username){
     if (m_username == username)
@@ -354,7 +362,6 @@ void ScannerFacade::setUsername(QString username){
     m_username = username;
     setNetReConectRequire(true);
     emit usernameChanged(m_username);
-    emit netSettStatChanged(netSettStat());
 }
 void ScannerFacade::setPassword(QString password){
     if (m_password == password)
@@ -362,7 +369,6 @@ void ScannerFacade::setPassword(QString password){
     m_password = password;
     setNetReConectRequire(true);
     emit passwordChanged(m_password);
-    emit netSettStatChanged(netSettStat());
 }
 /* direct settings */
 ScannerFacade::NetModeEnum ScannerFacade::mode() const{
@@ -404,13 +410,109 @@ void ScannerFacade::setMsgInspectMsec(qint32 msgInspectMsec){
 
 
 /***************** SCANNER ****************/
+/***** Scanner: Service ****/
+/* control */
 void ScannerFacade::connectToScanner()
 {
-    
+    // todo s
+    // connect queuened connect:
+    // -fiend
+    // -scanner statusChanged
+    // -attach
+    // -detach
+    // impl:
+    // -field convert
 }
 void ScannerFacade::disconnectFromScanner()
 {
+    // todo
+}
+/* facade info */
+bool ScannerFacade::isScannerReconReq() const{
+    return scannerReconReq;
+}
+/* private */
+QString ScannerFacade::scannerAddrValid() const{
+    return scanner->scanner()->isAddrValid(m_scannerAddr);
+}
+void ScannerFacade::setScnrReconReq(bool reconReq){
+    if (scannerReconReq == reconReq)
+        return;
+    scannerReconReq = reconReq;
+    emit scannerReconReqChanged(scannerReconReq);
+}
+void ScannerFacade::fieldChangedHandler(ScannerManengerTagField::TagFieldList field)
+{
+    // todo
+}
+/**** Network: Settings ****/
+/* internal info */
+ScannerFacade::ScannerStateEnum ScannerFacade::scannerState() const{
+    return scanner->scanner()->status();
+}
+QVariant ScannerFacade::field() const
+{
+    // todo
+    return QVariant(0);
+}
+/* re-creation settings */
+ScannerFacade::ScannerType ScannerFacade::scannerType() const{
+    return m_scannerType;
+}
+QString ScannerFacade::scannerAddr() const{
+    return m_scannerAddr;
+}
+void ScannerFacade::setScannerType(ScannerFacade::ScannerType scannerType){
+    if (m_scannerType == scannerType)
+        return;
+    m_scannerType = scannerType;
+    setScnrReconReq(true);
+    emit scannerTypeChanged(m_scannerType);
+}
+void ScannerFacade::setScannerAddr(QString scannerAddr){
+    if (m_scannerAddr == scannerAddr)
+        return;
+    m_scannerAddr = scannerAddr;
+    setScnrReconReq(true);
+    emit scannerAddrValidChanged(scannerAddrValid());
+    emit scannerAddrChanged(m_scannerAddr);
+}
+/* direct settings */
+uint ScannerFacade::scanPeriodMsec() const
+{
+    return m_scanPeriodMsec;
+}
+uint ScannerFacade::maxUnreadMsec() const
+{
+    return m_maxUnreadMsec;
+}
+uint ScannerFacade::maxUnreadPcnt() const
+{
+    return m_maxUnreadPcnt;
+}
+void ScannerFacade::setScanPeriodMsec(uint scanPeriodMsec)
+{
+    if (m_scanPeriodMsec == scanPeriodMsec)
+        return;
     
+    m_scanPeriodMsec = scanPeriodMsec;
+    emit scanPeriodMsecChanged(m_scanPeriodMsec);
+}
+void ScannerFacade::setMaxPeriodMsec(uint maxUnreadMsec)
+{
+    if (m_maxUnreadMsec == maxUnreadMsec)
+        return;
+    
+    m_maxUnreadMsec = maxUnreadMsec;
+    emit maxUnreadMsecChanged(m_maxUnreadMsec);
+}
+void ScannerFacade::setMaxUnreadPcnt(uint maxUnreadPcnt)
+{
+    if (m_maxUnreadPcnt == maxUnreadPcnt)
+        return;
+    
+    m_maxUnreadPcnt = maxUnreadPcnt;
+    emit maxUnreadPcntChanged(m_maxUnreadPcnt);
 }
 
 
