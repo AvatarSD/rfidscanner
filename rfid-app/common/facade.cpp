@@ -493,19 +493,30 @@ bool ScannerFacade::scannerConnectProcedure()
     setScnrReconReq(false);
     return true;
 }
+void ScannerFacade::setField(QVariantList field)
+{
+    if (m_field == field)
+        return;
+    
+    m_field = field;
+    emit fieldChanged(m_field);
+}
 void ScannerFacade::fieldChangedHandler(ScannerManengerTagField::TagFieldList field)
 {
-    // todo
+    QVariantList tmp;
+    tmp.reserve(field.size());
+    foreach (auto &tagStat, field) 
+        tmp.append(QVariant::fromValue(tagStat.data()));
+    //m_field.clear();
+    setField(tmp);
 }
 /**** Network: Settings ****/
 /* internal info */
 ScannerFacade::ScannerStateEnum ScannerFacade::scannerState() const{
     return scanner->scanner()->status();
 }
-QVariant ScannerFacade::field() const
-{
-    // todo
-    return QVariant(0);
+QVariantList ScannerFacade::field() const{
+    return m_field;
 }
 /* re-creation settings */
 ScannerFacade::ScannerType ScannerFacade::scannerType() const{

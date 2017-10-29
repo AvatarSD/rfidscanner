@@ -131,7 +131,7 @@ public:
     bool isScannerReconReq() const;
     QString scannerAddrValid() const;
     ScannerStateEnum scannerState() const;
-    QVariant field() const;
+    QVariantList field() const;
     /* settings: re-create */
     ScannerType scannerType() const;
     QString scannerAddr() const;
@@ -218,7 +218,7 @@ signals:
     void scannerReconReqChanged(bool isScannerReconReq);
     void scannerAddrValidChanged(QString scannerAddrValid);
     void scannerStateChanged(ScannerStateEnum scannerState);
-    void fieldChanged(QVariant field);
+    void fieldChanged(QVariantList field);
     /* scanner: re-create */
     void scannerTypeChanged(ScannerType scannerType);
     void scannerAddrChanged(QString scannerAddr);
@@ -252,6 +252,7 @@ private:
     void setScnrReconReq(bool scannerReconReq); 
     bool scannerCreareProcedure();
     bool scannerConnectProcedure();
+    void setField(QVariantList field);
 
 private:
     /*** LOGGER ***/
@@ -280,6 +281,7 @@ private:
     QScopedPointer<ScannerManenger> scanner;
     bool scannerRecreReq;
     bool scannerReconReq;
+    QVariantList m_field;
     /* settings re-create */
     ScannerType m_scannerType;
     QString m_scannerAddr;
