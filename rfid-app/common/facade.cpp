@@ -25,8 +25,8 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     qmlRegisterType<NetClientModeClass>("ScannerMainElements",1,0,"NetMode");
     qmlRegisterType<NetClientStateClass>("ScannerMainElements",1,0,"NetState");
     /* todo: test without this */
-//    netReCreateRequire = true;
-//    netReConectRequire = true;
+    //    netReCreateRequire = true;
+    //    netReConectRequire = true;
     /* default values */
     m_clientType = ClientType::V1Basic;
     m_socket = SocketType::TCP;
@@ -48,7 +48,7 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     /* register meta-types */
     
     /* register for qml usage */
-
+    
     /* default values */
     m_scannerType = ScannerType::SIMULATOR;
     m_scannerAddr = QStringLiteral("Simulator");
@@ -56,7 +56,7 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     scannerManengerThread.setObjectName("Scanner Manenger");
     scannerManengerThread.start();
     /* create req obj*/
-    
+    scannerCreareProcedure();
     
 }
 ScannerFacade::~ScannerFacade()
@@ -95,7 +95,7 @@ void ScannerFacade::connectToServer()
 {
     /* close old socket */
     if(!network.isNull()){
-        QMetaObject::invokeMethod(network.data(), "stop", Qt::QueuedConnection);
+        disconnectFromServer();
         while(*network->state() != NetStateEnum::DISCONNECTED)
             QObject::thread()->yieldCurrentThread();
     }
@@ -270,6 +270,7 @@ bool ScannerFacade::netConnectProcedure()
     setNetReConectRequire(false);
     return true;
 }
+
 /**** Network: Settings ****/
 /* internal info */
 ScannerFacade::NetStateEnum ScannerFacade::netState() const{
@@ -386,25 +387,25 @@ qint32 ScannerFacade::msgInspectMsec() const{
 void ScannerFacade::setMode(ScannerFacade::NetModeEnum mode){
     if (this->mode() != mode)
         QMetaObject::invokeMethod(network.data(),"setMode", 
-                              Qt::QueuedConnection, Q_ARG(NetModeEnum, mode));
+                                  Qt::QueuedConnection, Q_ARG(NetModeEnum, mode));
     emit modeChanged(mode);
 }
 void ScannerFacade::setMsgTxRepeatSec(uint msgTxRepeatSec){
     if (this->msgTxRepeatSec() != msgTxRepeatSec)
         QMetaObject::invokeMethod(network.data(),"setMsgTransmitRepeatSec", 
-                              Qt::QueuedConnection, Q_ARG(uint, msgTxRepeatSec));
+                                  Qt::QueuedConnection, Q_ARG(uint, msgTxRepeatSec));
     emit msgTxRepeatSecChanged(msgTxRepeatSec);
 }
 void ScannerFacade::setMsgMaxTxAtempt(uint msgMaxTxAtempt){
     if (this->msgMaxTxAtempt() != msgMaxTxAtempt)
         QMetaObject::invokeMethod(network.data(),"setMsgMaxAtemptToDelete", 
-                              Qt::QueuedConnection, Q_ARG(uint, msgMaxTxAtempt));
+                                  Qt::QueuedConnection, Q_ARG(uint, msgMaxTxAtempt));
     emit msgMaxTxAtemptChanged(msgMaxTxAtempt);
 }
 void ScannerFacade::setMsgInspectMsec(qint32 msgInspectMsec){
     if (this->msgInspectMsec() != msgInspectMsec)
         QMetaObject::invokeMethod(network.data(),"setMsgInspectPeriodMsec", 
-                              Qt::QueuedConnection, Q_ARG(int, msgInspectMsec));
+                                  Qt::QueuedConnection, Q_ARG(int, msgInspectMsec));
     emit msgInspectMsecChanged(msgInspectMsec);
 }
 
@@ -414,18 +415,27 @@ void ScannerFacade::setMsgInspectMsec(qint32 msgInspectMsec){
 /* control */
 void ScannerFacade::connectToScanner()
 {
-    // todo s
-    // connect queuened connect:
-    // -fiend
-    // -scanner statusChanged
-    // -attach
-    // -detach
-    // impl:
-    // -field convert
+    /* dethach old scanner */
+    if(!scanner.isNull()){
+        disconnectFromScanner();
+        while(scanner->scanner()->status() != ScannerStateEnum::DETHACHED)
+            QObject::thread()->yieldCurrentThread();
+    }
+    /* re-create procedure */
+    if(scannerRecreReq || scanner.isNull())
+        if(!scannerCreareProcedure())
+            return;
+    /* re-connect procedure */
+    if(scannerReconReq)
+        if(!scannerConnectProcedure())
+            return;
+    /* call start() */
+    QMetaObject::invokeMethod(scanner.data(), "start", Qt::QueuedConnection);
 }
 void ScannerFacade::disconnectFromScanner()
 {
-    // todo
+    if(!scanner.isNull())
+        QMetaObject::invokeMethod(scanner.data(), "stop", Qt::QueuedConnection);
 }
 /* facade info */
 bool ScannerFacade::isScannerReconReq() const{
@@ -435,11 +445,36 @@ bool ScannerFacade::isScannerReconReq() const{
 QString ScannerFacade::scannerAddrValid() const{
     return scanner->scanner()->isAddrValid(m_scannerAddr);
 }
+void ScannerFacade::setScnrRecreatReq(bool recreReq){
+    if(recreReq)
+        setScnrReconReq(true);
+    if (scannerRecreReq == recreReq)
+        return;
+    scannerRecreReq = recreReq;
+}
 void ScannerFacade::setScnrReconReq(bool reconReq){
     if (scannerReconReq == reconReq)
         return;
     scannerReconReq = reconReq;
     emit scannerReconReqChanged(scannerReconReq);
+}
+bool ScannerFacade::scannerCreareProcedure()
+{
+    // connect queuened connect:
+    // -fiend
+    // -scanner statusChanged
+    // -attach
+    // -detach
+    
+    setScnrRecreatReq(false);
+    return true;
+}
+bool ScannerFacade::scannerConnectProcedure()
+{
+    
+    
+    setScnrReconReq(false);
+    return true;
 }
 void ScannerFacade::fieldChangedHandler(ScannerManengerTagField::TagFieldList field)
 {
@@ -517,7 +552,6 @@ void ScannerFacade::setMaxUnreadPcnt(uint maxUnreadPcnt)
     scanner->timings().maxUnreadToLeftPcnt = maxUnreadPcnt;
     emit maxUnreadPcntChanged(scanner->timings().maxUnreadToLeftPcnt);
 }
-
 void ScannerFacade::setUnreadToDelSec(uint unreadToDelSec)
 {
     if (scanner->timings().maxUnreadToDeleteSec == unreadToDelSec)
@@ -526,7 +560,6 @@ void ScannerFacade::setUnreadToDelSec(uint unreadToDelSec)
     scanner->timings().maxUnreadToDeleteSec = unreadToDelSec;
     emit unreadToDelSecChanged(scanner->timings().maxUnreadToDeleteSec);
 }
-
 void ScannerFacade::setTagLeftRule(ScannerFacade::TagFieldLeftRuleEnum tagLeftRule)
 {
     if (scanner->timings().leftRule == tagLeftRule)

@@ -15,10 +15,9 @@ SOURCES += main.cpp \
     network/d_client.cpp \
     common/facade.cpp \
     scanner/a_transport.cpp \
-    scanner/b_proto.cpp \
     scanner/c_scanner.cpp \
-    scanner/d_commands.cpp \
-    scanner/e_mamanger.cpp
+    scanner/b_commands.cpp \
+    scanner/d_mamanger.cpp
 
 RESOURCES += qml.qrc
 
@@ -55,10 +54,9 @@ HEADERS += \
     network/d_client.h \
     common/facade.h \
     scanner/a_transport.h \
-    scanner/b_proto.h \
     scanner/c_scanner.h \
-    scanner/d_commands.h \
-    scanner/e_mamanger.h
+    scanner/b_commands.h \
+    scanner/d_mamanger.h
 
 #INCLUDEPATH += ../QUSB/src
 #LIBS += -L../../build-meta-rfid-Desktop_Qt_5_9_1_GCC_64bit-Release/QUSB/lib -lqusb

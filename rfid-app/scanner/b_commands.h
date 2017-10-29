@@ -4,6 +4,12 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 
+
+/********************** Level 2(B) ***********************/
+
+/*************** Interface ****************/
+
+/***** ScannerProtocol *****/
 class ScannerProtocol
 {
 public:
@@ -70,7 +76,8 @@ public:
 
 };
 
-class ScannerRequest //: public Serialaizeable
+/****** ScannerRequest *****/
+class ScannerRequest
 {
 public:
     ScannerRequest(){}
@@ -84,7 +91,8 @@ public:
     virtual QJsonParseError fromJson(const QJsonObject &);
 };
 
-class ScannerReply //: public Serialaizeable
+/******* ScannerReply ******/
+class ScannerReply 
 {
 public:
     ScannerReply(){}
@@ -96,7 +104,17 @@ public:
 };
 
 
+/************ Implementation **************/
 
+/******** Inventory ********/
+class InventoryRq : public ScannerRequest
+{
+
+};
+class InventoryRp : public ScannerReply
+{
+
+};
 
 
 #endif // SCANNERPROTOCOL_H

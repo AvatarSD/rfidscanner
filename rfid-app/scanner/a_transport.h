@@ -6,12 +6,17 @@
 #include "events.h"
 
 
-class PhyTransport : public Eventful
+/********************** Level 1(A) ***********************/
+
+/*************** Interface ****************/
+
+/******** ScannerPhy *******/
+class ScannerPhy : public Eventful
 {
     Q_OBJECT
 public:
-    PhyTransport(QObject*parent=nullptr) : Eventful(parent){}
-    virtual ~PhyTransport(){}
+    ScannerPhy(QObject*parent=nullptr) : Eventful(parent){}
+    virtual ~ScannerPhy(){}
     
 signals:
     void inData(QByteArray data);

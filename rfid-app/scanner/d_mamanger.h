@@ -8,7 +8,7 @@
 #include <QMutex>
 //#include <QTimer>
 
-#include "d_commands.h"
+#include "c_scanner.h"
 
 #define MAX_PERCENT 100.0
 

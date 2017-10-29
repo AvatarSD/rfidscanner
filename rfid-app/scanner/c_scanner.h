@@ -6,9 +6,12 @@
 #include <QThread>
 
 #include "a_transport.h"
-#include "b_proto.h"
+#include "b_commands.h"
 
 
+/********************** Level 3(C) ***********************/
+
+/*************** Interface ****************/
 
 /**** General Scanner Settings ****/
 /*typedef int dBm;
@@ -35,9 +38,6 @@ typedef uint QValue;*/
 
 };*/
 
-
-
-
 /********** Scanner *********/
 class Scanner : public Eventful
 {
@@ -49,8 +49,7 @@ public:
         READY
     };
     Q_ENUM(ScannerStateEnum)
-    Scanner(ScannerProtocol * protocol, PhyTransport * transport,
-           QObject * parent = nullptr);
+    Scanner(QObject * parent = nullptr);
     virtual ~Scanner();
 public slots:
     ScannerStateEnum status() const;
@@ -64,18 +63,56 @@ signals:
     void executed(QSharedPointer<ScannerReply>);
     void statusChanged(ScannerStateEnum status);
     void validAddrListChanged(QStringList addrList);
-protected:
-    QScopedPointer<ScannerProtocol> protocol;
-    QScopedPointer<PhyTransport> transport;
 protected slots:
     void setStatus(ScannerStateEnum status);
-    virtual void inData(QByteArray) = 0;
+private:
+    ScannerStateEnum m_status;
+};
+
+
+/************ Implementation **************/
+
+/***** ScannerEmulator *****/
+class ScannerEmulator : public Scanner
+{
+    Q_OBJECT
+public:
+    ScannerEmulator(QObject * parent=nullptr) : Scanner(parent){}
+    virtual ~ScannerEmulator(){}
+    
+public slots:
+    virtual QString isAddrValid(QString addr);
+    virtual QStringList validAddrList();
+    virtual void attach(QString addr);
+    virtual void detach();
+    virtual void execute(QSharedPointer<ScannerRequest>);
+};
+
+/********** Scanner *********/
+class ScannerDet : public Scanner
+{
+    Q_OBJECT
+public:
+    ScannerDet(ScannerProtocol * protocol, ScannerPhy * transport,
+               QObject * parent = nullptr) : Scanner(parent) {}
+    virtual ~ScannerDet(){}
+public slots:
+    //return null-string if yes, otherwise return err string
+    virtual QString isAddrValid(QString addr){}
+    virtual QStringList validAddrList(){}
+    virtual void attach(QString addr){}
+    virtual void detach(){}
+    virtual void execute(QSharedPointer<ScannerRequest>){}
+    /*********************/
+protected:
+    QScopedPointer<ScannerProtocol> protocol;
+    QScopedPointer<ScannerPhy> transport;
+protected slots:
+    virtual void inData(QByteArray){}
 signals:
     void outData(QByteArray);
 private:
     QThread thread;
-    ScannerStateEnum m_status;
 };
-
 
 #endif // READER_H

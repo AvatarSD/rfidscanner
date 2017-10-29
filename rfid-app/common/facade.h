@@ -5,7 +5,7 @@
 
 #include "common/system.h"
 #include "common/logger.h"
-#include "scanner/e_mamanger.h"
+#include "scanner/d_mamanger.h"
 #include "network/d_client.h"
 
 class ScannerFacade : public Eventful
@@ -248,7 +248,10 @@ private:
     bool netConnectProcedure();
     
     /*** SCANNER ***/
+    void setScnrRecreatReq(bool reconReq);
     void setScnrReconReq(bool scannerReconReq); 
+    bool scannerCreareProcedure();
+    bool scannerConnectProcedure();
 
 private:
     /*** LOGGER ***/
@@ -275,6 +278,7 @@ private:
     /*** SCANNER ***/
     QThread scannerManengerThread;
     QScopedPointer<ScannerManenger> scanner;
+    bool scannerRecreReq;
     bool scannerReconReq;
     /* settings re-create */
     ScannerType m_scannerType;

@@ -1,27 +1,19 @@
 #include "c_scanner.h"
 
-Scanner::Scanner(ScannerProtocol * protocol, PhyTransport * transport,
-               QObject * parent):
-    Eventful(parent), protocol(protocol), transport(transport)
-{
-    transport->moveToThread(&thread);
-    thread.setObjectName("Scanner Phy");
-    thread.start();
-}
 
+/********************** Level 3(C) ***********************/
+
+/*************** Interface ****************/
+
+/********** Scanner *********/
+Scanner::Scanner(QObject * parent): Eventful(parent)
+{}
 Scanner::~Scanner()
-{
-    thread.quit();
-    thread.wait();
-}
-
-Scanner::ScannerStateEnum Scanner::status() const
-{
+{}
+Scanner::ScannerStateEnum Scanner::status() const{
     return m_status;
 }
-
-void Scanner::setStatus(Scanner::ScannerStateEnum status)
-{
+void Scanner::setStatus(Scanner::ScannerStateEnum status){
     if(m_status == status)
         return;
 
@@ -35,3 +27,23 @@ bool Scanner::getFullMem(Tag &tag)
     return (getEPCMem(tag) && getUserMem(tag) && getReserveMem(tag));
 }
 */
+
+
+/************ Implementation **************/
+
+/***** ScannerEmulator *****/
+QString ScannerEmulator::isAddrValid(QString addr)
+{
+}
+QStringList ScannerEmulator::validAddrList()
+{
+}
+void ScannerEmulator::attach(QString addr)
+{
+}
+void ScannerEmulator::detach()
+{
+}
+void ScannerEmulator::execute(QSharedPointer<ScannerRequest>)
+{
+}
