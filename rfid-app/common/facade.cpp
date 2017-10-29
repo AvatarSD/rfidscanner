@@ -50,7 +50,7 @@ ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
     /* register for qml usage */
     
     /* default values */
-    m_scannerType = ScannerType::SIMULATOR;
+    m_scannerType = ScannerType::EMULATOR;
     m_scannerAddr = QStringLiteral("Simulator");
     /* setup net thread(call moveToThread from creating procedure) */
     scannerManengerThread.setObjectName("Scanner Manenger");
@@ -430,7 +430,8 @@ void ScannerFacade::connectToScanner()
         if(!scannerConnectProcedure())
             return;
     /* call start() */
-    QMetaObject::invokeMethod(scanner.data(), "start", Qt::QueuedConnection);
+    QMetaObject::invokeMethod(scanner.data(), "start", Qt::QueuedConnection,
+                              Q_ARG(QString, m_scannerAddr));
 }
 void ScannerFacade::disconnectFromScanner()
 {
@@ -460,18 +461,34 @@ void ScannerFacade::setScnrReconReq(bool reconReq){
 }
 bool ScannerFacade::scannerCreareProcedure()
 {
-    // connect queuened connect:
-    // -fiend
-    // -scanner statusChanged
-    // -attach
-    // -detach
-    
+    /* create new scanner */
+    Scanner * device = nullptr;
+    switch (m_scannerType) {
+    case ScannerFacade::EMULATOR:
+        device = new ScannerEmulator();
+        break;
+    case ScannerFacade::ADS_USB:
+        break;
+    case ScannerFacade::LINK_SPRITE:
+        break;
+    }
+    /* create new scanner nanenger */
+    scanner.reset(new ScannerManengerBasicV1(device));
+    /* move to scanner manenger thread */
+    scanner->moveToThread(&this->scannerManengerThread);
+    /* connections */
+    connect(scanner.data(), &ScannerManenger::fieldChanged,
+            this, &ScannerFacade::fieldChangedHandler);
+    connect(scanner->scanner(), &Scanner::statusChanged,
+            this, &ScannerFacade::scannerStateChanged);
+    /* reset flags */
     setScnrRecreatReq(false);
+    setScnrReconReq(true);
     return true;
 }
 bool ScannerFacade::scannerConnectProcedure()
 {
-    
+    /* at this moment here is nothing */
     
     setScnrReconReq(false);
     return true;
@@ -501,7 +518,7 @@ void ScannerFacade::setScannerType(ScannerFacade::ScannerType scannerType){
     if (m_scannerType == scannerType)
         return;
     m_scannerType = scannerType;
-    setScnrReconReq(true);
+    setScnrRecreatReq(true);
     emit scannerTypeChanged(m_scannerType);
 }
 void ScannerFacade::setScannerAddr(QString scannerAddr){

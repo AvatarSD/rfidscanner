@@ -96,7 +96,7 @@ public:
     /*** SCANNER ***/
     typedef Scanner::ScannerStateEnum ScannerStateEnum;
     typedef TagFieldLeftRule::TagFieldLeftRuleEnum TagFieldLeftRuleEnum;
-    enum ScannerType{SIMULATOR, ADS_USB, LINK_SPRITE};
+    enum ScannerType{EMULATOR, ADS_USB, LINK_SPRITE};
     Q_ENUM(ScannerType)
 
 public:

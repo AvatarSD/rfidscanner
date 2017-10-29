@@ -144,7 +144,7 @@ public:
     virtual ~ScannerManenger();
 public slots:
     Scanner * scanner() const;
-    virtual void start() = 0;
+    virtual void start(QString addr) = 0;
     virtual void stop();
     ScannerManengerTagField::TagFieldList field() const;
     TagFieldTimings & timings();
@@ -175,11 +175,12 @@ public:
     virtual ~ScannerManengerBasicV1();
     
 public slots:
-    virtual void start();
+    virtual void start(QString addr);
     virtual void stop();
     /*******************/
 protected slots:
     virtual void executed(QSharedPointer<ScannerReply>);
+    virtual void scannerStatusHandler(Scanner::ScannerStateEnum);
     void onTimer();
 private:
     QTimer timer;

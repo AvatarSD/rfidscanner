@@ -252,7 +252,7 @@ ScannerManengerBasicV1::~ScannerManengerBasicV1()
 {
 
 }
-void ScannerManengerBasicV1::start()
+void ScannerManengerBasicV1::start(QString addr)
 {
     //    timer.start(10);
 }
@@ -272,3 +272,8 @@ void ScannerManengerBasicV1::onTimer()
 
 
 
+
+
+void ScannerManengerBasicV1::scannerStatusHandler(Scanner::ScannerStateEnum)
+{
+}
