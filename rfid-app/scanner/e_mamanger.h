@@ -124,7 +124,7 @@ public:
 public slots:
     void update(QStringList readedTags);
     void clear();
-    TagFieldTimings & timings();
+    TagFieldTimings &timings();
     TagFieldList field() const;
 signals:
     void fieldChanged(TagFieldList field);
@@ -147,6 +147,7 @@ public slots:
     virtual void start() = 0;
     virtual void stop();
     ScannerManengerTagField::TagFieldList field() const;
+    TagFieldTimings & timings();
 signals:
     void fieldChanged(ScannerManengerTagField::TagFieldList field);
     /********************/

@@ -478,41 +478,62 @@ void ScannerFacade::setScannerAddr(QString scannerAddr){
     emit scannerAddrChanged(m_scannerAddr);
 }
 /* direct settings */
-uint ScannerFacade::scanPeriodMsec() const
-{
-    return m_scanPeriodMsec;
+uint ScannerFacade::scanPeriodMsec() const{
+    return scanner->timings().scanPerionMsec;
 }
-uint ScannerFacade::maxUnreadMsec() const
-{
-    return m_maxUnreadMsec;
+uint ScannerFacade::maxUnreadMsec() const{
+    return scanner->timings().maxUnreadToLeftMsec;
 }
-uint ScannerFacade::maxUnreadPcnt() const
-{
-    return m_maxUnreadPcnt;
+uint ScannerFacade::maxUnreadPcnt() const{
+    return scanner->timings().maxUnreadToLeftPcnt;
+}
+uint ScannerFacade::unreadToDelSec() const{
+    return scanner->timings().maxUnreadToDeleteSec;
+}
+ScannerFacade::TagFieldLeftRuleEnum ScannerFacade::tagLeftRule() const{
+    return scanner->timings().leftRule;
 }
 void ScannerFacade::setScanPeriodMsec(uint scanPeriodMsec)
 {
-    if (m_scanPeriodMsec == scanPeriodMsec)
+    if (scanner->timings().scanPerionMsec == scanPeriodMsec)
         return;
     
-    m_scanPeriodMsec = scanPeriodMsec;
-    emit scanPeriodMsecChanged(m_scanPeriodMsec);
+    scanner->timings().scanPerionMsec = scanPeriodMsec;
+    emit scanPeriodMsecChanged(scanner->timings().scanPerionMsec);
 }
 void ScannerFacade::setMaxPeriodMsec(uint maxUnreadMsec)
 {
-    if (m_maxUnreadMsec == maxUnreadMsec)
+    if (scanner->timings().maxUnreadToLeftMsec == maxUnreadMsec)
         return;
     
-    m_maxUnreadMsec = maxUnreadMsec;
-    emit maxUnreadMsecChanged(m_maxUnreadMsec);
+    scanner->timings().maxUnreadToLeftMsec = maxUnreadMsec;
+    emit maxUnreadMsecChanged(scanner->timings().maxUnreadToLeftMsec);
 }
 void ScannerFacade::setMaxUnreadPcnt(uint maxUnreadPcnt)
 {
-    if (m_maxUnreadPcnt == maxUnreadPcnt)
+    if (scanner->timings().maxUnreadToLeftPcnt == maxUnreadPcnt)
         return;
     
-    m_maxUnreadPcnt = maxUnreadPcnt;
-    emit maxUnreadPcntChanged(m_maxUnreadPcnt);
+    scanner->timings().maxUnreadToLeftPcnt = maxUnreadPcnt;
+    emit maxUnreadPcntChanged(scanner->timings().maxUnreadToLeftPcnt);
+}
+
+void ScannerFacade::setUnreadToDelSec(uint unreadToDelSec)
+{
+    if (scanner->timings().maxUnreadToDeleteSec == unreadToDelSec)
+        return;
+    
+    scanner->timings().maxUnreadToDeleteSec = unreadToDelSec;
+    emit unreadToDelSecChanged(scanner->timings().maxUnreadToDeleteSec);
+}
+
+void ScannerFacade::setTagLeftRule(ScannerFacade::TagFieldLeftRuleEnum tagLeftRule)
+{
+    if (scanner->timings().leftRule == tagLeftRule)
+        return;
+    
+    scanner->timings().leftRule = tagLeftRule;
+    emit tagLeftRuleChanged(scanner->timings().leftRule);
 }
 
 

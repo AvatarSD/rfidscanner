@@ -62,6 +62,8 @@ class ScannerFacade : public Eventful
     /*   */ Q_PROPERTY(uint        scanPeriodMsec  READ scanPeriodMsec  WRITE setScanPeriodMsec  NOTIFY scanPeriodMsecChanged)
     /*   */ Q_PROPERTY(uint        maxUnreadMsec   READ maxUnreadMsec   WRITE setMaxPeriodMsec   NOTIFY maxUnreadMsecChanged)
     /*   */ Q_PROPERTY(uint        maxUnreadPcnt   READ maxUnreadPcnt   WRITE setMaxUnreadPcnt   NOTIFY maxUnreadPcntChanged)
+    /*   */ Q_PROPERTY(uint        unreadToDelSec  READ unreadToDelSec  WRITE setUnreadToDelSec NOTIFY unreadToDelSecChanged)
+    /*   */ Q_PROPERTY(TagFieldLeftRuleEnum tagLeftRule READ tagLeftRule WRITE setTagLeftRule NOTIFY tagLeftRuleChanged)
     /*** SYSTEM ***/
     /* I */ //Q_PROPERTY(QVariantMap wlanStatus      READ wlanStatus                               NOTIFY wlanStatusChanged)
     /* I */ //Q_PROPERTY(QVariantMap wlans           READ wlans                                    NOTIFY wlansChanged)
@@ -137,8 +139,8 @@ public:
     uint scanPeriodMsec() const;
     uint maxUnreadMsec() const;
     uint maxUnreadPcnt() const;    
-    
-    
+    uint unreadToDelSec() const;
+    TagFieldLeftRuleEnum tagLeftRule() const;
     
 public slots:
     /*** LOGGER ***/
@@ -176,10 +178,13 @@ public slots:
     void setScanPeriodMsec(uint scanPeriodMsec);
     void setMaxPeriodMsec(uint maxUnreadMsec);
     void setMaxUnreadPcnt(uint maxUnreadPcnt);
+    void setUnreadToDelSec(uint unreadToDelSec);
+    void setTagLeftRule(TagFieldLeftRuleEnum tagLeftRule);
     
     /*** SYSTEM ***/
     //void connectToWlan(QString ssid, QString psswd);
     //void disconnectFromWlan();    
+    
     
 signals:
     /*** LOGGER ***/
@@ -221,6 +226,8 @@ signals:
     void scanPeriodMsecChanged(uint scanPeriodMsec);
     void maxUnreadMsecChanged(uint maxUnreadMsec);
     void maxUnreadPcntChanged(uint maxUnreadPcnt);
+    void unreadToDelSecChanged(uint unreadToDelSec);
+    void tagLeftRuleChanged(TagFieldLeftRuleEnum tagLeftRule);
     
     
     /**** private ************************************************************/

@@ -236,6 +236,10 @@ ScannerManengerTagField::TagFieldList ScannerManenger::field() const
 {
     return this->tagsfield.field();
 }
+TagFieldTimings &ScannerManenger::timings()
+{
+    return this->tagsfield.timings();
+}
 
 /******** ScannerManengerSimple ********/
 ScannerManengerBasicV1::ScannerManengerBasicV1(Scanner * scanner,

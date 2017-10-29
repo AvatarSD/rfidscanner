@@ -55,8 +55,8 @@ public:
 public slots:
     ScannerStateEnum status() const;
     //return null-string if yes, otherwise return err string
-    virtual QString isAddrValid(QString addr); 
-    virtual QStringList validAddrList();
+    virtual QString isAddrValid(QString addr)=0; 
+    virtual QStringList validAddrList()=0;
     virtual void attach(QString addr) = 0;
     virtual void detach() = 0;
     virtual void execute(QSharedPointer<ScannerRequest>) = 0;
