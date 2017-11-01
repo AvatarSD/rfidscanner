@@ -21,14 +21,14 @@ Rectangle{
             width: disconnectBtn.width
             height: disconnectBtn.height
             text: qsTr("Connect")
-            onClicked: ctrlBtns.connectSignal()
+            onClicked: connectSignal()
         }
         Button {
             id: disconnectBtn
-            width: ctrlBtns.btnsWidth
-            height: ctrlBtns.btnsHeight
+            width: btnsWidth
+            height: btnsHeight
             text: qsTr("Disconnect")
-            onClicked: ctrlBtns.disconnectSignal()
+            onClicked: disconnectSignal()
         }
     }
     

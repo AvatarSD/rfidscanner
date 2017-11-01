@@ -25,7 +25,7 @@ Rectangle{
     Grid{
         id: grid
         columns: 2
-        spacing: 12
+        spacing: 8
         padding: 8
         flow:Flow.TopToBottom
         

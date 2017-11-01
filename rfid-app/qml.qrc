@@ -3,5 +3,6 @@
         <file>main.qml</file>
         <file>CtrlBtns.qml</file>
         <file>AuthFields.qml</file>
+        <file>StateField.qml</file>
     </qresource>
 </RCC>
