@@ -27,7 +27,7 @@ class ScannerFacade : public Eventful
     /*** LOGGER ***/
     /*   */ Q_PROPERTY(QString     logfile         READ logfile         WRITE setLogfile         NOTIFY logfileChanged)
     /*** NETWORK ***/
-    /* I */ Q_PROPERTY(NetSettStat netSettStat     READ netSettStat                              NOTIFY netSettStatChanged)
+    /* I */ Q_PROPERTY(NetSettState netSettState     READ netSettState                              NOTIFY netSettStateChanged)
     /* I */ Q_PROPERTY(bool        isReconRequire  READ isReconRequire                           NOTIFY isReconRequireChanged)
     /*   */     /* socket */
     /*  C*/ Q_PROPERTY(ClientType  clientType      READ clientType      WRITE setClientType      NOTIFY clientTypeChanged)
@@ -76,7 +76,7 @@ public:
     /*** NETWORK ***/
     typedef NetClientStateClass::NetClientStateEnum NetStateEnum;
     typedef NetClientModeClass::NetClientModeEnum NetModeEnum;
-    enum NetSettStat{
+    enum NetSettState{
         OK = 0,
         NO_SERV = 0b0001,
         NO_PORT = 0b0010,
@@ -87,7 +87,7 @@ public:
     enum SocketType{TCP, SSL};
     enum MsgBound{SIMPLE, BOUND_V1};
     enum AuthType{JSON, BASE64};
-    Q_ENUM(NetSettStat)
+    Q_ENUM(NetSettState)
     Q_ENUM(ClientType)
     Q_ENUM(SocketType)
     Q_ENUM(MsgBound)
@@ -106,7 +106,7 @@ public:
     /*** NETWORK ***/
     /* net info */
     bool isReconRequire() const;
-    NetSettStat netSettStat();
+    NetSettState netSettState();
     NetStateEnum netState() const;
     QString netStateMsg() const;
     /* settings: re-create */
@@ -193,7 +193,7 @@ signals:
     /*** NETWORK ***/
     /* info */
     void isReconRequireChanged(bool isReconRequire);
-    void netSettStatChanged(NetSettStat netSettStat);
+    void netSettStateChanged(NetSettState netSettState);
     void netStateChanged(NetStateEnum netState);
     void netStateMsgChanged(QString stateMsg);
     /* net: re-create */
@@ -240,8 +240,8 @@ private slots:
     
 private:
      /*** NETWORK ***/
-    void chkNetSettStat(NetSettStat stat);
-    void putNetSettStatToLog(NetSettStat stat);
+    void chkNetSettState(NetSettState stat);
+    void putNetSettStateToLog(NetSettState stat);
     void setNetReCreateRequire(bool require);
     void setNetReConectRequire(bool require);
     bool netCreareProcedure();

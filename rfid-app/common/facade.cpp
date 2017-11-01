@@ -119,7 +119,7 @@ void ScannerFacade::disconnectFromServer()
 bool ScannerFacade::isReconRequire() const{
     return netReCreateRequire || netReConectRequire;
 }
-ScannerFacade::NetSettStat ScannerFacade::netSettStat() {
+ScannerFacade::NetSettState ScannerFacade::netSettState() {
     uint8_t stat = OK;
     if(m_server.isEmpty())
         stat |= NO_SERV;
@@ -129,18 +129,18 @@ ScannerFacade::NetSettStat ScannerFacade::netSettStat() {
         stat |= NO_USER;
     if(m_password.isEmpty())
         stat |= NO_PASS;
-    return (NetSettStat)stat;
+    return (NetSettState)stat;
 }
 /* private */
 void ScannerFacade::netStateChangedHandler(const NetClientState *state){
     emit netStateChanged(state->stateEnum());
     emit netStateMsgChanged(state->stateMessage());
 }
-void ScannerFacade::chkNetSettStat(NetSettStat stat){
-    putNetSettStatToLog(stat);
-    emit netSettStatChanged(stat);
+void ScannerFacade::chkNetSettState(NetSettState stat){
+    putNetSettStateToLog(stat);
+    emit netSettStateChanged(stat);
 }
-void ScannerFacade::putNetSettStatToLog(ScannerFacade::NetSettStat stat){
+void ScannerFacade::putNetSettStateToLog(ScannerFacade::NetSettState stat){
     if(stat&NO_SERV)
         emit sysEvent(QSharedPointer<Event> (
                           new SystemEvent(SystemEvent::ERROR,
@@ -171,7 +171,7 @@ void ScannerFacade::setNetReCreateRequire(bool require){
     emit isReconRequireChanged(isReconRequire());
 }
 void ScannerFacade::setNetReConectRequire(bool require){
-    emit netSettStatChanged(netSettStat());
+    emit netSettStateChanged(netSettState());
     if(netReConectRequire == require)
         return;
     netReConectRequire = require;
@@ -252,8 +252,8 @@ bool ScannerFacade::netCreareProcedure()
 bool ScannerFacade::netConnectProcedure()
 {
     /* check server, port, user and pass */
-    auto ret = netSettStat();
-    chkNetSettStat(ret);
+    auto ret = netSettState();
+    chkNetSettState(ret);
     if(ret&NO_SERV || ret&NO_PORT)
         return false;
     /* set server and port */

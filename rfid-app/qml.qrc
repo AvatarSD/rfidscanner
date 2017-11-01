@@ -1,5 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>CtrlBtns.qml</file>
+        <file>AuthFields.qml</file>
     </qresource>
 </RCC>
