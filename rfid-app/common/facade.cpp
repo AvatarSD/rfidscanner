@@ -1,5 +1,7 @@
 #include "facade.h"
 #include <QtQml>
+#include <QMetaObject>
+#include <QMetaEnum>
 
 
 ScannerFacade::ScannerFacade(QObject *parent) : Eventful(parent),
@@ -595,6 +597,17 @@ void ScannerFacade::setTagLeftRule(ScannerFacade::TagFieldLeftRuleEnum tagLeftRu
     
     scanner->timings().leftRule = tagLeftRule;
     emit tagLeftRuleChanged(scanner->timings().leftRule);
+}
+/*** service ***/
+QVariantMap ScannerFacade::getEnumFields(QString enuemeration){
+    int indx = metaObject()->indexOfEnumerator(enuemeration.toStdString().c_str());
+    if(indx < 0)
+        return QVariantMap();
+    auto me = metaObject()->enumerator(indx);
+    QVariantMap map;
+    for(int i = 0; i < me.keyCount(); i++)
+        map[QString(me.valueToKey(i))] = me.value(i);
+    return map;
 }
 
 

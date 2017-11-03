@@ -1,87 +1,62 @@
 import QtQuick 2.9
-import QtQuick.Window 2.2
 import QtQuick.Controls 1.5
-//import QtQuick.Layouts 1.3
+import QtQuick.Layouts 1.3
 
 import ScannerMainElements 1.0
 
-/********* require ******** 
-  1. ScannerFacade access by setContextProperty
-  
-*/
-
-/* todo: 
-    Network: netSettState, isReconnReq, clientType, msgBound.
-    Scanner: Type, Address, connect, disconnect, reconnReq, addrValid, scannerState, Field
-    
-    SocketType,workMode, Msg(Repeat|Attempt|Inspect), msgStartSqns, msgEngSqns
-    logfile
-*/
-Column {
+Rectangle {
     id: netSettings
     
-    property real textWidth
-    property real boxWidth: 80
-    property real itemHeigth: 20
-    property real margins: subSpacing
+    property int genSpacing: 6
+    property int genRadius: 6
+    property int boxWidth: 280
+    property int boxHeigth: 36
+    property color blockColor: "#4d4dff"
+    property color itemColor: "#d67a5c"
+    property var settModel: []
     
-    padding: margins
-    spacing: margins
-    
-    
-    
-    Rectangle{
-        height: childrenRect.height+margins*2
-        width:textWidth+boxWidth+margins+3
-        Text{
-            text: "Client Type"
-            width: textWidth
-            onTextChanged: textWidth = Math.max(textWidth, this.width);
-            anchors.margins: margins
-            anchors.left: parent.left
-            anchors.horizontalCenter: parent.horizontalCenter
-        }
-        ComboBox{
-            width: boxWidth
-            anchors.margins: margins
-            anchors.right: parent.right
-            anchors.horizontalCenter: parent.horizontalCenter
-            
-        }
-    }
-    Rectangle{
-        id:proto
-        Text{
-            text: "Protocol"
-            width: textWidth
-            onTextChanged: textWidth = Math.max(textWidth, this.width);
-            
-        }
-        ComboBox{
-            width: boxWidth
-            
-        }
-    }
-    Rectangle{
-        Text{
-            text: "Socket type"
-            width: textWidth
-            onTextChanged: textWidth = Math.max(textWidth, this.width);
-            
-        }
-        ComboBox{
-            width: boxWidth
-            
-        }
-    }
-    
-    Item{
-        z:-1
+    Component{
+        id: settDelegate
         Rectangle{
-            height: netSettings.height
-            width: netSettings.width
-            color: "#bfa1e6"
+            radius: netSettings.genRadius
+            color: netSettings.itemColor
+            width: parent.width
+            height: boxVal.height+(netSettings.genSpacing)
+            anchors.horizontalCenter: parent.horizontalCenter
+            Row{
+                anchors.verticalCenter: parent.verticalCenter
+                Text{
+                    id: txt
+                    text: settName
+                    anchors.verticalCenter: parent.verticalCenter
+                    padding: Math.max(((parent.height-this.height)/2), netSettings.genSpacing)
+                }
+                ComboBox{
+                    id: boxVal
+                    model: settValuesList
+                    anchors.verticalCenter: parent.verticalCenter
+                    
+                }
+            }
         }
     }
     
+    /***/
+    ListView{
+        id:settView
+        model: settModel
+        delegate: settDelegate
+        spacing: netSettings.genSpacing
+        width: parent.width-(netSettings.genSpacing*2)
+        height: parent.height-(netSettings.genSpacing*2)
+        anchors.centerIn: parent
+    }
+    
+    color: netSettings.blockColor
+    radius: netSettings.genRadius
+    border.width: 1
+    border.color: "black"
+    
+    width: 320//settView.implicitWidth+(netSettings.genSpacing*2)
+    height: 160//settView.implicitWidth+(netSettings.genSpacing*2)
 }

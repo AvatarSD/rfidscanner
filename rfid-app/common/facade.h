@@ -184,6 +184,7 @@ public slots:
     /*** SYSTEM ***/
     //void connectToWlan(QString ssid, QString psswd);
     //void disconnectFromWlan();    
+    QVariantMap getEnumFields(QString enuemeration);
     
     
 signals:

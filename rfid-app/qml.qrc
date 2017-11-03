@@ -4,5 +4,6 @@
         <file>CtrlBtns.qml</file>
         <file>AuthFields.qml</file>
         <file>StateField.qml</file>
+        <file>NetSettings.qml</file>
     </qresource>
 </RCC>

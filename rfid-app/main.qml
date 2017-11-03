@@ -25,33 +25,31 @@ Window {
     title: qsTr("EPC Gen2 RFID Node")
     color: "#33334d"
     
-    property real mainRadius: 10
-    property real mainSpacing: 12
-    property real subRadius: 5
-    property real subSpacing: 6
+    property real mainRadius: 8
+    property real mainSpacing: 8
     
     Column{
         id:mainColumn
-        spacing: subSpacing
         padding: mainSpacing
+        spacing: mainSpacing
         
-        Rectangle{
-            radius: mainRadius
-            color: "#80bfff"
+        Row{
+            id: networkFields
+            padding: parent.padding*2
+            spacing: parent.spacing
             Column{
-                id: networkFields
-                padding: mainSpacing
-                spacing: subSpacing
+                id: mainSettings
+                spacing: parent.spacing
                 Row{
-                    spacing: subSpacing
+                    spacing: parent.spacing
                     CtrlBtns {
-                        radius: subRadius
+                        radius: mainRadius
                         onConnectSignal: facade.connectToServer()
                         onDisconnectSignal: facade.disconnectFromServer()
                         reconnReq: facade.isReconRequire
                     }
                     AuthFields {
-                        radius: subRadius
+                        radius: mainRadius
                         addr: facade.server
                         pass: facade.password
                         port: facade.port
@@ -60,40 +58,77 @@ Window {
                         onPortChanged: facade.port = port;
                         onUserChanged: facade.username = user;
                         onPassChanged: facade.password = pass;
+                        addrErr: facade.netSettState & Facade.NO_SERV
+                        portErr: facade.netSettState & Facade.NO_PORT
+                        userErr: facade.netSettState & Facade.NO_USER
+                        passErr: facade.netSettState & Facade.NO_PASS
                     }
                 }
                 StateField {
-                    radius: subRadius
+                    radius: mainRadius
                     stateMsg: facade.netStateMsg
                     stateEnum: facade.netState
                 }
             }
-            height: networkFields.height
-            width: networkFields.width
-        }
-        Rectangle{
-            radius: mainRadius
-            color: "#ff9999"
-            Row{
-                id: scannerFields
-                spacing: subSpacing
-                padding: mainSpacing
-                
-                Rectangle{
-                    height: 100
-                    width: 180
-                    color: "purple"
-                    radius: mainRadius
+            NetSettings {
+                id: netSettings
+                genSpacing: mainSpacing
+                genRadius: mainRadius
+                settModel: ListModel{
+                    id:settMod 
+                    //                        ListElement{
+                    //                            settName:"Client Type:"
+                    //                            //settValue: 0000
+                    //                            settValuesList: sd//facade.getEnumFields("ClientType");
+                    //                        }
+                    /* settValue settName settValuesList */
                 }
-                Rectangle{
-                    height: 100
-                    width: 105
-                    color: "green"
-                    radius: mainRadius
+                Component.onCompleted: {
+                    settMod.append({settName: "Socket Type:", settValuesList: [{ name: "TCP"},{name:"SSL"}]});
+                    settMod.append({settName: "Client Type:", settValuesList: facade.getEnumFields("ClientType")});
+                    //                              append({"icon": "2.png", value: -1});
+                    //                              append({"icon": "3.png", value: leftGrid.secondValue});
+                    //                              append({"icon": "4.png", value: leftGrid.thirdValue});
+                    
                 }
             }
-            height: scannerFields.height
-            width: scannerFields.width
+            Item{
+                z:-1    
+                Rectangle{
+                    height: networkFields.childrenRect.height + (mainSpacing*2)
+                    width: networkFields.childrenRect.width + (mainSpacing*2)
+                    radius: mainRadius
+                    color: "#80bfff"
+                }
+            }
+        }
+        
+        Row{
+            id: scannerFields
+            spacing: mainSpacing
+            padding: mainSpacing
+            
+            Rectangle{
+                height: 100
+                width: 180
+                color: "purple"
+                radius: mainRadius
+            }
+            Rectangle{
+                height: 100
+                width: 105
+                color: "green"
+                radius: mainRadius
+            }
+            Item{
+                z:-1
+                Rectangle{
+                    height: scannerFields.height
+                    width: scannerFields.width
+                    radius: mainRadius
+                    color: "#ff9999"
+                }
+            }
         }
     }
 }
