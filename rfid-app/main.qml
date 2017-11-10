@@ -85,6 +85,10 @@ Window {
                     settModel.append({settName: "Socket Type:", settValue: facade.socket, settValuesList: 
                                          mapToBoxModel(facade.getEnumFieldsVatiant("SocketType"))});
                     
+                    /* mode */
+                    /* msg boundaries */
+                    /* auth type */
+                    
                     /* client type */
                     settModel.append({settName: "Client Type:", settValuesList: 
                                          mapToBoxModel(facade.getEnumFieldsVatiant("ClientType")) })

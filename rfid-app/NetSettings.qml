@@ -26,33 +26,15 @@ Rectangle {
     
     Component{
         id: settDelegate
-        Rectangle{
-            id: delegatRect
-            radius: netSettings.genRadius
+        SettingsComboBox {
+            name: settName
+            value: settValue
+            model:settValuesList
+            
             color: netSettings.itemColor
-            width: parent.width
-            height: netSettings.boxHeigth
+            radius: netSettings.genRadius
+
             anchors.horizontalCenter: parent.horizontalCenter
-            Row{
-                anchors.verticalCenter: parent.verticalCenter
-                Text{
-                    id: txt
-                    text: settName
-                    anchors.verticalCenter: parent.verticalCenter
-                    padding: Math.max(((parent.height-this.height)/2), netSettings.genSpacing)
-                }
-                ComboBox{
-                    id: boxVal
-                    model: settValuesList
-                    textRole: 'name'
-//                    onContentItemChanged: itemChanged();
-                    currentIndex: settValue
-                    onCurrentIndexChanged: console.debug(txt.text,  boxVal.currentText+"("+boxVal.currentIndex+")")
-                    
-                    anchors.verticalCenter: parent.verticalCenter
-                    height: parent.height - netSettings.genSpacing/2
-                }
-            }
         }
     }
     
