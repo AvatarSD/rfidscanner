@@ -2,6 +2,7 @@
 #define SCANNERFACADE_H
 
 #include <QObject>
+#include <QPair>
 
 #include "common/system.h"
 #include "common/logger.h"
@@ -184,7 +185,10 @@ public slots:
     /*** SYSTEM ***/
     //void connectToWlan(QString ssid, QString psswd);
     //void disconnectFromWlan();    
-    QVariantMap getEnumFields(QString enuemeration);
+    
+    /*** SERVISE ***/
+    QMap<QString, int> getEnumFields(QString enuemeration);
+    QVariant getEnumFieldsVatiant(QString enuemeration);
     
     
 signals:

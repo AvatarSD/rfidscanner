@@ -599,15 +599,25 @@ void ScannerFacade::setTagLeftRule(ScannerFacade::TagFieldLeftRuleEnum tagLeftRu
     emit tagLeftRuleChanged(scanner->timings().leftRule);
 }
 /*** service ***/
-QVariantMap ScannerFacade::getEnumFields(QString enuemeration){
+QMap<QString, int> ScannerFacade::getEnumFields(QString enuemeration){
+    QMap<QString, int> values({std::pair<QString, int>(" <---> ", 0)});
     int indx = metaObject()->indexOfEnumerator(enuemeration.toStdString().c_str());
     if(indx < 0)
-        return QVariantMap();
+        return values;
+
+    values.clear();
     auto me = metaObject()->enumerator(indx);
-    QVariantMap map;
+
     for(int i = 0; i < me.keyCount(); i++)
-        map[QString(me.valueToKey(i))] = me.value(i);
-    return map;
+        values[QString(me.key(i))] = me.value(i);
+    return values;
+}
+QVariant ScannerFacade::getEnumFieldsVatiant(QString enuemeration){
+    auto lst = getEnumFields(enuemeration);
+    QVariantMap ret;
+    for (auto var: lst.keys())
+        ret[var] = QVariant::fromValue(lst[var]);
+    return ret;
 }
 
 

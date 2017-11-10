@@ -28,6 +28,8 @@ Window {
     property real mainRadius: 8
     property real mainSpacing: 8
     
+    Component.onCompleted: console.debug(JSON.stringify(facade.socket))
+    
     Column{
         id:mainColumn
         padding: mainSpacing
@@ -74,23 +76,22 @@ Window {
                 id: netSettings
                 genSpacing: mainSpacing
                 genRadius: mainRadius
-                settModel: ListModel{
-                    id:settMod 
-                    //                        ListElement{
-                    //                            settName:"Client Type:"
-                    //                            //settValue: 0000
-                    //                            settValuesList: sd//facade.getEnumFields("ClientType");
-                    //                        }
-                    /* settValue settName settValuesList */
-                }
+                
+                width: 320
+                height: 160
+                
                 Component.onCompleted: {
-                    settMod.append({settName: "Socket Type:", settValuesList: [{ name: "TCP"},{name:"SSL"}]});
-                    settMod.append({settName: "Client Type:", settValuesList: facade.getEnumFields("ClientType")});
-                    //                              append({"icon": "2.png", value: -1});
-                    //                              append({"icon": "3.png", value: leftGrid.secondValue});
-                    //                              append({"icon": "4.png", value: leftGrid.thirdValue});
+                    /* socket type */
+                    settModel.append({settName: "Socket Type:", settValue: facade.socket, settValuesList: 
+                                         mapToBoxModel(facade.getEnumFieldsVatiant("SocketType"))});
+                    
+                    /* client type */
+                    settModel.append({settName: "Client Type:", settValuesList: 
+                                         mapToBoxModel(facade.getEnumFieldsVatiant("ClientType")) })
+                    
                     
                 }
+                
             }
             Item{
                 z:-1    

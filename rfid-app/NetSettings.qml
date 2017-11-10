@@ -1,5 +1,5 @@
 import QtQuick 2.9
-import QtQuick.Controls 1.5
+import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 
 import ScannerMainElements 1.0
@@ -13,15 +13,25 @@ Rectangle {
     property int boxHeigth: 36
     property color blockColor: "#4d4dff"
     property color itemColor: "#d67a5c"
-    property var settModel: []
+    property var settModel: ListModel{}
+    
+    function mapToBoxModel(variantMapModel){
+        var typeMap = []
+        for(var val in variantMapModel)
+            typeMap.push({name: val, value: variantMapModel[val]})
+        console.debug("in map:", JSON.stringify(variantMapModel))
+        console.debug("out model:", JSON.stringify(typeMap))
+        return typeMap
+    }
     
     Component{
         id: settDelegate
         Rectangle{
+            id: delegatRect
             radius: netSettings.genRadius
             color: netSettings.itemColor
             width: parent.width
-            height: boxVal.height+(netSettings.genSpacing)
+            height: netSettings.boxHeigth
             anchors.horizontalCenter: parent.horizontalCenter
             Row{
                 anchors.verticalCenter: parent.verticalCenter
@@ -34,8 +44,13 @@ Rectangle {
                 ComboBox{
                     id: boxVal
                     model: settValuesList
-                    anchors.verticalCenter: parent.verticalCenter
+                    textRole: 'name'
+//                    onContentItemChanged: itemChanged();
+                    currentIndex: settValue
+                    onCurrentIndexChanged: console.debug(txt.text,  boxVal.currentText+"("+boxVal.currentIndex+")")
                     
+                    anchors.verticalCenter: parent.verticalCenter
+                    height: parent.height - netSettings.genSpacing/2
                 }
             }
         }
@@ -54,9 +69,4 @@ Rectangle {
     
     color: netSettings.blockColor
     radius: netSettings.genRadius
-    border.width: 1
-    border.color: "black"
-    
-    width: 320//settView.implicitWidth+(netSettings.genSpacing*2)
-    height: 160//settView.implicitWidth+(netSettings.genSpacing*2)
 }
