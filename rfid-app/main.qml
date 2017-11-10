@@ -28,7 +28,7 @@ Window {
     property real mainRadius: 8
     property real mainSpacing: 8
     
-    Component.onCompleted: console.debug(JSON.stringify(facade.socket))
+    //    Component.onCompleted: console.debug("socket:", facade.socket)
     
     Column{
         id:mainColumn
@@ -72,40 +72,50 @@ Window {
                     stateEnum: facade.netState
                 }
             }
-            NetSettings {
-                id: netSettings
-                genSpacing: mainSpacing
-                genRadius: mainRadius
+            Column{
+                spacing: mainSpacing
+                padding: mainSpacing
                 
-                width: 320
-                height: 160
-                
-                Component.onCompleted: {
-                    /* socket type */
-                    settModel.append({settName: "Socket Type:", settValue: facade.socket, settValuesList: 
-                                         mapToBoxModel(facade.getEnumFieldsVatiant("SocketType"))});
-                    
-                    /* mode */
-                    /* msg boundaries */
-                    /* auth type */
-                    
-                    /* client type */
-                    settModel.append({settName: "Client Type:", settValuesList: 
-                                         mapToBoxModel(facade.getEnumFieldsVatiant("ClientType")) })
-                    
-                    
+                SettingsComboBox{
+                    settName: "Socket Type"
+                    settModel: mapToBoxModel(facade.getEnumFieldsVatiant("SocketType"))
+                    settValue: facade.socket
+                    onSettValueChanged: facade.socket = settValue
                 }
-                
-            }
-            Item{
-                z:-1    
-                Rectangle{
-                    height: networkFields.childrenRect.height + (mainSpacing*2)
-                    width: networkFields.childrenRect.width + (mainSpacing*2)
+                SettingsComboBox{
+                    settName: "Client Type"
+                    settModel: mapToBoxModel(facade.getEnumFieldsVatiant("ClientType"))
+                    settValue: facade.clientType
+                    onSettValueChanged: facade.clientType = settValue
+                }
+                SettingsComboBox{
+                    settName: "Proto Bound"
+                    settModel: mapToBoxModel(facade.getEnumFieldsVatiant("MsgBound"))
+                    settValue: facade.msgBoundaries
+                    onSettValueChanged: facade.msgBoundaries = settValue
+                }
+                SettingsComboBox{
+                    settName: "Client Mode"
+                    settModel: mapToBoxModel(facade.getEnumFieldsVatiant("NetModeEnum"))
+                    settValue: facade.mode
+                    onSettValueChanged: facade.mode = settValue
+                }
+                SettingsComboBox{
+                    settName: "Auth Type"
+                    settModel: mapToBoxModel(facade.getEnumFieldsVatiant("AuthType"))
+                    settValue: facade.authType
+                    onSettValueChanged: facade.authType = settValue
+                }                
+                Background {
                     radius: mainRadius
-                    color: "#80bfff"
                 }
             }
+            
+            Background{
+                radius: mainRadius
+                color: "#90cf70"
+            }
+            
         }
         
         Row{
@@ -113,26 +123,25 @@ Window {
             spacing: mainSpacing
             padding: mainSpacing
             
-            Rectangle{
-                height: 100
-                width: 180
-                color: "purple"
+            
+            CtrlBtns {
                 radius: mainRadius
+                onConnectSignal: facade.connectToScanner()
+                onDisconnectSignal: facade.disconnectFromScanner()
+                reconnReq: facade.isScannerReconReq
+                connBtnTxt: "Attach"
+                disconnBtnTxt: "Dethach"
             }
+            
             Rectangle{
                 height: 100
                 width: 105
                 color: "green"
                 radius: mainRadius
             }
-            Item{
-                z:-1
-                Rectangle{
-                    height: scannerFields.height
-                    width: scannerFields.width
-                    radius: mainRadius
-                    color: "#ff9999"
-                }
+            Background{
+                radius: mainRadius
+                color: "#ff9999"
             }
         }
     }

@@ -46,7 +46,7 @@ class ScannerFacade : public Eventful
     /*N R*/ Q_PROPERTY(QString     password        READ password        WRITE setPassword        NOTIFY passwordChanged)
     /* I */ Q_PROPERTY(NetStateEnum netState       READ netState                                 NOTIFY netStateChanged)
     /* I */ Q_PROPERTY(QString     netStateMsg     READ netStateMsg                              NOTIFY netStateMsgChanged)
-    /*  C*/ //Q_PROPERTY(AuthType    authType        READ authType        /*WRITE setAuthType*/      /*NOTIFY authTypeChanged*/)
+    /*  C*/ Q_PROPERTY(AuthType    authType        READ authType        WRITE setAuthType        NOTIFY authTypeChanged)
     /*   */     /* commander */
     /*   */ Q_PROPERTY(NetModeEnum mode            READ mode            WRITE setMode            NOTIFY modeChanged)
     /*   */ Q_PROPERTY(uint        msgTxRepeatSec  READ msgTxRepeatSec  WRITE setMsgTxRepeatSec  NOTIFY msgTxRepeatSecChanged)
@@ -86,7 +86,7 @@ public:
     };
     enum ClientType{V1Basic};
     enum SocketType{TCP, SSL};
-    enum MsgBound{SIMPLE, BOUND_V1};
+    enum MsgBound{RAW, BOUND_V1};
     enum AuthType{JSON, BASE64};
     Q_ENUM(NetSettState)
     Q_ENUM(ClientType)
@@ -121,6 +121,7 @@ public:
     quint16 port() const;
     QString username() const;
     QString password() const;
+    AuthType authType() const;
     /* settings: realtime */
     NetModeEnum mode() const;
     uint msgTxRepeatSec() const;
@@ -143,6 +144,7 @@ public:
     uint unreadToDelSec() const;
     TagFieldLeftRuleEnum tagLeftRule() const;
     
+    
 public slots:
     /*** LOGGER ***/
     void setLogfile(QString logfile);
@@ -162,6 +164,7 @@ public slots:
     void setPort(quint16 port);
     void setUsername(QString username);
     void setPassword(QString password);
+    void setAuthType(AuthType authType);
     /* settings: realtime */
     void setMode(NetModeEnum mode);
     void setMsgTxRepeatSec(uint msgTxRepeatSec);
@@ -189,6 +192,7 @@ public slots:
     /*** SERVISE ***/
     QMap<QString, int> getEnumFields(QString enuemeration);
     QVariant getEnumFieldsVatiant(QString enuemeration);
+    
     
     
 signals:
@@ -236,6 +240,8 @@ signals:
     
     
     /**** private ************************************************************/
+    void authTypeChanged(AuthType authType);
+    
 private slots:
      /*** NETWORK ***/
     void netStateChangedHandler(const NetClientState *state);
@@ -295,6 +301,7 @@ private:
     //QThread sysManengerThread;
     //QScopedPointer<System> system;
     
+    AuthType m_authType;
 };
 
 #endif // SCANNERFACADE_H

@@ -5,12 +5,15 @@ import QtQuick.Controls 1.5
 Rectangle{   
     signal connectSignal()
     signal disconnectSignal()
-    property real btnsWidth: 100
-    property real btnsHeight: 25
     property bool reconnReq: false
     
+    property int btnsWidth: 100
+    property int btnsHeight: 25
     color: "#ffdf80"
     radius: 6
+    
+    property string connBtnTxt: qsTr("Connect")
+    property string disconnBtnTxt: qsTr("Disconnect")
         
     Column{
         id: col
@@ -20,14 +23,14 @@ Rectangle{
             id: connectBtn
             width: disconnectBtn.width
             height: disconnectBtn.height
-            text: qsTr("Connect")
+            text: connBtnTxt
             onClicked: connectSignal()
         }
         Button {
             id: disconnectBtn
             width: btnsWidth
             height: btnsHeight
-            text: qsTr("Disconnect")
+            text: disconnBtnTxt
             onClicked: disconnectSignal()
         }
     }

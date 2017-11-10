@@ -345,6 +345,9 @@ QString ScannerFacade::username() const{
 QString ScannerFacade::password() const{
     return m_password;
 }
+ScannerFacade::AuthType ScannerFacade::authType() const{
+    return m_authType;
+}
 void ScannerFacade::setServer(QString server){
     if (m_server == server)
         return;
@@ -372,6 +375,14 @@ void ScannerFacade::setPassword(QString password){
     m_password = password;
     setNetReConectRequire(true);
     emit passwordChanged(m_password);
+}
+void ScannerFacade::setAuthType(ScannerFacade::AuthType authType)
+{
+    if (m_authType == authType)
+        return;
+    setNetReConectRequire(true);
+    m_authType = authType;
+    emit authTypeChanged(m_authType);
 }
 /* direct settings */
 ScannerFacade::NetModeEnum ScannerFacade::mode() const{
@@ -619,6 +630,8 @@ QVariant ScannerFacade::getEnumFieldsVatiant(QString enuemeration){
         ret[var] = QVariant::fromValue(lst[var]);
     return ret;
 }
+
+
 
 
 /***************** SYSTEM *****************/

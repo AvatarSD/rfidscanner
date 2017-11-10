@@ -6,5 +6,6 @@
         <file>StateField.qml</file>
         <file>NetSettings.qml</file>
         <file>SettingsComboBox.qml</file>
+        <file>Background.qml</file>
     </qresource>
 </RCC>
