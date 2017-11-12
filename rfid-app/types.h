@@ -22,7 +22,7 @@
 
 //#define TID_LENGHT 12
 
-//class TagMemory : public Serialaizeable
+//class TagMemory
 //{
 //public:
 //    enum TagMemoryBank{

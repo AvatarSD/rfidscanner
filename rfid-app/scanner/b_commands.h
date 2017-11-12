@@ -3,6 +3,7 @@
 
 #include <QJsonObject>
 #include <QJsonParseError>
+#include <QStringList>
 
 
 /********************** Level 2(B) ***********************/
@@ -76,45 +77,72 @@ public:
 
 };
 
-/****** ScannerRequest *****/
-class ScannerRequest
+class ScannerCommand
 {
 public:
+    enum CommandType{
+        RUN,
+        SLEEP,
+        STATUS,
+        INVENTORY
+    };
+    virtual ~ScannerCommand(){}
+    virtual CommandType type() const = 0;
+};
+
+/****** ScannerRequest *****/
+class ScannerRequest : public ScannerCommand
+{
+public:
+    
     ScannerRequest(){}
     virtual ~ScannerRequest(){}
-
-    virtual QByteArray execute(const ScannerProtocol & prot);
+//    virtual QByteArray execute(const ScannerProtocol & prot) {}
 
     // Serialaizeable interface
-    virtual QString toString() const;
-    virtual QJsonObject toJson() const;
-    virtual QJsonParseError fromJson(const QJsonObject &);
+//    virtual QString toString() const {}
+//    virtual QJsonObject toJson() const {}
+//    virtual QJsonParseError fromJson(const QJsonObject &) {}
 };
 
 /******* ScannerReply ******/
-class ScannerReply 
+class ScannerReply : public ScannerCommand
 {
 public:
     ScannerReply(){}
     virtual ~ScannerReply(){}
 
     // Serialaizeable interface
-    virtual QString toString() const;
-    virtual QJsonObject toJson() const;
+    virtual QString toString() const {}
+    virtual QJsonObject toJson() const {}
 };
 
 
 /************ Implementation **************/
 
+/******** Status ********/
+class StatusRq : public ScannerRequest
+{
+public:
+    virtual CommandType type() const {return STATUS;}
+};
+class StatusRp : public ScannerReply
+{
+public:
+    virtual CommandType type() const {return STATUS;}
+};
+
 /******** Inventory ********/
 class InventoryRq : public ScannerRequest
 {
-
+public:
+    virtual CommandType type() const {return INVENTORY;}
 };
 class InventoryRp : public ScannerReply
 {
-
+public:
+    virtual CommandType type() const {return INVENTORY;}
+    QStringList tags;
 };
-
 
 #endif // SCANNERPROTOCOL_H

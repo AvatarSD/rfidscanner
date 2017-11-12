@@ -68,6 +68,8 @@ protected slots:
 private:
     ScannerStateEnum m_status;
 };
+Q_DECLARE_METATYPE(QSharedPointer<ScannerReply>)
+Q_DECLARE_METATYPE(QSharedPointer<ScannerRequest>)
 
 
 /************ Implementation **************/
@@ -77,15 +79,36 @@ class ScannerEmulator : public Scanner
 {
     Q_OBJECT
 public:
-    ScannerEmulator(QObject * parent=nullptr) : Scanner(parent){}
+    ScannerEmulator(QObject * parent=nullptr);
     virtual ~ScannerEmulator(){}
     
 public slots:
     virtual QString isAddrValid(QString addr);
     virtual QStringList validAddrList();
-    virtual void attach(QString addr);
+    virtual void attach(QString);
     virtual void detach();
     virtual void execute(QSharedPointer<ScannerRequest>);
+private slots:
+    void inspect();
+    void inventoryRq();
+    void statusRq();
+private:
+    QTimer inspectTimer;
+    const uint readPercentMin, readPercentMax, 
+               tagsCountMin, tagsCountMax, 
+               tagNewMinTime, tagNewMaxTime,
+               tagMinTime, tagMaxTime,
+               inspectTimeMsec;
+    quint64 timeToNextNew;
+    
+    bool isRead();
+    bool isNewNeed();
+    void newTag();
+    QStringList getRandAddrs();
+    uint getRandPercent();
+    
+    // uint is a rand timestamp to del
+    QHash<QString, quint64> tagList;
 };
 
 /********** Scanner *********/
@@ -94,7 +117,7 @@ class ScannerDet : public Scanner
     Q_OBJECT
 public:
     ScannerDet(ScannerProtocol * protocol, ScannerPhy * transport,
-               QObject * parent = nullptr) : Scanner(parent) {}
+               QObject * parent = nullptr);
     virtual ~ScannerDet(){}
 public slots:
     //return null-string if yes, otherwise return err string
