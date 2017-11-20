@@ -29,7 +29,8 @@ int main(int argc, char *argv[])
     facade->setMode(NetClientModeClass::EVENT);
 
     // testing
-    //facade->connectToServer();
+    facade->connectToServer();
+    facade->connectToScanner();
 
     /********************************/
     return app.exec();

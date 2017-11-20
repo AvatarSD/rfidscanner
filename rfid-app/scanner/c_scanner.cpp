@@ -49,7 +49,7 @@ ScannerEmulator::ScannerEmulator(QObject *parent) :
     setStatus(DETHACHED);
 }
 QString ScannerEmulator::isAddrValid(QString addr){
-    return QStringLiteral("Valid: ") + addr;
+    return QStringLiteral(""); //Valid: ") + addr;
 }
 QStringList ScannerEmulator::validAddrList(){
     auto lst = getRandAddrs();

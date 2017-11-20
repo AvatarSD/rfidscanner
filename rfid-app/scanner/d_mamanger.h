@@ -179,11 +179,12 @@ public slots:
     virtual void stop();
     /*******************/
 protected slots:
-    virtual void executed(QSharedPointer<ScannerReply>);
-    virtual void scannerStatusHandler(Scanner::ScannerStateEnum);
+    virtual void executed(QSharedPointer<ScannerReply> reply);
+    virtual void scannerStatusHandler(Scanner::ScannerStateEnum state);
     void onTimer();
 private:
     QTimer timer;
+    QString lastAddr;
 };
 
 

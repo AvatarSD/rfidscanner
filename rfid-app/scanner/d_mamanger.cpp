@@ -30,7 +30,7 @@ quint32 TagStatus::unreadCount() const
 float TagStatus::readPercent() const
 {
     return (((float)readCount()) / ((float)(readCount() + unreadCount()))) *
-           MAX_PERCENT;
+            MAX_PERCENT;
 }
 void TagStatus::setStatus(TagStatus::TagStatusEnum status)
 {
@@ -46,7 +46,7 @@ void TagStatus::setFirstReadTime(QDateTime firstReadTime)
 {
     if(m_firstReadTime == firstReadTime)
         return;
-        
+    
     m_firstReadTime = firstReadTime;
     emit firstReadTimeChanged(m_firstReadTime);
 }
@@ -54,7 +54,7 @@ void TagStatus::setLastReadTime(QDateTime lastReadTime)
 {
     if(m_lastReadTime == lastReadTime)
         return;
-        
+    
     m_lastReadTime = lastReadTime;
     emit lastReadTimeChanged(m_lastReadTime);
 }
@@ -62,7 +62,7 @@ void TagStatus::setReadCount(quint32 readCount)
 {
     if(m_readCount == readCount)
         return;
-        
+    
     m_readCount = readCount;
     emit readCountChanged(m_readCount);
     emit readPercentChanged(readPercent());
@@ -71,7 +71,7 @@ void TagStatus::setUnreadCount(quint32 unreadCount)
 {
     if(m_unreadCount == unreadCount)
         return;
-        
+    
     m_unreadCount = unreadCount;
     emit unreadCountChanged(m_unreadCount);
     emit readPercentChanged(readPercent());
@@ -154,11 +154,11 @@ void ScannerManengerTagField::tagStatusHandler(const TagStatus * obj)
 #define SEC_IN_MIN 60
 #define SEC_IN_HOUR (60*SEC_IN_MIN)
 #define SEC_IN_DAY (24*SEC_IN_HOUR)
-
+    
     if(obj->status() == TagStatus::LEAVE) {
         emit sysEvent(QSharedPointer<Event>(
                           new TagLeaveEvent(obj->tag(), obj->lastReadTime())));
-                          
+        
         auto sec = obj->firstReadTime().secsTo(obj->lastReadTime());
         uint32_t dd = sec / SEC_IN_DAY;
         sec -= dd * SEC_IN_DAY;
@@ -168,13 +168,13 @@ void ScannerManengerTagField::tagStatusHandler(const TagStatus * obj)
         sec -= mm * SEC_IN_MIN;
         
         QString elps = QString::number(dd) + "d " + QString::number(hh) + "." +
-                       QString::number(mm) + "." + QString::number(sec);
-                       
+                QString::number(mm) + "." + QString::number(sec);
+        
         QString str = QStringLiteral("Tag ") + obj->tag() +
-                      " leave. Enter time: " + obj->firstReadTime().toString() +
-                      ", last time in zone: " + elps +
-                      ", total read count: " + QString::number(obj->readCount()) +
-                      " times, percent: " + QString::number(obj->readPercent()) + "%";
+                " leave. Enter time: " + obj->firstReadTime().toString() +
+                ", last time in zone: " + elps +
+                ", total read count: " + QString::number(obj->readCount()) +
+                " times, percent: " + QString::number(obj->readPercent()) + "%";
         emit sysEvent(QSharedPointer<Event>(
                           new ScannerEvent(ScannerEvent::INFO,
                                            ScannerEvent::MANENGER,
@@ -243,37 +243,65 @@ TagFieldTimings &ScannerManenger::timings()
 
 /******** ScannerManengerSimple ********/
 ScannerManengerBasicV1::ScannerManengerBasicV1(Scanner * scanner,
-                                             QObject * parent) :
-    ScannerManenger(scanner, parent) //, timer(this), scanner(scanner)
+                                               QObject * parent) :
+    ScannerManenger(scanner, parent) , timer(this)
 {
     connect(&timer, SIGNAL(timeout()), this, SLOT(onTimer()));
 }
-ScannerManengerBasicV1::~ScannerManengerBasicV1()
-{
-
+ScannerManengerBasicV1::~ScannerManengerBasicV1(){
+    stop();
 }
-void ScannerManengerBasicV1::start(QString addr)
-{
-    //    timer.start(10);
+void ScannerManengerBasicV1::start(QString addr){
+    QString valid = device->isAddrValid(addr);
+    if(valid.length() > 0){
+        emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::INFO,
+                                                             ScannerEvent::MANENGER,
+                                                             QStringLiteral("Scanner address \"") + addr +
+                                                             "\" is not valid: " + valid)));
+        stop();
+        return;
+    }
+    lastAddr = addr;
+    attach(addr);
+    timer.start(100);
+    emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::INFO,
+                                                         ScannerEvent::MANENGER,
+                                                         QStringLiteral("Scanner manenger started. "
+                                                                        "Scanner: ") + addr)));
 }
-void ScannerManengerBasicV1::stop()
-{
-    //    timer.stop();
+void ScannerManengerBasicV1::stop(){
+    timer.stop();
+    detach();
+    emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::INFO,
+                                                         ScannerEvent::MANENGER,
+                                                         QStringLiteral("Scanner manenger stopped."))));
 }
-
-void ScannerManengerBasicV1::executed(QSharedPointer<ScannerReply>)
-{
-
+void ScannerManengerBasicV1::executed(QSharedPointer<ScannerReply> reply){
+    if(reply->type() == ScannerCommand::INVENTORY){
+        auto inv = static_cast<InventoryRp*>(reply.data());
+        tagsfield.update(inv->tags);
+    }
 }
-void ScannerManengerBasicV1::onTimer()
-{
-
+void ScannerManengerBasicV1::onTimer(){
+    execute(QSharedPointer<ScannerRequest>(new InventoryRq));
 }
-
-
-
-
-
-void ScannerManengerBasicV1::scannerStatusHandler(Scanner::ScannerStateEnum)
-{
+void ScannerManengerBasicV1::scannerStatusHandler(Scanner::ScannerStateEnum state){
+    if(state == Scanner::DETHACHED)
+        if(timer.isActive()){
+            emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::WARNING,
+                                                                 ScannerEvent::MANENGER,
+                                                                 QStringLiteral("Scanner unexpect detached"))));
+            start(lastAddr);
+        } else
+            emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::WARNING,
+                                                                 ScannerEvent::MANENGER,
+                                                                 QStringLiteral("Scanner detached"))));
+    else if(state == Scanner::ATTACHED)
+        emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::WARNING,
+                                                             ScannerEvent::MANENGER,
+                                                             QStringLiteral("Scanner attached"))));
+    else if(state == Scanner::READY)
+        emit sysEvent(QSharedPointer<Event>(new ScannerEvent(InfoEvent::WARNING,
+                                                             ScannerEvent::MANENGER,
+                                                             QStringLiteral("Scanner ready"))));
 }
